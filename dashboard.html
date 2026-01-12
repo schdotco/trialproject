@@ -3,84 +3,114 @@
 <head>
   <title>Dashboard Data Kesehatan</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    body { font-family: Arial; padding: 16px; }
-    .box { padding: 10px; margin: 6px 0; background: #f2f2f2; }
+    body { font-family: Arial; background: #f4f6f9; padding: 16px; }
+    .row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .card {
+      flex: 1;
+      padding: 16px;
+      border-radius: 10px;
+      color: white;
+    }
+    .blue { background: #3b5bdb; }
+    .purple { background: #7048e8; }
+    .dark { background: #343a40; }
+    .gray { background: #495057; }
+    .white {
+      background: white; color: black;
+      padding: 16px; border-radius: 10px;
+    }
   </style>
 </head>
 <body>
 
 <h2>Dashboard Data Kesehatan</h2>
 
-<div id="ringkasan">Memuat data...</div>
+<!-- CARD ATAS -->
+<div class="row">
+  <div class="card blue">
+    <h1 id="jmlIbuHamil">0</h1>
+    Jumlah Ibu Hamil
+  </div>
+  <div class="card purple">
+    <h1 id="jmlBalita">0</h1>
+    Jumlah Balita
+  </div>
+  <div class="card dark">
+    <h1 id="jmlTB">0</h1>
+    TB Terdeteksi
+  </div>
+  <div class="card gray">
+    <h1 id="odfVal">0</h1>
+    ODF
+  </div>
+</div>
 
-<canvas id="grafik" height="120"></canvas>
+<!-- GRAFIK -->
+<div class="row">
+  <div class="white">
+    <h3>Ibu Hamil</h3>
+    <canvas id="chartIbu"></canvas>
+  </div>
+  <div class="white">
+    <h3>Balita</h3>
+    <canvas id="chartBalita"></canvas>
+  </div>
+</div>
 
-<script>
-const API = "PASTE_WEB_APP_URL_KAMU_DI_SINI";
+<div class="row">
+  <div class="white">
+    <h3>Lansia</h3>
+    <canvas id="chartLansia"></canvas>
+  </div>
+</div>
 
-fetch(API)
-  .then(res => {
-    if (!res.ok) throw new Error("API tidak bisa diakses");
-    return res.json();
-  })
-  .then(data => {
-    if (!data || data.length === 0) {
-      ringkasan.innerHTML = "Belum ada data";
-      return;
-    }
+<script type="module">
+import { db } from './js/firebase.js';
+import { collection, query, orderBy, limit, getDocs }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-    const d = data[data.length - 1];
+const q = query(
+  collection(db, "kesehatan_agregat"),
+  orderBy("createdAt", "desc"),
+  limit(1)
+);
 
-    const ibuHamilTotal = (+d[1] || 0) + (+d[2] || 0);
-    const balitaTotal = (+d[3] || 0) + (+d[4] || 0) + (+d[5] || 0);
-    const lansiaTotal = (+d[9] || 0) + (+d[10] || 0) + (+d[11] || 0);
+const snap = await getDocs(q);
+const d = snap.docs[0].data();
 
-    ringkasan.innerHTML = `
-      <div class="box"><b>Ibu Hamil</b><br>
-        Normal: ${d[1]} | Risti: ${d[2]} | Total: ${ibuHamilTotal}
-      </div>
+const ibuTotal = d.ibuHamilNormal + d.ibuHamilRisti;
+const balitaTotal = d.balitaNormal + d.balitaStunting + d.balitaGiziBuruk;
 
-      <div class="box"><b>Balita</b><br>
-        Normal: ${d[3]} | Stunting: ${d[4]} | Gizi Buruk: ${d[5]} | Total: ${balitaTotal}
-      </div>
+jmlIbuHamil.innerText = ibuTotal;
+jmlBalita.innerText = balitaTotal;
+jmlTB.innerText = d.tbTotal;
+odfVal.innerText = d.odf;
 
-      <div class="box"><b>Lainnya</b><br>
-        Disabilitas: ${d[6]}<br>
-        TB Dalam Pengobatan: ${d[7]}<br>
-        TB Terdeteksi: ${d[8]}
-      </div>
+new Chart(chartIbu, {
+  type: "pie",
+  data: {
+    labels: ["Normal", "Resiko Tinggi"],
+    datasets: [{ data: [d.ibuHamilNormal, d.ibuHamilRisti] }]
+  }
+});
 
-      <div class="box"><b>Lansia</b><br>
-        Mandiri: ${d[9]} | B: ${d[10]} | C: ${d[11]} | Total: ${lansiaTotal}
-      </div>
+new Chart(chartBalita, {
+  type: "pie",
+  data: {
+    labels: ["Normal", "Stunting", "Gizi Buruk"],
+    datasets: [{ data: [d.balitaNormal, d.balitaStunting, d.balitaGiziBuruk] }]
+  }
+});
 
-      <div class="box"><b>ODF</b>: ${d[12]}</div>
-    `;
-
-    const grafik = document.getElementById("grafik");
-
-    new Chart(grafik, {
-      type: "bar",
-      data: {
-        labels: ["Ibu Hamil", "Balita", "TB", "Lansia", "ODF"],
-        datasets: [{
-          label: "Jumlah",
-          data: [
-            ibuHamilTotal,
-            balitaTotal,
-            d[8],
-            lansiaTotal,
-            d[12]
-          ]
-        }]
-      }
-    });
-  })
-  .catch(err => {
-    ringkasan.innerHTML = "❌ Gagal memuat data<br>" + err.message;
-    console.error(err);
-  });
+new Chart(chartLansia, {
+  type: "bar",
+  data: {
+    labels: ["Mandiri", "Kategori B", "Kategori C"],
+    datasets: [{ data: [d.lansiaMandiri, d.lansiaB, d.lansiaC] }]
+  }
+});
 </script>
 
 </body>
