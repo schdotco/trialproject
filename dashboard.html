@@ -12,9 +12,7 @@
       padding: 20px;
     }
 
-    h2 {
-      margin-bottom: 10px;
-    }
+    h2 { margin-bottom: 10px; }
 
     .row {
       display: flex;
@@ -45,24 +43,17 @@
       min-width: 300px;
     }
 
-    input[type="month"] {
+    input, select, button {
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
 
     button {
-      padding: 8px 14px;
       background: #3b5bdb;
       color: white;
       border: none;
-      border-radius: 6px;
       cursor: pointer;
-      margin-left: 6px;
-    }
-
-    button:hover {
-      background: #364fc7;
     }
   </style>
 </head>
@@ -70,16 +61,19 @@
 
 <h2>Dashboard Data Kesehatan</h2>
 
-<!-- FILTER BULAN & TAHUN -->
+<!-- FILTER -->
 <div class="row">
   <div class="white">
-    <b>Pilih Bulan & Tahun:</b><br><br>
+    <b>Filter Laporan</b><br><br>
     <input type="month" id="bulanInput">
-    <button id="btnFilter">Tampilkan</button>
+    <select id="rwInput">
+      <option value="">SEMUA RW</option>
+    </select>
+    <button id="btnTampil">Tampilkan</button>
   </div>
 </div>
 
-<!-- CARD RINGKASAN -->
+<!-- CARD -->
 <div class="row">
   <div class="card blue">
     <h1 id="jmlIbuHamil">0</h1>
@@ -118,7 +112,6 @@
   </div>
 </div>
 
-<!-- SCRIPT -->
 <script type="module">
   import { db } from "./firebase.js";
   import {
@@ -131,36 +124,55 @@
   let chartIbu, chartBalita, chartLansia;
 
   const bulanInput = document.getElementById("bulanInput");
-  const btnFilter = document.getElementById("btnFilter");
+  const rwInput = document.getElementById("rwInput");
+  const btnTampil = document.getElementById("btnTampil");
 
   const chartIbuEl = document.getElementById("chartIbu");
   const chartBalitaEl = document.getElementById("chartBalita");
   const chartLansiaEl = document.getElementById("chartLansia");
 
-  // default: bulan sekarang
-  const now = new Date();
-  bulanInput.value = now.toISOString().slice(0, 7);
+  // default bulan sekarang
+  bulanInput.value = new Date().toISOString().slice(0,7);
 
-  btnFilter.addEventListener("click", () => {
-    loadDashboard(bulanInput.value);
+  // generate RW dropdown
+  for (let i = 1; i <= 16; i++) {
+    const opt = document.createElement("option");
+    opt.value = `RW.${String(i).padStart(2, "0")}`;
+    opt.textContent = opt.value;
+    rwInput.appendChild(opt);
+  }
+
+  btnTampil.addEventListener("click", () => {
+    loadDashboard(bulanInput.value, rwInput.value);
   });
 
-  async function loadDashboard(bulan) {
+  async function loadDashboard(bulan, rw) {
     try {
-      const q = query(
-        collection(db, "kesehatan_agregat"),
-        where("bulan", "==", bulan)
-      );
+      let q;
+
+      if (rw) {
+        // 🔹 1 BULAN + 1 RW (1 DOKUMEN)
+        q = query(
+          collection(db, "kesehatan_agregat"),
+          where("bulanLapor", "==", bulan),
+          where("rw", "==", rw)
+        );
+      } else {
+        // 🔹 SEMUA RW DALAM 1 BULAN
+        q = query(
+          collection(db, "kesehatan_agregat"),
+          where("bulanLapor", "==", bulan)
+        );
+      }
 
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        alert("❌ Tidak ada data untuk bulan ini");
+        alert("❌ Data tidak ditemukan");
         resetDashboard();
         return;
       }
 
-      // 🔹 Rekap per bulan
       let d = {
         ibuHamilNormal: 0,
         ibuHamilRisti: 0,
@@ -189,13 +201,12 @@
       });
 
       const ibuTotal = d.ibuHamilNormal + d.ibuHamilRisti;
-      const balitaTotal =
-        d.balitaNormal + d.balitaStunting + d.balitaGiziBuruk;
+      const balitaTotal = d.balitaNormal + d.balitaStunting + d.balitaGiziBuruk;
 
-      document.getElementById("jmlIbuHamil").innerText = ibuTotal;
-      document.getElementById("jmlBalita").innerText = balitaTotal;
-      document.getElementById("jmlTB").innerText = d.tbTotal;
-      document.getElementById("odfVal").innerText = d.odf;
+      jmlIbuHamil.innerText = ibuTotal;
+      jmlBalita.innerText = balitaTotal;
+      jmlTB.innerText = d.tbTotal;
+      odfVal.innerText = d.odf;
 
       if (chartIbu) chartIbu.destroy();
       if (chartBalita) chartBalita.destroy();
@@ -205,9 +216,7 @@
         type: "pie",
         data: {
           labels: ["Normal", "Risiko Tinggi"],
-          datasets: [{
-            data: [d.ibuHamilNormal, d.ibuHamilRisti]
-          }]
+          datasets: [{ data: [d.ibuHamilNormal, d.ibuHamilRisti] }]
         }
       });
 
@@ -216,11 +225,7 @@
         data: {
           labels: ["Normal", "Stunting", "Gizi Buruk"],
           datasets: [{
-            data: [
-              d.balitaNormal,
-              d.balitaStunting,
-              d.balitaGiziBuruk
-            ]
+            data: [d.balitaNormal, d.balitaStunting, d.balitaGiziBuruk]
           }]
         }
       });
@@ -230,18 +235,14 @@
         data: {
           labels: ["Mandiri", "Kategori B", "Kategori C"],
           datasets: [{
-            data: [
-              d.lansiaMandiri,
-              d.lansiaB,
-              d.lansiaC
-            ]
+            data: [d.lansiaMandiri, d.lansiaB, d.lansiaC]
           }]
         }
       });
 
     } catch (err) {
-      console.error("❌ Error dashboard:", err);
-      alert("Gagal memuat dashboard");
+      console.error(err);
+      alert("❌ Gagal memuat dashboard");
     }
   }
 
@@ -253,7 +254,7 @@
   }
 
   // load awal
-  loadDashboard(bulanInput.value);
+  loadDashboard(bulanInput.value, "");
 </script>
 
 </body>
