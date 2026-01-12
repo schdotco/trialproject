@@ -1,147 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard Data Kesehatan</title>
+  <title>Dashboard Kesehatan</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body { font-family: Arial; margin: 20px; }
-    .card { display: inline-block; padding: 15px; margin: 10px;
-            border-radius: 8px; background: #f4f6f8; }
-    table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    input, select { padding: 6px; margin: 5px; }
-  </style>
 </head>
 <body>
 
 <h2>Dashboard Data Kesehatan</h2>
 
-<!-- DATA AGREGAT -->
-<div id="summary">
-  <div class="card">Ibu Hamil: <b id="ibuHamil">0</b></div>
-  <div class="card">Balita: <b id="balita">0</b></div>
-  <div class="card">Lansia: <b id="lansia">0</b></div>
-  <div class="card">TB: <b id="tb">0</b></div>
-</div>
+<div id="ringkasan"></div>
 
-<!-- GRAFIK -->
-<canvas id="chart" height="80"></canvas>
-
-<hr>
-
-<!-- INPUT DATA -->
-<h3>Input Data</h3>
-<input id="nama" placeholder="Nama">
-<input id="alamat" placeholder="Alamat">
-<input id="rt" placeholder="RT">
-
-<select id="kategori">
-  <option>Ibu Hamil</option>
-  <option>Balita</option>
-  <option>Lansia</option>
-  <option>TB</option>
-</select>
-
-<select id="status">
-  <option>Normal</option>
-  <option>Risti</option>
-  <option>Stunting</option>
-  <option>Gizi Buruk</option>
-  <option>Dalam Pengobatan</option>
-</select>
-
-<button onclick="simpanData()">Simpan Data</button>
-
-<hr>
-
-<!-- DATA TABEL -->
-<h3>Data By Name & Address</h3>
-<table>
-  <thead>
-    <tr>
-      <th>Nama</th>
-      <th>Alamat</th>
-      <th>RT</th>
-      <th>Kategori</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody id="dataTable"></tbody>
-</table>
+<canvas id="grafik" height="90"></canvas>
 
 <script>
-const API_URL = "PASTE_WEB_APP_URL_DI_SINI";
-let chart;
+const API = "PASTE_WEB_APP_URL";
 
-function loadData() {
-  fetch(API_URL)
-    .then(res => res.json())
-    .then(data => {
-      renderTable(data);
-      renderSummary(data);
-      renderChart(data);
+fetch(API)
+  .then(r => r.json())
+  .then(data => {
+    const d = data[data.length - 1]; // data terakhir
+
+    const ibuHamilTotal = +d[1] + +d[2];
+    const balitaTotal = +d[3] + +d[4] + +d[5];
+
+    ringkasan.innerHTML = `
+      <h3>Ibu Hamil</h3>
+      Normal: ${d[1]} | Risti: ${d[2]} | <b>Total: ${ibuHamilTotal}</b>
+
+      <h3>Balita</h3>
+      Normal: ${d[3]} | Stunting: ${d[4]} | Gizi Buruk: ${d[5]}
+      | <b>Total: ${balitaTotal}</b>
+
+      <h3>Lainnya</h3>
+      Disabilitas: ${d[6]}<br>
+      TB Dalam Pengobatan: ${d[7]}<br>
+      TB Terdeteksi: ${d[8]}
+
+      <h3>Lansia</h3>
+      Mandiri: ${d[9]} | B: ${d[10]} | C: ${d[11]}
+
+      <h3>ODF</h3>
+      ${d[12]}
+    `;
+
+    new Chart(grafik, {
+      type: "bar",
+      data: {
+        labels: [
+          "Ibu Hamil",
+          "Balita",
+          "TB",
+          "Lansia",
+          "ODF"
+        ],
+        datasets: [{
+          data: [
+            ibuHamilTotal,
+            balitaTotal,
+            d[8],
+            (+d[9] + +d[10] + +d[11]),
+            d[12]
+          ]
+        }]
+      }
     });
-}
-
-function simpanData() {
-  const data = {
-    nama: nama.value,
-    alamat: alamat.value,
-    rt: rt.value,
-    kategori: kategori.value,
-    status: status.value
-  };
-
-  fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  }).then(() => {
-    loadData();
-    alert("Data berhasil disimpan");
   });
-}
-
-function renderTable(data) {
-  dataTable.innerHTML = "";
-  data.forEach(r => {
-    dataTable.innerHTML += `
-      <tr>
-        <td>${r[1]}</td>
-        <td>${r[2]}</td>
-        <td>${r[3]}</td>
-        <td>${r[4]}</td>
-        <td>${r[5]}</td>
-      </tr>`;
-  });
-}
-
-function renderSummary(data) {
-  let count = { "Ibu Hamil":0, Balita:0, Lansia:0, TB:0 };
-
-  data.forEach(r => count[r[4]]++);
-
-  ibuHamil.innerText = count["Ibu Hamil"];
-  balita.innerText = count["Balita"];
-  lansia.innerText = count["Lansia"];
-  tb.innerText = count["TB"];
-}
-
-function renderChart(data) {
-  let count = { "Ibu Hamil":0, Balita:0, Lansia:0, TB:0 };
-  data.forEach(r => count[r[4]]++);
-
-  if (chart) chart.destroy();
-
-  chart = new Chart(chartCanvas, {
-    type: "bar",
-    data: {
-      labels: Object.keys(count),
-      datasets: [{ data: Object.values(count) }]
-    }
-  });
-}
-
-loadData();
 </script>
 
 </body>
