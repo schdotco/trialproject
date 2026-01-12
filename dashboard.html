@@ -1,29 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard Data Kesehatan</title>
+<meta charset="UTF-8">
+<title>Dashboard Data Kesehatan</title>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
-  <!-- jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-
-  <style>
-    body { font-family: Arial; background:#f4f6f9; padding:20px; }
-    h2 { margin-bottom:10px; }
-    .row { display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
-    .card { flex:1; padding:16px; border-radius:10px; color:white; min-width:200px; }
-    .blue { background:#3b5bdb; }
-    .purple { background:#7048e8; }
-    .dark { background:#343a40; }
-    .gray { background:#495057; }
-    .white { background:white; color:black; padding:16px; border-radius:10px; flex:1; min-width:300px; }
-    input, select, button { padding:8px; border-radius:6px; border:1px solid #ccc; }
-    button { background:#3b5bdb; color:white; border:none; cursor:pointer; }
-  </style>
+<style>
+body{font-family:Arial;background:#f4f6f9;padding:20px}
+.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.card{flex:1;padding:16px;border-radius:10px;color:#fff;min-width:200px}
+.blue{background:#3b5bdb}.purple{background:#7048e8}
+.dark{background:#343a40}.gray{background:#495057}
+.white{background:#fff;padding:16px;border-radius:10px;flex:1;min-width:300px}
+input,select,button{padding:8px;border-radius:6px;border:1px solid #ccc}
+button{background:#3b5bdb;color:#fff;border:none;cursor:pointer}
+</style>
 </head>
 <body>
 
@@ -31,34 +25,40 @@
 
 <!-- FILTER -->
 <div class="row">
-  <div class="white">
-    <b>Filter Laporan</b><br><br>
-    <input type="month" id="bulanInput">
-    <select id="rwInput">
-      <option value="">SEMUA RW</option>
-    </select>
-    <button id="btnTampil">Tampilkan</button>
-    <button id="btnExport">Export PDF</button>
-  </div>
+<div class="white">
+<b>Filter</b><br><br>
+<input type="month" id="bulanInput">
+<select id="rwInput"><option value="">SEMUA RW</option></select>
+<button id="btnTampil">Tampilkan</button>
+<button id="btnExport">Export PDF</button>
+</div>
 </div>
 
 <!-- CARD -->
 <div class="row">
-  <div class="card blue"><h1 id="jmlIbuHamil">0</h1>Jumlah Ibu Hamil</div>
-  <div class="card purple"><h1 id="jmlBalita">0</h1>Jumlah Balita</div>
-  <div class="card dark"><h1 id="jmlTB">0</h1>TB Terdeteksi</div>
-  <div class="card gray"><h1 id="odfVal">0</h1>ODF</div>
+<div class="card blue"><h1 id="jmlIbuHamil">0</h1>Ibu Hamil</div>
+<div class="card purple"><h1 id="jmlBalita">0</h1>Balita</div>
+<div class="card dark"><h1 id="jmlTB">0</h1>TB</div>
+<div class="card gray"><h1 id="jmlDis">0</h1>Disabilitas</div>
 </div>
 
-<!-- GRAFIK -->
+<!-- GRAFIK UTAMA -->
 <div class="row">
-  <div class="white"><h3>Ibu Hamil</h3><canvas id="chartIbu"></canvas></div>
-  <div class="white"><h3>Balita</h3><canvas id="chartBalita"></canvas></div>
+<div class="white"><h3>Ibu Hamil</h3><canvas id="chartIbu"></canvas></div>
+<div class="white"><h3>Balita</h3><canvas id="chartBalita"></canvas></div>
 </div>
 
 <div class="row">
-  <div class="white"><h3>Lansia</h3><canvas id="chartLansia"></canvas></div>
-  <div class="white"><h3>TB</h3><canvas id="chartTB"></canvas></div>
+<div class="white"><h3>TB</h3><canvas id="chartTB"></canvas></div>
+<div class="white"><h3>Disabilitas</h3><canvas id="chartDis"></canvas></div>
+</div>
+
+<div class="row">
+<div class="white"><h3>Perbandingan RW</h3><canvas id="chartRW"></canvas></div>
+</div>
+
+<div class="row">
+<div class="white"><h3>Tren Januari - Desember</h3><canvas id="chartTrend"></canvas></div>
 </div>
 
 <script type="module">
@@ -68,133 +68,102 @@ from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const { jsPDF } = window.jspdf;
 
-let chartIbu, chartBalita, chartLansia, chartTB;
-let lastSnapshot = [];
+let chartIbu, chartBalita, chartTB, chartDis, chartRW, chartTrend;
+let lastSnapshot=[];
 
-// ✅ FIX: ambil canvas element
-const chartIbuEl = document.getElementById("chartIbu");
-const chartBalitaEl = document.getElementById("chartBalita");
-const chartLansiaEl = document.getElementById("chartLansia");
-const chartTBEl = document.getElementById("chartTB");
+const bulanInput=document.getElementById("bulanInput");
+const rwInput=document.getElementById("rwInput");
+bulanInput.value=new Date().toISOString().slice(0,7);
 
-const bulanInput = document.getElementById("bulanInput");
-const rwInput = document.getElementById("rwInput");
+["chartIbu","chartBalita","chartTB","chartDis","chartRW","chartTrend"]
+.forEach(id=>window[id+"El"]=document.getElementById(id));
 
-bulanInput.value = new Date().toISOString().slice(0,7);
-
-// generate RW
-for (let i=1;i<=16;i++){
-  const o=document.createElement("option");
-  o.value=`RW.${String(i).padStart(2,"0")}`;
-  o.textContent=o.value;
-  rwInput.appendChild(o);
+for(let i=1;i<=16;i++){
+ let o=document.createElement("option");
+ o.value=`RW.${String(i).padStart(2,"0")}`;
+ o.textContent=o.value;
+ rwInput.appendChild(o);
 }
 
 btnTampil.onclick=()=>loadDashboard(bulanInput.value,rwInput.value);
 btnExport.onclick=()=>exportPDF(bulanInput.value,rwInput.value);
 
-// ================= LOAD DASHBOARD =================
 async function loadDashboard(bulan,rw){
-  let q = rw
-    ? query(collection(db,"kesehatan_agregat"),
-        where("bulanLapor","==",bulan),
-        where("rw","==",rw))
-    : query(collection(db,"kesehatan_agregat"),
-        where("bulanLapor","==",bulan));
+ let q=rw?
+ query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",bulan),where("rw","==",rw)):
+ query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",bulan));
 
-  const snap = await getDocs(q);
-  if (snap.empty){ alert("Data tidak ditemukan"); return; }
+ const snap=await getDocs(q);
+ if(snap.empty){alert("Data kosong");return;}
 
-  lastSnapshot = [];
-  let d={ ibuHamilNormal:0, ibuHamilRisti:0,
-          balitaNormal:0, balitaStunting:0, balitaGiziBuruk:0,
-          tbTotal:0,
-          lansiaMandiri:0, lansiaB:0, lansiaC:0,
-          odf:0 };
+ lastSnapshot=[];
+ let total={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
 
-  snap.forEach(doc=>{
-    const x=doc.data();
-    lastSnapshot.push(x);
-    d.ibuHamilNormal+=x.ibuHamilNormal||0;
-    d.ibuHamilRisti+=x.ibuHamilRisti||0;
-    d.balitaNormal+=x.balitaNormal||0;
-    d.balitaStunting+=x.balitaStunting||0;
-    d.balitaGiziBuruk+=x.balitaGiziBuruk||0;
-    d.tbTotal+=x.tbTotal||0;
-    d.lansiaMandiri+=x.lansiaMandiri||0;
-    d.lansiaB+=x.lansiaB||0;
-    d.lansiaC+=x.lansiaC||0;
-    d.odf=Math.max(d.odf,x.odf||0);
-  });
+ let perRW={};
 
-  jmlIbuHamil.innerText=d.ibuHamilNormal+d.ibuHamilRisti;
-  jmlBalita.innerText=d.balitaNormal+d.balitaStunting+d.balitaGiziBuruk;
-  jmlTB.innerText=d.tbTotal;
-  odfVal.innerText=d.odf;
+ snap.forEach(d=>{
+  const x=d.data(); lastSnapshot.push(x);
+  total.ihN+=x.ibuHamilNormal||0;
+  total.ihR+=x.ibuHamilRisti||0;
+  total.bN+=x.balitaNormal||0;
+  total.bS+=x.balitaStunting||0;
+  total.bG+=x.balitaGiziBuruk||0;
+  total.tbT+=x.tbTotal||0;
+  total.tbP+=x.tbPengobatan||0;
+  total.dis+=x.disabilitas||0;
 
-  if(chartIbu)chartIbu.destroy();
-  if(chartBalita)chartBalita.destroy();
-  if(chartLansia)chartLansia.destroy();
-  if(chartTB)chartTB.destroy();
+  if(!perRW[x.rw])perRW[x.rw]=0;
+  perRW[x.rw]+=x.ibuHamilNormal+x.ibuHamilRisti+x.balitaNormal+x.balitaStunting+x.balitaGiziBuruk;
+ });
 
-  chartIbu=new Chart(chartIbuEl,{
-    type:"pie",
-    data:{ labels:["Normal","Risiko Tinggi"],
-      datasets:[{data:[d.ibuHamilNormal,d.ibuHamilRisti]}]}
-  });
+ jmlIbuHamil.innerText=total.ihN+total.ihR;
+ jmlBalita.innerText=total.bN+total.bS+total.bG;
+ jmlTB.innerText=total.tbT;
+ jmlDis.innerText=total.dis;
 
-  chartBalita=new Chart(chartBalitaEl,{
-    type:"pie",
-    data:{ labels:["Normal","Stunting","Gizi Buruk"],
-      datasets:[{data:[d.balitaNormal,d.balitaStunting,d.balitaGiziBuruk]}]}
-  });
+ destroyCharts();
 
-  chartLansia=new Chart(chartLansiaEl,{
-    type:"bar",
-    data:{ labels:["Mandiri","Kategori B","Kategori C"],
-      datasets:[{label:"Jumlah",data:[d.lansiaMandiri,d.lansiaB,d.lansiaC]}]}
-  });
-
-  chartTB=new Chart(chartTBEl,{
-    type:"bar",
-    data:{ labels:["TB Terdeteksi"],
-      datasets:[{label:"Jumlah TB",data:[d.tbTotal]}]}
-  });
+ chartIbu=new Chart(chartIbuEl,{type:"pie",data:{labels:["Normal","Risti"],datasets:[{data:[total.ihN,total.ihR]}]}});
+ chartBalita=new Chart(chartBalitaEl,{type:"pie",data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[total.bN,total.bS,total.bG]}]}});
+ chartTB=new Chart(chartTBEl,{type:"bar",data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[total.tbP,total.tbT]}]}});
+ chartDis=new Chart(chartDisEl,{type:"bar",data:{labels:["Disabilitas"],datasets:[{data:[total.dis]}]}});
+ chartRW=new Chart(chartRWEl,{type:"bar",data:{labels:Object.keys(perRW),datasets:[{label:"Total Kasus",data:Object.values(perRW)}]}});
+ loadTrend(rw);
 }
 
-// ================= EXPORT PDF =================
+async function loadTrend(rw){
+ let months=[...Array(12)].map((_,i)=>`${bulanInput.value.slice(0,4)}-${String(i+1).padStart(2,"0")}`);
+ let values=[];
+ for(let m of months){
+  let q=rw?
+  query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",m),where("rw","==",rw)):
+  query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",m));
+  const s=await getDocs(q);
+  let sum=0;
+  s.forEach(d=>{const x=d.data();sum+=x.ibuHamilNormal+x.ibuHamilRisti});
+  values.push(sum);
+ }
+ chartTrend=new Chart(chartTrendEl,{type:"line",data:{labels:months,datasets:[{label:"Ibu Hamil",data:values}]}})
+}
+
+function destroyCharts(){
+ [chartIbu,chartBalita,chartTB,chartDis,chartRW,chartTrend].forEach(c=>{if(c)c.destroy()});
+}
+
 function exportPDF(bulan,rw){
-  if(lastSnapshot.length===0){ alert("Tampilkan data dulu"); return; }
-
-  const pdf=new jsPDF();
-  pdf.text("LAPORAN DATA KESEHATAN",14,15);
-  pdf.text(`Bulan: ${bulan}`,14,22);
-  pdf.text(`RW: ${rw||"SEMUA RW"}`,14,27);
-
-  pdf.addImage(chartIbu.toBase64Image(),"PNG",14,35,80,55);
-  pdf.addImage(chartBalita.toBase64Image(),"PNG",110,35,80,55);
-  pdf.addImage(chartLansia.toBase64Image(),"PNG",14,95,80,55);
-  pdf.addImage(chartTB.toBase64Image(),"PNG",110,95,80,55);
-
-  const rows = lastSnapshot.map(d=>[
-    d.rw,
-    d.ibuHamilNormal+d.ibuHamilRisti,
-    d.balitaNormal+d.balitaStunting+d.balitaGiziBuruk,
-    d.tbTotal,
-    d.lansiaMandiri+d.lansiaB+d.lansiaC,
-    d.odf
-  ]);
-
-  pdf.autoTable({
-    startY:160,
-    head:[["RW","Ibu Hamil","Balita","TB","Lansia","ODF"]],
-    body:rows
-  });
-
-  pdf.save(`Laporan_Kesehatan_${bulan}_${rw||"SEMUA_RW"}.pdf`);
+ if(!lastSnapshot.length){alert("Tampilkan data dulu");return;}
+ const pdf=new jsPDF();
+ pdf.text("LAPORAN DATA KESEHATAN",14,15);
+ pdf.text(`Bulan: ${bulan}`,14,22);
+ pdf.text(`RW: ${rw||"SEMUA RW"}`,14,27);
+ pdf.addImage(chartIbu.toBase64Image(),"PNG",14,35,80,50);
+ pdf.addImage(chartBalita.toBase64Image(),"PNG",110,35,80,50);
+ pdf.addImage(chartTB.toBase64Image(),"PNG",14,90,80,50);
+ pdf.addImage(chartDis.toBase64Image(),"PNG",110,90,80,50);
+ pdf.addImage(chartRW.toBase64Image(),"PNG",14,145,180,50);
+ pdf.save(`Laporan_${bulan}_${rw||"SEMUA_RW"}.pdf`);
 }
 
-// load awal
 loadDashboard(bulanInput.value,"");
 </script>
 
