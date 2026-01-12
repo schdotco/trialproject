@@ -1,69 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard Kesehatan</title>
+  <title>Dashboard Data Kesehatan</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; padding: 16px; }
+    .box { padding: 10px; margin: 6px 0; background: #f2f2f2; }
+  </style>
 </head>
 <body>
 
 <h2>Dashboard Data Kesehatan</h2>
 
-<div id="ringkasan"></div>
+<div id="ringkasan">Memuat data...</div>
 
-<canvas id="grafik" height="90"></canvas>
+<canvas id="grafik" height="120"></canvas>
 
 <script>
-const API = "PASTE_WEB_APP_URL";
+const API = "PASTE_WEB_APP_URL_KAMU_DI_SINI";
 
 fetch(API)
-  .then(r => r.json())
+  .then(res => {
+    if (!res.ok) throw new Error("API tidak bisa diakses");
+    return res.json();
+  })
   .then(data => {
-    const d = data[data.length - 1]; // data terakhir
+    if (!data || data.length === 0) {
+      ringkasan.innerHTML = "Belum ada data";
+      return;
+    }
 
-    const ibuHamilTotal = +d[1] + +d[2];
-    const balitaTotal = +d[3] + +d[4] + +d[5];
+    const d = data[data.length - 1];
+
+    const ibuHamilTotal = (+d[1] || 0) + (+d[2] || 0);
+    const balitaTotal = (+d[3] || 0) + (+d[4] || 0) + (+d[5] || 0);
+    const lansiaTotal = (+d[9] || 0) + (+d[10] || 0) + (+d[11] || 0);
 
     ringkasan.innerHTML = `
-      <h3>Ibu Hamil</h3>
-      Normal: ${d[1]} | Risti: ${d[2]} | <b>Total: ${ibuHamilTotal}</b>
+      <div class="box"><b>Ibu Hamil</b><br>
+        Normal: ${d[1]} | Risti: ${d[2]} | Total: ${ibuHamilTotal}
+      </div>
 
-      <h3>Balita</h3>
-      Normal: ${d[3]} | Stunting: ${d[4]} | Gizi Buruk: ${d[5]}
-      | <b>Total: ${balitaTotal}</b>
+      <div class="box"><b>Balita</b><br>
+        Normal: ${d[3]} | Stunting: ${d[4]} | Gizi Buruk: ${d[5]} | Total: ${balitaTotal}
+      </div>
 
-      <h3>Lainnya</h3>
-      Disabilitas: ${d[6]}<br>
-      TB Dalam Pengobatan: ${d[7]}<br>
-      TB Terdeteksi: ${d[8]}
+      <div class="box"><b>Lainnya</b><br>
+        Disabilitas: ${d[6]}<br>
+        TB Dalam Pengobatan: ${d[7]}<br>
+        TB Terdeteksi: ${d[8]}
+      </div>
 
-      <h3>Lansia</h3>
-      Mandiri: ${d[9]} | B: ${d[10]} | C: ${d[11]}
+      <div class="box"><b>Lansia</b><br>
+        Mandiri: ${d[9]} | B: ${d[10]} | C: ${d[11]} | Total: ${lansiaTotal}
+      </div>
 
-      <h3>ODF</h3>
-      ${d[12]}
+      <div class="box"><b>ODF</b>: ${d[12]}</div>
     `;
+
+    const grafik = document.getElementById("grafik");
 
     new Chart(grafik, {
       type: "bar",
       data: {
-        labels: [
-          "Ibu Hamil",
-          "Balita",
-          "TB",
-          "Lansia",
-          "ODF"
-        ],
+        labels: ["Ibu Hamil", "Balita", "TB", "Lansia", "ODF"],
         datasets: [{
+          label: "Jumlah",
           data: [
             ibuHamilTotal,
             balitaTotal,
             d[8],
-            (+d[9] + +d[10] + +d[11]),
+            lansiaTotal,
             d[12]
           ]
         }]
       }
     });
+  })
+  .catch(err => {
+    ringkasan.innerHTML = "❌ Gagal memuat data<br>" + err.message;
+    console.error(err);
   });
 </script>
 
