@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h2>Data Agregat Kesehatan</h2>
+
+<div class="card">
+  <p>Ibu Hamil Normal: <b>45</b></p>
+  <p>Ibu Hamil Risti: <b>12</b></p>
+  <p>Balita Stunting: <b>9</b></p>
+  <p>Gizi Buruk: <b>3</b></p>
+</div>
+
+<canvas id="grafikKesehatan"></canvas>
+
+<button onclick="window.location.href='detail.html'">
+  Lihat Data By Name & Address
+</button>
+
+<script>
+const ctx = document.getElementById('grafikKesehatan');
+
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Ibu Hamil', 'Balita', 'Lansia', 'TB'],
+    datasets: [{
+      label: 'Jumlah Kasus',
+      data: [57, 35, 40, 6],
+    }]
+  }
+});
+</script>
+
+</body>
+</html>
