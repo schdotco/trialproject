@@ -27,37 +27,40 @@
 <input id="lC" type="number" placeholder="Kategori C">
 
 <h3>Sanitasi</h3>
-<input id="odf" type="number" placeholder="ODF">
+<input id="odf" type="number" placeholder="ODF (0/1)">
 
 <br><br>
 <button onclick="simpan()">Simpan Data</button>
 
-<script>
-const API = "PASTE_WEB_APP_URL";
+<script type="module">
+import { db } from './js/firebase.js';
+import { collection, addDoc, serverTimestamp }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-function simpan() {
-  const data = {
-    ihNormal: ihNormal.value,
-    ihRisti: ihRisti.value,
-    bNormal: bNormal.value,
-    bStunting: bStunting.value,
-    bGizi: bGizi.value,
-    disabilitas: disabilitas.value,
-    tbPengobatan: tbPengobatan.value,
-    tbTotal: tbTotal.value,
-    lMandiri: lMandiri.value,
-    lB: lB.value,
-    lC: lC.value,
-    odf: odf.value
-  };
+async function simpan() {
+  await addDoc(collection(db, "kesehatan_agregat"), {
+    ibuHamilNormal: +ihNormal.value,
+    ibuHamilRisti: +ihRisti.value,
 
-  fetch(API, {
-    method: "POST",
-    body: JSON.stringify(data)
-  }).then(() => {
-    alert("Data berhasil disimpan");
-    location.href = "dashboard.html";
+    balitaNormal: +bNormal.value,
+    balitaStunting: +bStunting.value,
+    balitaGiziBuruk: +bGizi.value,
+
+    disabilitas: +disabilitas.value,
+
+    tbPengobatan: +tbPengobatan.value,
+    tbTotal: +tbTotal.value,
+
+    lansiaMandiri: +lMandiri.value,
+    lansiaB: +lB.value,
+    lansiaC: +lC.value,
+
+    odf: +odf.value,
+    createdAt: serverTimestamp()
   });
+
+  alert("Data berhasil disimpan");
+  location.href = "dashboard.html";
 }
 </script>
 
