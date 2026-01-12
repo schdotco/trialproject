@@ -7,26 +7,21 @@
 
 <h2>Input Data Agregat Kesehatan</h2>
 
-<h3>Ibu Hamil</h3>
-<input id="ihNormal" type="number" placeholder="Normal">
-<input id="ihRisti" type="number" placeholder="Resiko Tinggi">
+<input id="ihNormal" type="number" placeholder="Ibu Hamil Normal">
+<input id="ihRisti" type="number" placeholder="Ibu Hamil Risti">
 
-<h3>Balita</h3>
-<input id="bNormal" type="number" placeholder="Normal">
-<input id="bStunting" type="number" placeholder="Stunting">
-<input id="bGizi" type="number" placeholder="Gizi Buruk">
+<input id="bNormal" type="number" placeholder="Balita Normal">
+<input id="bStunting" type="number" placeholder="Balita Stunting">
+<input id="bGizi" type="number" placeholder="Balita Gizi Buruk">
 
-<h3>Lainnya</h3>
 <input id="disabilitas" type="number" placeholder="Disabilitas">
 <input id="tbPengobatan" type="number" placeholder="TB Dalam Pengobatan">
-<input id="tbTotal" type="number" placeholder="Jumlah TB Terdeteksi">
+<input id="tbTotal" type="number" placeholder="Jumlah TB">
 
-<h3>Lansia</h3>
-<input id="lMandiri" type="number" placeholder="Mandiri">
-<input id="lB" type="number" placeholder="Kategori B">
-<input id="lC" type="number" placeholder="Kategori C">
+<input id="lMandiri" type="number" placeholder="Lansia Mandiri">
+<input id="lB" type="number" placeholder="Lansia Kategori B">
+<input id="lC" type="number" placeholder="Lansia Kategori C">
 
-<h3>Sanitasi</h3>
 <input id="odf" type="number" placeholder="ODF (0/1)">
 
 <br><br>
@@ -42,29 +37,23 @@ document.getElementById("btnSimpan").addEventListener("click", async () => {
     await addDoc(collection(db, "kesehatan_agregat"), {
       ibuHamilNormal: +ihNormal.value || 0,
       ibuHamilRisti: +ihRisti.value || 0,
-
       balitaNormal: +bNormal.value || 0,
       balitaStunting: +bStunting.value || 0,
       balitaGiziBuruk: +bGizi.value || 0,
-
       disabilitas: +disabilitas.value || 0,
-
       tbPengobatan: +tbPengobatan.value || 0,
       tbTotal: +tbTotal.value || 0,
-
       lansiaMandiri: +lMandiri.value || 0,
       lansiaB: +lB.value || 0,
       lansiaC: +lC.value || 0,
-
       odf: +odf.value || 0,
       createdAt: serverTimestamp()
     });
 
-    alert("Data berhasil disimpan");
+    alert("✅ Data berhasil disimpan");
     window.location.href = "dashboard.html";
-
   } catch (err) {
-    alert("Gagal simpan data");
+    alert("❌ Gagal simpan data");
     console.error(err);
   }
 });
