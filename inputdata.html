@@ -30,38 +30,44 @@
 <input id="odf" type="number" placeholder="ODF (0/1)">
 
 <br><br>
-<button onclick="simpan()">Simpan Data</button>
+<button id="btnSimpan">Simpan Data</button>
 
 <script type="module">
-import { db } from 'firebase.js';
+import { db } from "./firebase.js";
 import { collection, addDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-async function simpan() {
-  await addDoc(collection(db, "kesehatan_agregat"), {
-    ibuHamilNormal: +ihNormal.value,
-    ibuHamilRisti: +ihRisti.value,
+document.getElementById("btnSimpan").addEventListener("click", async () => {
+  try {
+    await addDoc(collection(db, "kesehatan_agregat"), {
+      ibuHamilNormal: +ihNormal.value || 0,
+      ibuHamilRisti: +ihRisti.value || 0,
 
-    balitaNormal: +bNormal.value,
-    balitaStunting: +bStunting.value,
-    balitaGiziBuruk: +bGizi.value,
+      balitaNormal: +bNormal.value || 0,
+      balitaStunting: +bStunting.value || 0,
+      balitaGiziBuruk: +bGizi.value || 0,
 
-    disabilitas: +disabilitas.value,
+      disabilitas: +disabilitas.value || 0,
 
-    tbPengobatan: +tbPengobatan.value,
-    tbTotal: +tbTotal.value,
+      tbPengobatan: +tbPengobatan.value || 0,
+      tbTotal: +tbTotal.value || 0,
 
-    lansiaMandiri: +lMandiri.value,
-    lansiaB: +lB.value,
-    lansiaC: +lC.value,
+      lansiaMandiri: +lMandiri.value || 0,
+      lansiaB: +lB.value || 0,
+      lansiaC: +lC.value || 0,
 
-    odf: +odf.value,
-    createdAt: serverTimestamp()
-  });
+      odf: +odf.value || 0,
+      createdAt: serverTimestamp()
+    });
 
-  alert("Data berhasil disimpan");
-  location.href = "dashboard.html";
-}
+    alert("Data berhasil disimpan");
+    window.location.href = "dashboard.html";
+
+  } catch (err) {
+    alert("Gagal simpan data");
+    console.error(err);
+  }
+});
 </script>
 
 </body>
