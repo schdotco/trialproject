@@ -1,25 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
   <title>Dashboard Data Kesehatan</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body { font-family: Arial; background: #f4f6f9; padding: 16px; }
-    .row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
     .card {
       flex: 1;
       padding: 16px;
       border-radius: 10px;
       color: white;
+      min-width: 200px;
     }
     .blue { background: #3b5bdb; }
     .purple { background: #7048e8; }
     .dark { background: #343a40; }
     .gray { background: #495057; }
     .white {
-      background: white; color: black;
-      padding: 16px; border-radius: 10px;
+      background: white;
+      color: black;
+      padding: 16px;
+      border-radius: 10px;
+      flex: 1;
+      min-width: 300px;
     }
   </style>
 </head>
@@ -27,7 +33,7 @@
 
 <h2>Dashboard Data Kesehatan</h2>
 
-<!-- CARD ATAS -->
+<!-- CARD RINGKASAN -->
 <div class="row">
   <div class="card blue">
     <h1 id="jmlIbuHamil">0</h1>
@@ -67,50 +73,90 @@
 </div>
 
 <script type="module">
-import { db } from './js/firebase.js';
-import { collection, query, orderBy, limit, getDocs }
-from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { db } from "./firebase.js";
+  import {
+    collection,
+    query,
+    orderBy,
+    limit,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-const q = query(
-  collection(db, "kesehatan_agregat"),
-  orderBy("createdAt", "desc"),
-  limit(1)
-);
+  async function loadDashboard() {
+    try {
+      const q = query(
+        collection(db, "kesehatan_agregat"),
+        orderBy("createdAt", "desc"),
+        limit(1)
+      );
 
-const snap = await getDocs(q);
-const d = snap.docs[0].data();
+      const snap = await getDocs(q);
 
-const ibuTotal = d.ibuHamilNormal + d.ibuHamilRisti;
-const balitaTotal = d.balitaNormal + d.balitaStunting + d.balitaGiziBuruk;
+      if (snap.empty) {
+        alert("Belum ada data di Firestore");
+        return;
+      }
 
-jmlIbuHamil.innerText = ibuTotal;
-jmlBalita.innerText = balitaTotal;
-jmlTB.innerText = d.tbTotal;
-odfVal.innerText = d.odf;
+      const d = snap.docs[0].data();
 
-new Chart(chartIbu, {
-  type: "pie",
-  data: {
-    labels: ["Normal", "Resiko Tinggi"],
-    datasets: [{ data: [d.ibuHamilNormal, d.ibuHamilRisti] }]
+      const ibuTotal =
+        (d.ibuHamilNormal || 0) + (d.ibuHamilRisti || 0);
+
+      const balitaTotal =
+        (d.balitaNormal || 0) +
+        (d.balitaStunting || 0) +
+        (d.balitaGiziBuruk || 0);
+
+      document.getElementById("jmlIbuHamil").innerText = ibuTotal;
+      document.getElementById("jmlBalita").innerText = balitaTotal;
+      document.getElementById("jmlTB").innerText = d.tbTotal || 0;
+      document.getElementById("odfVal").innerText = d.odf || 0;
+
+      new Chart(document.getElementById("chartIbu"), {
+        type: "pie",
+        data: {
+          labels: ["Normal", "Risiko Tinggi"],
+          datasets: [{
+            data: [d.ibuHamilNormal || 0, d.ibuHamilRisti || 0]
+          }]
+        }
+      });
+
+      new Chart(document.getElementById("chartBalita"), {
+        type: "pie",
+        data: {
+          labels: ["Normal", "Stunting", "Gizi Buruk"],
+          datasets: [{
+            data: [
+              d.balitaNormal || 0,
+              d.balitaStunting || 0,
+              d.balitaGiziBuruk || 0
+            ]
+          }]
+        }
+      });
+
+      new Chart(document.getElementById("chartLansia"), {
+        type: "bar",
+        data: {
+          labels: ["Mandiri", "Kategori B", "Kategori C"],
+          datasets: [{
+            data: [
+              d.lansiaMandiri || 0,
+              d.lansiaB || 0,
+              d.lansiaC || 0
+            ]
+          }]
+        }
+      });
+
+    } catch (err) {
+      console.error("❌ Error load dashboard:", err);
+      alert("Gagal memuat data dashboard");
+    }
   }
-});
 
-new Chart(chartBalita, {
-  type: "pie",
-  data: {
-    labels: ["Normal", "Stunting", "Gizi Buruk"],
-    datasets: [{ data: [d.balitaNormal, d.balitaStunting, d.balitaGiziBuruk] }]
-  }
-});
-
-new Chart(chartLansia, {
-  type: "bar",
-  data: {
-    labels: ["Mandiri", "Kategori B", "Kategori C"],
-    datasets: [{ data: [d.lansiaMandiri, d.lansiaB, d.lansiaC] }]
-  }
-});
+  loadDashboard();
 </script>
 
 </body>
