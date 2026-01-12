@@ -6,8 +6,16 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body { font-family: Arial; background: #f4f6f9; padding: 16px; }
-    .row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    body { font-family: Arial; background: #f4f6f9; padding: 20px; }
+    h2 { margin-bottom: 10px; }
+
+    .row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
     .card {
       flex: 1;
       padding: 16px;
@@ -15,10 +23,12 @@
       color: white;
       min-width: 200px;
     }
+
     .blue { background: #3b5bdb; }
     .purple { background: #7048e8; }
     .dark { background: #343a40; }
     .gray { background: #495057; }
+
     .white {
       background: white;
       color: black;
@@ -27,11 +37,25 @@
       flex: 1;
       min-width: 300px;
     }
+
+    select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
 
 <h2>Dashboard Data Kesehatan</h2>
+
+<!-- FILTER BULAN -->
+<div class="row">
+  <div class="white">
+    <b>Pilih Bulan:</b>
+    <select id="bulanSelect"></select>
+  </div>
+</div>
 
 <!-- CARD RINGKASAN -->
 <div class="row">
@@ -77,86 +101,133 @@
   import {
     collection,
     query,
+    where,
     orderBy,
-    limit,
     getDocs
   } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-  async function loadDashboard() {
-    try {
-      const q = query(
-        collection(db, "kesehatan_agregat"),
-        orderBy("createdAt", "desc"),
-        limit(1)
-      );
+  let chartIbu, chartBalita, chartLansia;
 
-      const snap = await getDocs(q);
+  // 🔹 Ambil daftar bulan unik
+  async function loadBulan() {
+    const snap = await getDocs(collection(db, "kesehatan_agregat"));
+    const bulanSet = new Set();
 
-      if (snap.empty) {
-        alert("Belum ada data di Firestore");
-        return;
+    snap.forEach(doc => {
+      if (doc.data().bulan) {
+        bulanSet.add(doc.data().bulan);
       }
+    });
 
-      const d = snap.docs[0].data();
+    const bulanArr = Array.from(bulanSet).sort().reverse();
+    bulanSelect.innerHTML = "";
 
-      const ibuTotal =
-        (d.ibuHamilNormal || 0) + (d.ibuHamilRisti || 0);
+    bulanArr.forEach(b => {
+      const opt = document.createElement("option");
+      opt.value = b;
+      opt.textContent = b;
+      bulanSelect.appendChild(opt);
+    });
 
-      const balitaTotal =
-        (d.balitaNormal || 0) +
-        (d.balitaStunting || 0) +
-        (d.balitaGiziBuruk || 0);
-
-      document.getElementById("jmlIbuHamil").innerText = ibuTotal;
-      document.getElementById("jmlBalita").innerText = balitaTotal;
-      document.getElementById("jmlTB").innerText = d.tbTotal || 0;
-      document.getElementById("odfVal").innerText = d.odf || 0;
-
-      new Chart(document.getElementById("chartIbu"), {
-        type: "pie",
-        data: {
-          labels: ["Normal", "Risiko Tinggi"],
-          datasets: [{
-            data: [d.ibuHamilNormal || 0, d.ibuHamilRisti || 0]
-          }]
-        }
-      });
-
-      new Chart(document.getElementById("chartBalita"), {
-        type: "pie",
-        data: {
-          labels: ["Normal", "Stunting", "Gizi Buruk"],
-          datasets: [{
-            data: [
-              d.balitaNormal || 0,
-              d.balitaStunting || 0,
-              d.balitaGiziBuruk || 0
-            ]
-          }]
-        }
-      });
-
-      new Chart(document.getElementById("chartLansia"), {
-        type: "bar",
-        data: {
-          labels: ["Mandiri", "Kategori B", "Kategori C"],
-          datasets: [{
-            data: [
-              d.lansiaMandiri || 0,
-              d.lansiaB || 0,
-              d.lansiaC || 0
-            ]
-          }]
-        }
-      });
-
-    } catch (err) {
-      console.error("❌ Error load dashboard:", err);
-      alert("Gagal memuat data dashboard");
+    if (bulanArr.length > 0) {
+      loadDashboard(bulanArr[0]);
     }
   }
 
-  loadDashboard();
+  // 🔹 Load dashboard berdasarkan bulan
+  async function loadDashboard(bulan) {
+    const q = query(
+      collection(db, "kesehatan_agregat"),
+      where("bulan", "==", bulan),
+      orderBy("tanggal", "desc")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      alert("Tidak ada data di bulan ini");
+      return;
+    }
+
+    // 🔹 Rekap (jika 1 bulan banyak input)
+    let d = {
+      ibuHamilNormal: 0,
+      ibuHamilRisti: 0,
+      balitaNormal: 0,
+      balitaStunting: 0,
+      balitaGiziBuruk: 0,
+      tbTotal: 0,
+      lansiaMandiri: 0,
+      lansiaB: 0,
+      lansiaC: 0,
+      odf: 0
+    };
+
+    snap.forEach(doc => {
+      const x = doc.data();
+      d.ibuHamilNormal += x.ibuHamilNormal || 0;
+      d.ibuHamilRisti += x.ibuHamilRisti || 0;
+      d.balitaNormal += x.balitaNormal || 0;
+      d.balitaStunting += x.balitaStunting || 0;
+      d.balitaGiziBuruk += x.balitaGiziBuruk || 0;
+      d.tbTotal += x.tbTotal || 0;
+      d.lansiaMandiri += x.lansiaMandiri || 0;
+      d.lansiaB += x.lansiaB || 0;
+      d.lansiaC += x.lansiaC || 0;
+      d.odf = Math.max(d.odf, x.odf || 0);
+    });
+
+    const ibuTotal = d.ibuHamilNormal + d.ibuHamilRisti;
+    const balitaTotal = d.balitaNormal + d.balitaStunting + d.balitaGiziBuruk;
+
+    jmlIbuHamil.innerText = ibuTotal;
+    jmlBalita.innerText = balitaTotal;
+    jmlTB.innerText = d.tbTotal;
+    odfVal.innerText = d.odf;
+
+    if (chartIbu) chartIbu.destroy();
+    if (chartBalita) chartBalita.destroy();
+    if (chartLansia) chartLansia.destroy();
+
+    chartIbu = new Chart(chartIbuEl, {
+      type: "pie",
+      data: {
+        labels: ["Normal", "Risiko Tinggi"],
+        datasets: [{ data: [d.ibuHamilNormal, d.ibuHamilRisti] }]
+      }
+    });
+
+    chartBalita = new Chart(chartBalitaEl, {
+      type: "pie",
+      data: {
+        labels: ["Normal", "Stunting", "Gizi Buruk"],
+        datasets: [{
+          data: [d.balitaNormal, d.balitaStunting, d.balitaGiziBuruk]
+        }]
+      }
+    });
+
+    chartLansia = new Chart(chartLansiaEl, {
+      type: "bar",
+      data: {
+        labels: ["Mandiri", "Kategori B", "Kategori C"],
+        datasets: [{
+          data: [d.lansiaMandiri, d.lansiaB, d.lansiaC]
+        }]
+      }
+    });
+  }
+
+  const bulanSelect = document.getElementById("bulanSelect");
+  const chartIbuEl = document.getElementById("chartIbu");
+  const chartBalitaEl = document.getElementById("chartBalita");
+  const chartLansiaEl = document.getElementById("chartLansia");
+
+  bulanSelect.addEventListener("change", e => {
+    loadDashboard(e.target.value);
+  });
+
+  loadBulan();
 </script>
 
 </body>
