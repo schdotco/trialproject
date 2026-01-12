@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Input Data Kesehatan</title>
+</head>
+<body>
+
+<h2>Input Data Agregat Kesehatan</h2>
+
+<h3>Ibu Hamil</h3>
+<input id="ihNormal" type="number" placeholder="Normal">
+<input id="ihRisti" type="number" placeholder="Resiko Tinggi">
+
+<h3>Balita</h3>
+<input id="bNormal" type="number" placeholder="Normal">
+<input id="bStunting" type="number" placeholder="Stunting">
+<input id="bGizi" type="number" placeholder="Gizi Buruk">
+
+<h3>Lainnya</h3>
+<input id="disabilitas" type="number" placeholder="Disabilitas">
+<input id="tbPengobatan" type="number" placeholder="TB Dalam Pengobatan">
+<input id="tbTotal" type="number" placeholder="Jumlah TB Terdeteksi">
+
+<h3>Lansia</h3>
+<input id="lMandiri" type="number" placeholder="Mandiri">
+<input id="lB" type="number" placeholder="Kategori B">
+<input id="lC" type="number" placeholder="Kategori C">
+
+<h3>Sanitasi</h3>
+<input id="odf" type="number" placeholder="ODF">
+
+<br><br>
+<button onclick="simpan()">Simpan Data</button>
+
+<script>
+const API = "PASTE_WEB_APP_URL";
+
+function simpan() {
+  const data = {
+    ihNormal: ihNormal.value,
+    ihRisti: ihRisti.value,
+    bNormal: bNormal.value,
+    bStunting: bStunting.value,
+    bGizi: bGizi.value,
+    disabilitas: disabilitas.value,
+    tbPengobatan: tbPengobatan.value,
+    tbTotal: tbTotal.value,
+    lMandiri: lMandiri.value,
+    lB: lB.value,
+    lC: lC.value,
+    odf: odf.value
+  };
+
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify(data)
+  }).then(() => {
+    alert("Data berhasil disimpan");
+    location.href = "dashboard.html";
+  });
+}
+</script>
+
+</body>
+</html>
