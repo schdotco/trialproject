@@ -3,52 +3,128 @@
 <head>
   <meta charset="UTF-8">
   <title>Input Data Kesehatan</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f9;
+      padding: 20px;
+    }
+    h2 { margin-bottom: 10px; }
+    h3 { margin-top: 20px; }
+
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    input {
+      padding: 8px;
+      width: 100%;
+      max-width: 220px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      background: #3b5bdb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background: #364fc7;
+    }
+  </style>
 </head>
 <body>
 
 <h2>Input Data Agregat Kesehatan</h2>
 
-<h3>Ibu Hamil</h3>
-<input id="ihNormal" type="number" placeholder="Ibu Hamil Normal">
-<input id="ihRisti" type="number" placeholder="Ibu Hamil Risiko Tinggi">
+<!-- TANGGAL -->
+<div class="card">
+  <h3>Tanggal Laporan</h3>
+  <input id="tanggal" type="date">
+</div>
 
-<h3>Balita</h3>
-<input id="bNormal" type="number" placeholder="Balita Normal">
-<input id="bStunting" type="number" placeholder="Balita Stunting">
-<input id="bGizi" type="number" placeholder="Balita Gizi Buruk">
+<!-- IBU HAMIL -->
+<div class="card">
+  <h3>Ibu Hamil</h3>
+  <div class="row">
+    <input id="ihNormal" type="number" placeholder="Normal">
+    <input id="ihRisti" type="number" placeholder="Risiko Tinggi">
+  </div>
+</div>
 
-<h3>Lainnya</h3>
-<input id="disabilitas" type="number" placeholder="Disabilitas">
-<input id="tbPengobatan" type="number" placeholder="TB Dalam Pengobatan">
-<input id="tbTotal" type="number" placeholder="Jumlah TB Terdeteksi">
+<!-- BALITA -->
+<div class="card">
+  <h3>Balita</h3>
+  <div class="row">
+    <input id="bNormal" type="number" placeholder="Normal">
+    <input id="bStunting" type="number" placeholder="Stunting">
+    <input id="bGizi" type="number" placeholder="Gizi Buruk">
+  </div>
+</div>
 
-<h3>Lansia</h3>
-<input id="lMandiri" type="number" placeholder="Lansia Mandiri">
-<input id="lB" type="number" placeholder="Lansia Kategori B">
-<input id="lC" type="number" placeholder="Lansia Kategori C">
+<!-- LAINNYA -->
+<div class="card">
+  <h3>Lainnya</h3>
+  <div class="row">
+    <input id="disabilitas" type="number" placeholder="Disabilitas">
+    <input id="tbPengobatan" type="number" placeholder="TB Dalam Pengobatan">
+    <input id="tbTotal" type="number" placeholder="Jumlah TB Terdeteksi">
+  </div>
+</div>
 
-<h3>Sanitasi</h3>
-<input id="odf" type="number" placeholder="ODF (0 / 1)">
+<!-- LANSIA -->
+<div class="card">
+  <h3>Lansia</h3>
+  <div class="row">
+    <input id="lMandiri" type="number" placeholder="Mandiri">
+    <input id="lB" type="number" placeholder="Kategori B">
+    <input id="lC" type="number" placeholder="Kategori C">
+  </div>
+</div>
 
-<br><br>
-<button id="btnSimpan">Simpan Data</button>
+<!-- SANITASI -->
+<div class="card">
+  <h3>Sanitasi</h3>
+  <input id="odf" type="number" placeholder="ODF (0 / 1)">
+</div>
 
-<!-- SCRIPT MODULE -->
+<button id="btnSimpan" class="btn">Simpan Data</button>
+
+<!-- SCRIPT -->
 <script type="module">
-  // 🔗 import Firestore dari firebase.js (FINAL)
   import { db } from "./firebase.js";
-
-  // 🔗 import fungsi Firestore
   import {
     collection,
     addDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-  // 🎯 Event simpan data
+  // default tanggal hari ini
+  tanggal.valueAsDate = new Date();
+
   document.getElementById("btnSimpan").addEventListener("click", async () => {
     try {
+      const tgl = tanggal.value; // YYYY-MM-DD
+      const bulan = tgl.slice(0, 7); // YYYY-MM
+
       await addDoc(collection(db, "kesehatan_agregat"), {
+        tanggal: tgl,
+        bulan: bulan,
+
         ibuHamilNormal: Number(ihNormal.value) || 0,
         ibuHamilRisti: Number(ihRisti.value) || 0,
 
@@ -73,9 +149,9 @@
       alert("✅ Data berhasil disimpan");
       window.location.href = "dashboard.html";
 
-    } catch (error) {
-      console.error("❌ Error simpan Firestore:", error);
-      alert("❌ Gagal menyimpan data, cek console");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Gagal menyimpan data");
     }
   });
 </script>
