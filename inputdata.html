@@ -26,7 +26,7 @@
       flex-wrap: wrap;
     }
 
-    input {
+    input, select {
       padding: 8px;
       width: 100%;
       max-width: 220px;
@@ -51,10 +51,31 @@
 
 <h2>Input Data Agregat Kesehatan</h2>
 
-<!-- TANGGAL -->
+<!-- TANGGAL & RW -->
 <div class="card">
-  <h3>Tanggal Laporan</h3>
-  <input id="tanggal" type="date">
+  <h3>Identitas Laporan</h3>
+  <div class="row">
+    <input id="tanggal" type="date">
+    <select id="rw">
+      <option value="">Pilih RW</option>
+      <option>RW.01</option>
+      <option>RW.02</option>
+      <option>RW.03</option>
+      <option>RW.04</option>
+      <option>RW.05</option>
+      <option>RW.06</option>
+      <option>RW.07</option>
+      <option>RW.08</option>
+      <option>RW.09</option>
+      <option>RW.10</option>
+      <option>RW.11</option>
+      <option>RW.12</option>
+      <option>RW.13</option>
+      <option>RW.14</option>
+      <option>RW.15</option>
+      <option>RW.16</option>
+    </select>
+  </div>
 </div>
 
 <!-- IBU HAMIL -->
@@ -118,12 +139,18 @@
 
   document.getElementById("btnSimpan").addEventListener("click", async () => {
     try {
-      const tgl = tanggal.value; // YYYY-MM-DD
-      const bulan = tgl.slice(0, 7); // YYYY-MM
+      if (!rw.value) {
+        alert("❌ RW harus dipilih");
+        return;
+      }
+
+      const tgl = tanggal.value;          // YYYY-MM-DD
+      const bulan = tgl.slice(0, 7);      // YYYY-MM
 
       await addDoc(collection(db, "kesehatan_agregat"), {
         tanggal: tgl,
         bulan: bulan,
+        rw: rw.value,
 
         ibuHamilNormal: Number(ihNormal.value) || 0,
         ibuHamilRisti: Number(ihRisti.value) || 0,
