@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <title>Dashboard Data Kesehatan</title>
 
-  <!-- Chart -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- PDF -->
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
@@ -58,6 +58,7 @@
 
 <div class="row">
   <div class="white"><h3>Lansia</h3><canvas id="chartLansia"></canvas></div>
+  <div class="white"><h3>TB</h3><canvas id="chartTB"></canvas></div>
 </div>
 
 <script type="module">
@@ -67,8 +68,14 @@ from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 const { jsPDF } = window.jspdf;
 
-let chartIbu, chartBalita, chartLansia;
-let lastSnapshot = []; // ⬅ simpan data terakhir untuk PDF
+let chartIbu, chartBalita, chartLansia, chartTB;
+let lastSnapshot = [];
+
+// ✅ FIX: ambil canvas element
+const chartIbuEl = document.getElementById("chartIbu");
+const chartBalitaEl = document.getElementById("chartBalita");
+const chartLansiaEl = document.getElementById("chartLansia");
+const chartTBEl = document.getElementById("chartTB");
 
 const bulanInput = document.getElementById("bulanInput");
 const rwInput = document.getElementById("rwInput");
@@ -99,8 +106,11 @@ async function loadDashboard(bulan,rw){
   if (snap.empty){ alert("Data tidak ditemukan"); return; }
 
   lastSnapshot = [];
-  let d={ ibuHamilNormal:0, ibuHamilRisti:0, balitaNormal:0, balitaStunting:0,
-          balitaGiziBuruk:0, tbTotal:0, lansiaMandiri:0, lansiaB:0, lansiaC:0, odf:0 };
+  let d={ ibuHamilNormal:0, ibuHamilRisti:0,
+          balitaNormal:0, balitaStunting:0, balitaGiziBuruk:0,
+          tbTotal:0,
+          lansiaMandiri:0, lansiaB:0, lansiaC:0,
+          odf:0 };
 
   snap.forEach(doc=>{
     const x=doc.data();
@@ -125,10 +135,31 @@ async function loadDashboard(bulan,rw){
   if(chartIbu)chartIbu.destroy();
   if(chartBalita)chartBalita.destroy();
   if(chartLansia)chartLansia.destroy();
+  if(chartTB)chartTB.destroy();
 
-  chartIbu=new Chart(chartIbuEl,{type:"pie",data:{labels:["Normal","Risiko Tinggi"],datasets:[{data:[d.ibuHamilNormal,d.ibuHamilRisti]}]}});
-  chartBalita=new Chart(chartBalitaEl,{type:"pie",data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[d.balitaNormal,d.balitaStunting,d.balitaGiziBuruk]}]}});
-  chartLansia=new Chart(chartLansiaEl,{type:"bar",data:{labels:["Mandiri","Kategori B","Kategori C"],datasets:[{data:[d.lansiaMandiri,d.lansiaB,d.lansiaC]}]}});
+  chartIbu=new Chart(chartIbuEl,{
+    type:"pie",
+    data:{ labels:["Normal","Risiko Tinggi"],
+      datasets:[{data:[d.ibuHamilNormal,d.ibuHamilRisti]}]}
+  });
+
+  chartBalita=new Chart(chartBalitaEl,{
+    type:"pie",
+    data:{ labels:["Normal","Stunting","Gizi Buruk"],
+      datasets:[{data:[d.balitaNormal,d.balitaStunting,d.balitaGiziBuruk]}]}
+  });
+
+  chartLansia=new Chart(chartLansiaEl,{
+    type:"bar",
+    data:{ labels:["Mandiri","Kategori B","Kategori C"],
+      datasets:[{label:"Jumlah",data:[d.lansiaMandiri,d.lansiaB,d.lansiaC]}]}
+  });
+
+  chartTB=new Chart(chartTBEl,{
+    type:"bar",
+    data:{ labels:["TB Terdeteksi"],
+      datasets:[{label:"Jumlah TB",data:[d.tbTotal]}]}
+  });
 }
 
 // ================= EXPORT PDF =================
@@ -140,11 +171,11 @@ function exportPDF(bulan,rw){
   pdf.text(`Bulan: ${bulan}`,14,22);
   pdf.text(`RW: ${rw||"SEMUA RW"}`,14,27);
 
-  pdf.addImage(chartIbu.toBase64Image(),"PNG",14,35,80,60);
-  pdf.addImage(chartBalita.toBase64Image(),"PNG",110,35,80,60);
-  pdf.addImage(chartLansia.toBase64Image(),"PNG",14,100,180,60);
+  pdf.addImage(chartIbu.toBase64Image(),"PNG",14,35,80,55);
+  pdf.addImage(chartBalita.toBase64Image(),"PNG",110,35,80,55);
+  pdf.addImage(chartLansia.toBase64Image(),"PNG",14,95,80,55);
+  pdf.addImage(chartTB.toBase64Image(),"PNG",110,95,80,55);
 
-  // DETAIL PER RW
   const rows = lastSnapshot.map(d=>[
     d.rw,
     d.ibuHamilNormal+d.ibuHamilRisti,
@@ -155,7 +186,7 @@ function exportPDF(bulan,rw){
   ]);
 
   pdf.autoTable({
-    startY:170,
+    startY:160,
     head:[["RW","Ibu Hamil","Balita","TB","Lansia","ODF"]],
     body:rows
   });
