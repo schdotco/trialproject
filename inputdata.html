@@ -12,34 +12,17 @@
   --text:#212529;
   --muted:#6c757d;
 }
-
 *{box-sizing:border-box}
-
 body{
   font-family: Arial, sans-serif;
   background: var(--bg);
   padding: 24px;
   color: var(--text);
 }
-
-.container{
-  max-width: 1100px;
-  margin: auto;
-}
-
-.header{
-  margin-bottom: 24px;
-}
-
-.header h2{
-  margin:0;
-  font-size: 24px;
-}
-
-.header p{
-  margin:6px 0 0;
-  color: var(--muted);
-}
+.container{max-width:1100px;margin:auto}
+.header{margin-bottom:24px}
+.header h2{margin:0;font-size:24px}
+.header p{margin:6px 0 0;color:var(--muted)}
 
 .grid{
   display:grid;
@@ -49,9 +32,9 @@ body{
 
 .card{
   background: var(--card);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
 }
 
 .card h3{
@@ -67,10 +50,7 @@ body{
   gap:12px;
 }
 
-label{
-  font-size:12px;
-  color: var(--muted);
-}
+label{font-size:12px;color:var(--muted)}
 
 input,select{
   width:100%;
@@ -86,7 +66,7 @@ input:focus,select:focus{
 }
 
 .footer{
-  margin-top:24px;
+  margin-top:16px;
   display:flex;
   justify-content:flex-end;
 }
@@ -102,18 +82,21 @@ input:focus,select:focus{
   box-shadow:0 4px 10px rgba(59,91,219,.3);
 }
 
-.btn:hover{
-  background:#364fc7;
+.btn.secondary{
+  background:#495057;
+  margin-right:10px;
 }
+.btn:hover{opacity:.95}
 </style>
 </head>
 
 <body>
 <div class="container">
 
+<!-- HEADER -->
 <div class="header">
-  <h2>Input Data Agregat Kesehatan</h2>
-  <p>Isi data laporan bulanan berdasarkan RW</p>
+  <h2>Input Data Agregat</h2>
+  <p>Input data wilayah & kesehatan per bulan berdasarkan RW</p>
 </div>
 
 <!-- IDENTITAS -->
@@ -133,130 +116,152 @@ input:focus,select:focus{
   </div>
 </div>
 
+<!-- DATA WILAYAH -->
+<div class="card">
+  <h3>Data Wilayah & Kepesertaan</h3>
+  <div class="row">
+    <div>
+      <label>Jumlah RT</label>
+      <input id="jmlRT" type="number">
+    </div>
+    <div>
+      <label>Jumlah Penduduk</label>
+      <input id="jmlPenduduk" type="number">
+    </div>
+    <div>
+      <label>Fasilitas LS</label>
+      <input id="fasilitasLS" type="number">
+    </div>
+    <div>
+      <label>Jumlah Peserta JKN</label>
+      <input id="jmlJKN" type="number">
+    </div>
+  </div>
+
+  <div class="footer">
+    <button id="btnSimpanWilayah" class="btn secondary">
+      💾 Simpan Data Wilayah
+    </button>
+  </div>
+</div>
+
+<!-- GRID KESEHATAN -->
 <div class="grid">
 
-<!-- IBU HAMIL -->
-<div class="card">
-  <h3>Ibu Hamil</h3>
-  <div class="row">
-    <div>
-      <label>Normal</label>
-      <input id="ihNormal" type="number">
-    </div>
-    <div>
-      <label>Risiko Tinggi</label>
-      <input id="ihRisti" type="number">
+  <!-- IBU HAMIL -->
+  <div class="card">
+    <h3>Ibu Hamil</h3>
+    <div class="row">
+      <div><label>Normal</label><input id="ihNormal" type="number"></div>
+      <div><label>Risiko Tinggi</label><input id="ihRisti" type="number"></div>
     </div>
   </div>
-</div>
 
-<!-- BALITA -->
-<div class="card">
-  <h3>Balita</h3>
-  <div class="row">
-    <div>
-      <label>Normal</label>
-      <input id="bNormal" type="number">
-    </div>
-    <div>
-      <label>Stunting</label>
-      <input id="bStunting" type="number">
-    </div>
-    <div>
-      <label>Gizi Buruk</label>
-      <input id="bGizi" type="number">
+  <!-- BALITA -->
+  <div class="card">
+    <h3>Balita</h3>
+    <div class="row">
+      <div><label>Normal</label><input id="bNormal" type="number"></div>
+      <div><label>Stunting</label><input id="bStunting" type="number"></div>
+      <div><label>Gizi Buruk</label><input id="bGizi" type="number"></div>
     </div>
   </div>
-</div>
 
-<!-- TB -->
-<div class="card">
-  <h3>TB</h3>
-  <div class="row">
-    <div>
-      <label>TB Dalam Pengobatan</label>
-      <input id="tbPengobatan" type="number">
-    </div>
-    <div>
-      <label>TB Terdeteksi</label>
-      <input id="tbTotal" type="number">
+  <!-- TB -->
+  <div class="card">
+    <h3>TB</h3>
+    <div class="row">
+      <div><label>TB Dalam Pengobatan</label><input id="tbPengobatan" type="number"></div>
+      <div><label>TB Terdeteksi</label><input id="tbTotal" type="number"></div>
     </div>
   </div>
-</div>
 
-<!-- DISABILITAS -->
-<div class="card">
-  <h3>Disabilitas</h3>
-  <div class="row">
-    <div>
-      <label>Disabilitas</label>
-      <input id="disabilitas" type="number">
+  <!-- DISABILITAS -->
+  <div class="card">
+    <h3>Disabilitas</h3>
+    <div class="row">
+      <div><label>Jumlah Disabilitas</label><input id="disabilitas" type="number"></div>
     </div>
   </div>
-</div>
 
-<!-- LANSIA -->
-<div class="card">
-  <h3>Lansia</h3>
-  <div class="row">
-    <div>
-      <label>Mandiri</label>
-      <input id="lMandiri" type="number">
-    </div>
-    <div>
-      <label>Kategori B</label>
-      <input id="lB" type="number">
-    </div>
-    <div>
-      <label>Kategori C</label>
-      <input id="lC" type="number">
+  <!-- LANSIA -->
+  <div class="card">
+    <h3>Lansia</h3>
+    <div class="row">
+      <div><label>Mandiri</label><input id="lMandiri" type="number"></div>
+      <div><label>Kategori B</label><input id="lB" type="number"></div>
+      <div><label>Kategori C</label><input id="lC" type="number"></div>
     </div>
   </div>
-</div>
 
-<!-- SANITASI -->
-<div class="card">
-  <h3>Sanitasi</h3>
-  <div class="row">
-    <div>
-      <label>Status ODF (0 / 1)</label>
-      <input id="odf" type="number">
+  <!-- SANITASI -->
+  <div class="card">
+    <h3>Sanitasi</h3>
+    <div class="row">
+      <div><label>Status ODF (0 / 1)</label><input id="odf" type="number"></div>
     </div>
   </div>
-</div>
 
 </div>
 
 <div class="footer">
-  <button id="btnSimpan" class="btn">💾 Simpan / Update Data</button>
+  <button id="btnSimpan" class="btn">
+    💾 Simpan / Update Data Kesehatan
+  </button>
 </div>
 
 </div>
 
-<!-- SCRIPT (LOGIKA ASLI – TIDAK DIUBAH) -->
+<!-- SCRIPT -->
 <script type="module">
 import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+// default bulan
 const bulanInput=document.getElementById("bulanLapor");
 bulanInput.value=new Date().toISOString().slice(0,7);
 
+// RW dropdown
 const rwSelect=document.getElementById("rw");
 for(let i=1;i<=16;i++){
- const opt=document.createElement("option");
- opt.value=`RW.${String(i).padStart(2,"0")}`;
- opt.textContent=opt.value;
- rwSelect.appendChild(opt);
+ const o=document.createElement("option");
+ o.value=`RW.${String(i).padStart(2,"0")}`;
+ o.textContent=o.value;
+ rwSelect.appendChild(o);
 }
 
+// ===== SIMPAN DATA WILAYAH =====
+btnSimpanWilayah.onclick=async()=>{
+ if(!bulanInput.value||!rwSelect.value){
+  alert("Bulan & RW wajib diisi");return;
+ }
+ const id=`${bulanInput.value}_${rwSelect.value}`;
+ await setDoc(
+  doc(db,"wilayah_agregat",id),
+  {
+    bulanLapor:bulanInput.value,
+    rw:rwSelect.value,
+    jumlahRT:+jmlRT.value||0,
+    jumlahPenduduk:+jmlPenduduk.value||0,
+    fasilitasLS:+fasilitasLS.value||0,
+    jumlahJKN:+jmlJKN.value||0,
+    updatedAt:serverTimestamp()
+  },
+  {merge:true}
+ );
+ alert("✅ Data wilayah disimpan");
+};
+
+// ===== SIMPAN DATA KESEHATAN =====
 btnSimpan.onclick=async()=>{
  if(!bulanInput.value||!rwSelect.value){
   alert("Bulan & RW wajib diisi");return;
  }
- const docId=`${bulanInput.value}_${rwSelect.value}`;
- await setDoc(doc(db,"kesehatan_agregat",docId),{
-  bulanLapor:bulanInput.value,rw:rwSelect.value,
+ const id=`${bulanInput.value}_${rwSelect.value}`;
+ await setDoc(doc(db,"kesehatan_agregat",id),{
+  bulanLapor:bulanInput.value,
+  rw:rwSelect.value,
   ibuHamilNormal:+ihNormal.value||0,
   ibuHamilRisti:+ihRisti.value||0,
   balitaNormal:+bNormal.value||0,
@@ -271,9 +276,9 @@ btnSimpan.onclick=async()=>{
   odf:+odf.value||0,
   updatedAt:serverTimestamp()
  });
- alert("Data berhasil disimpan");
- location.href=".html";
-}
+ alert("✅ Data kesehatan disimpan");
+ location.href="dashboard.html";
+};
 </script>
 
 </body>
