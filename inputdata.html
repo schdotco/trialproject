@@ -99,7 +99,7 @@ input:focus,select:focus{
   <p>Input data wilayah & kesehatan per bulan berdasarkan RW</p>
 </div>
 
-<!-- ================= DATA WILAYAH (PALING ATAS) ================= -->
+<!-- ================= DATA WILAYAH & KEPESERTAAN ================= -->
 <div class="card">
   <h3>Data Wilayah & Kepesertaan</h3>
   <div class="row">
@@ -107,17 +107,24 @@ input:focus,select:focus{
       <label>Jumlah RT</label>
       <input id="jmlRT" type="number">
     </div>
+
     <div>
       <label>Jumlah Penduduk</label>
       <input id="jmlPenduduk" type="number">
     </div>
-    <div>
-      <label>Fasilitas LS</label>
-      <input id="fasilitasLS" type="number">
-    </div>
+
     <div>
       <label>Jumlah Peserta JKN</label>
       <input id="jmlJKN" type="number">
+    </div>
+
+    <div>
+      <label>Fasilitas LS</label>
+      <input
+        id="fasilitasLS"
+        type="text"
+        placeholder="Contoh: Pustu, Posyandu, Klinik"
+      >
     </div>
   </div>
 
@@ -212,56 +219,66 @@ import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+// default bulan
 const bulanInput=document.getElementById("bulanLapor");
 bulanInput.value=new Date().toISOString().slice(0,7);
 
+// RW dropdown
 const rwSelect=document.getElementById("rw");
 for(let i=1;i<=16;i++){
- const o=document.createElement("option");
- o.value=`RW.${String(i).padStart(2,"0")}`;
- o.textContent=o.value;
- rwSelect.appendChild(o);
+  const o=document.createElement("option");
+  o.value=`RW.${String(i).padStart(2,"0")}`;
+  o.textContent=o.value;
+  rwSelect.appendChild(o);
 }
 
-// SIMPAN WILAYAH
+// ================= SIMPAN DATA WILAYAH =================
 btnSimpanWilayah.onclick=async()=>{
- if(!bulanInput.value||!rwSelect.value){alert("Bulan & RW wajib diisi");return;}
- const id=`${bulanInput.value}_${rwSelect.value}`;
- await setDoc(doc(db,"wilayah_agregat",id),{
-  bulanLapor:bulanInput.value,
-  rw:rwSelect.value,
-  jumlahRT:+jmlRT.value||0,
-  jumlahPenduduk:+jmlPenduduk.value||0,
-  fasilitasLS:+fasilitasLS.value||0,
-  jumlahJKN:+jmlJKN.value||0,
-  updatedAt:serverTimestamp()
- },{merge:true});
- alert("✅ Data wilayah disimpan");
+  if(!bulanInput.value||!rwSelect.value){
+    alert("Bulan & RW wajib diisi");return;
+  }
+  const id=`${bulanInput.value}_${rwSelect.value}`;
+  await setDoc(
+    doc(db,"wilayah_agregat",id),
+    {
+      bulanLapor:bulanInput.value,
+      rw:rwSelect.value,
+      jumlahRT:+jmlRT.value||0,
+      jumlahPenduduk:+jmlPenduduk.value||0,
+      jumlahJKN:+jmlJKN.value||0,
+      fasilitasLS: fasilitasLS.value || "",
+      updatedAt:serverTimestamp()
+    },
+    {merge:true}
+  );
+  alert("✅ Data wilayah disimpan");
 };
 
-// SIMPAN KESEHATAN
+// ================= SIMPAN DATA KESEHATAN =================
 btnSimpan.onclick=async()=>{
- if(!bulanInput.value||!rwSelect.value){alert("Bulan & RW wajib diisi");return;}
- const id=`${bulanInput.value}_${rwSelect.value}`;
- await setDoc(doc(db,"kesehatan_agregat",id),{
-  bulanLapor:bulanInput.value,
-  rw:rwSelect.value,
-  ibuHamilNormal:+ihNormal.value||0,
-  ibuHamilRisti:+ihRisti.value||0,
-  balitaNormal:+bNormal.value||0,
-  balitaStunting:+bStunting.value||0,
-  balitaGiziBuruk:+bGizi.value||0,
-  disabilitas:+disabilitas.value||0,
-  tbPengobatan:+tbPengobatan.value||0,
-  tbTotal:+tbTotal.value||0,
-  lansiaMandiri:+lMandiri.value||0,
-  lansiaB:+lB.value||0,
-  lansiaC:+lC.value||0,
-  odf:+odf.value||0,
-  updatedAt:serverTimestamp()
- });
- alert("✅ Data kesehatan disimpan");
- location.href="dashboard.html";
+  if(!bulanInput.value||!rwSelect.value){
+    alert("Bulan & RW wajib diisi");return;
+  }
+  const id=`${bulanInput.value}_${rwSelect.value}`;
+  await setDoc(doc(db,"kesehatan_agregat",id),{
+    bulanLapor:bulanInput.value,
+    rw:rwSelect.value,
+    ibuHamilNormal:+ihNormal.value||0,
+    ibuHamilRisti:+ihRisti.value||0,
+    balitaNormal:+bNormal.value||0,
+    balitaStunting:+bStunting.value||0,
+    balitaGiziBuruk:+bGizi.value||0,
+    disabilitas:+disabilitas.value||0,
+    tbPengobatan:+tbPengobatan.value||0,
+    tbTotal:+tbTotal.value||0,
+    lansiaMandiri:+lMandiri.value||0,
+    lansiaB:+lB.value||0,
+    lansiaC:+lC.value||0,
+    odf:+odf.value||0,
+    updatedAt:serverTimestamp()
+  });
+  alert("✅ Data kesehatan disimpan");
+  location.href="dashboard.html";
 };
 </script>
 
