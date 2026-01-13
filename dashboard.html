@@ -9,56 +9,118 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
 <style>
-body{font-family:Arial;background:#f4f6f9;padding:20px}
-.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
-.card{flex:1;padding:16px;border-radius:10px;color:#fff;min-width:200px}
-.blue{background:#3b5bdb}.purple{background:#7048e8}
-.dark{background:#343a40}.gray{background:#495057}
-.white{background:#fff;padding:16px;border-radius:10px;flex:1;min-width:300px}
-input,select,button{padding:8px;border-radius:6px;border:1px solid #ccc}
-button{background:#3b5bdb;color:#fff;border:none;cursor:pointer}
+body{
+  font-family:Arial;
+  background:#f4f6f9;
+  padding:20px
+}
+.row{
+  display:flex;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:16px
+}
+.card{
+  flex:1;
+  padding:16px;
+  border-radius:10px;
+  color:#fff;
+  min-width:200px
+}
+.blue{background:#3b5bdb}
+.purple{background:#7048e8}
+.dark{background:#343a40}
+.gray{background:#495057}
+
+.white{
+  background:#fff;
+  padding:16px;
+  border-radius:10px;
+  flex:1;
+  min-width:300px
+}
+
+/* 🔑 FIX UKURAN GRAFIK */
+.chart-box{
+  position:relative;
+  width:100%;
+  height:300px; /* tinggi FIX */
+}
+
+input,select,button{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc
+}
+button{
+  background:#3b5bdb;
+  color:#fff;
+  border:none;
+  cursor:pointer
+}
 </style>
 </head>
+
 <body>
 
 <h2>Dashboard Data Kesehatan</h2>
 
 <!-- FILTER -->
 <div class="row">
-<div class="white">
-<b>Filter</b><br><br>
-<input type="month" id="bulanInput">
-<select id="rwInput"><option value="">SEMUA RW</option></select>
-<button id="btnTampil">Tampilkan</button>
-<button id="btnExport">Export PDF</button>
-</div>
+  <div class="white">
+    <b>Filter</b><br><br>
+    <input type="month" id="bulanInput">
+    <select id="rwInput">
+      <option value="">SEMUA RW</option>
+    </select>
+    <button id="btnTampil">Tampilkan</button>
+    <button id="btnExport">Export PDF</button>
+  </div>
 </div>
 
 <!-- CARD -->
 <div class="row">
-<div class="card blue"><h1 id="jmlIbuHamil">0</h1>Ibu Hamil</div>
-<div class="card purple"><h1 id="jmlBalita">0</h1>Balita</div>
-<div class="card dark"><h1 id="jmlTB">0</h1>TB</div>
-<div class="card gray"><h1 id="jmlDis">0</h1>Disabilitas</div>
+  <div class="card blue"><h1 id="jmlIbuHamil">0</h1>Ibu Hamil</div>
+  <div class="card purple"><h1 id="jmlBalita">0</h1>Balita</div>
+  <div class="card dark"><h1 id="jmlTB">0</h1>TB</div>
+  <div class="card gray"><h1 id="jmlDis">0</h1>Disabilitas</div>
 </div>
 
-<!-- GRAFIK UTAMA -->
+<!-- GRAFIK -->
 <div class="row">
-<div class="white"><h3>Ibu Hamil</h3><canvas id="chartIbu"></canvas></div>
-<div class="white"><h3>Balita</h3><canvas id="chartBalita"></canvas></div>
-</div>
-
-<div class="row">
-<div class="white"><h3>TB</h3><canvas id="chartTB"></canvas></div>
-<div class="white"><h3>Disabilitas</h3><canvas id="chartDis"></canvas></div>
-</div>
-
-<div class="row">
-<div class="white"><h3>Perbandingan RW</h3><canvas id="chartRW"></canvas></div>
+  <div class="white">
+    <h3>Ibu Hamil</h3>
+    <div class="chart-box"><canvas id="chartIbu"></canvas></div>
+  </div>
+  <div class="white">
+    <h3>Balita</h3>
+    <div class="chart-box"><canvas id="chartBalita"></canvas></div>
+  </div>
 </div>
 
 <div class="row">
-<div class="white"><h3>Tren Januari - Desember</h3><canvas id="chartTrend"></canvas></div>
+  <div class="white">
+    <h3>TB</h3>
+    <div class="chart-box"><canvas id="chartTB"></canvas></div>
+  </div>
+  <div class="white">
+    <h3>Disabilitas</h3>
+    <div class="chart-box"><canvas id="chartDis"></canvas></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="white">
+    <h3>Perbandingan RW</h3>
+    <div class="chart-box"><canvas id="chartRW"></canvas></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="white">
+    <h3>Tren Januari – Desember</h3>
+    <div class="chart-box"><canvas id="chartTrend"></canvas></div>
+  </div>
 </div>
 
 <script type="module">
@@ -69,99 +131,164 @@ from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 const { jsPDF } = window.jspdf;
 
 let chartIbu, chartBalita, chartTB, chartDis, chartRW, chartTrend;
-let lastSnapshot=[];
+let lastSnapshot = [];
 
-const bulanInput=document.getElementById("bulanInput");
-const rwInput=document.getElementById("rwInput");
-bulanInput.value=new Date().toISOString().slice(0,7);
+const bulanInput = document.getElementById("bulanInput");
+const rwInput = document.getElementById("rwInput");
+bulanInput.value = new Date().toISOString().slice(0,7);
 
-["chartIbu","chartBalita","chartTB","chartDis","chartRW","chartTrend"]
-.forEach(id=>window[id+"El"]=document.getElementById(id));
+const chartIbuEl = document.getElementById("chartIbu");
+const chartBalitaEl = document.getElementById("chartBalita");
+const chartTBEl = document.getElementById("chartTB");
+const chartDisEl = document.getElementById("chartDis");
+const chartRWEl = document.getElementById("chartRW");
+const chartTrendEl = document.getElementById("chartTrend");
 
+// dropdown RW
 for(let i=1;i<=16;i++){
- let o=document.createElement("option");
- o.value=`RW.${String(i).padStart(2,"0")}`;
- o.textContent=o.value;
- rwInput.appendChild(o);
+  const o=document.createElement("option");
+  o.value=`RW.${String(i).padStart(2,"0")}`;
+  o.textContent=o.value;
+  rwInput.appendChild(o);
 }
 
 btnTampil.onclick=()=>loadDashboard(bulanInput.value,rwInput.value);
 btnExport.onclick=()=>exportPDF(bulanInput.value,rwInput.value);
 
 async function loadDashboard(bulan,rw){
- let q=rw?
- query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",bulan),where("rw","==",rw)):
- query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",bulan));
+  let q = rw
+    ? query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulan),
+        where("rw","==",rw))
+    : query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulan));
 
- const snap=await getDocs(q);
- if(snap.empty){alert("Data kosong");return;}
+  const snap = await getDocs(q);
+  if(snap.empty){ alert("Data kosong"); return; }
 
- lastSnapshot=[];
- let total={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
+  lastSnapshot=[];
+  let t={
+    ihN:0,ihR:0,
+    bN:0,bS:0,bG:0,
+    tbT:0,tbP:0,
+    dis:0
+  };
+  let perRW={};
 
- let perRW={};
+  snap.forEach(d=>{
+    const x=d.data();
+    lastSnapshot.push(x);
 
- snap.forEach(d=>{
-  const x=d.data(); lastSnapshot.push(x);
-  total.ihN+=x.ibuHamilNormal||0;
-  total.ihR+=x.ibuHamilRisti||0;
-  total.bN+=x.balitaNormal||0;
-  total.bS+=x.balitaStunting||0;
-  total.bG+=x.balitaGiziBuruk||0;
-  total.tbT+=x.tbTotal||0;
-  total.tbP+=x.tbPengobatan||0;
-  total.dis+=x.disabilitas||0;
+    t.ihN+=x.ibuHamilNormal||0;
+    t.ihR+=x.ibuHamilRisti||0;
+    t.bN+=x.balitaNormal||0;
+    t.bS+=x.balitaStunting||0;
+    t.bG+=x.balitaGiziBuruk||0;
+    t.tbT+=x.tbTotal||0;
+    t.tbP+=x.tbPengobatan||0;
+    t.dis+=x.disabilitas||0;
 
-  if(!perRW[x.rw])perRW[x.rw]=0;
-  perRW[x.rw]+=x.ibuHamilNormal+x.ibuHamilRisti+x.balitaNormal+x.balitaStunting+x.balitaGiziBuruk;
- });
+    if(!perRW[x.rw]) perRW[x.rw]=0;
+    perRW[x.rw]+=(
+      x.ibuHamilNormal+x.ibuHamilRisti+
+      x.balitaNormal+x.balitaStunting+x.balitaGiziBuruk
+    );
+  });
 
- jmlIbuHamil.innerText=total.ihN+total.ihR;
- jmlBalita.innerText=total.bN+total.bS+total.bG;
- jmlTB.innerText=total.tbT;
- jmlDis.innerText=total.dis;
+  jmlIbuHamil.innerText=t.ihN+t.ihR;
+  jmlBalita.innerText=t.bN+t.bS+t.bG;
+  jmlTB.innerText=t.tbT;
+  jmlDis.innerText=t.dis;
 
- destroyCharts();
+  destroyCharts();
 
- chartIbu=new Chart(chartIbuEl,{type:"pie",data:{labels:["Normal","Risti"],datasets:[{data:[total.ihN,total.ihR]}]}});
- chartBalita=new Chart(chartBalitaEl,{type:"pie",data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[total.bN,total.bS,total.bG]}]}});
- chartTB=new Chart(chartTBEl,{type:"bar",data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[total.tbP,total.tbT]}]}});
- chartDis=new Chart(chartDisEl,{type:"bar",data:{labels:["Disabilitas"],datasets:[{data:[total.dis]}]}});
- chartRW=new Chart(chartRWEl,{type:"bar",data:{labels:Object.keys(perRW),datasets:[{label:"Total Kasus",data:Object.values(perRW)}]}});
- loadTrend(rw);
+  const baseOpt={responsive:true,maintainAspectRatio:false};
+
+  chartIbu=new Chart(chartIbuEl,{
+    type:"pie",
+    options:baseOpt,
+    data:{labels:["Normal","Risiko Tinggi"],
+    datasets:[{data:[t.ihN,t.ihR]}]}
+  });
+
+  chartBalita=new Chart(chartBalitaEl,{
+    type:"pie",
+    options:baseOpt,
+    data:{labels:["Normal","Stunting","Gizi Buruk"],
+    datasets:[{data:[t.bN,t.bS,t.bG]}]}
+  });
+
+  chartTB=new Chart(chartTBEl,{
+    type:"bar",
+    options:baseOpt,
+    data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],
+    datasets:[{label:"Jumlah",data:[t.tbP,t.tbT]}]}
+  });
+
+  chartDis=new Chart(chartDisEl,{
+    type:"bar",
+    options:baseOpt,
+    data:{labels:["Disabilitas"],
+    datasets:[{label:"Jumlah",data:[t.dis]}]}
+  });
+
+  chartRW=new Chart(chartRWEl,{
+    type:"bar",
+    options:baseOpt,
+    data:{labels:Object.keys(perRW),
+    datasets:[{label:"Total Kasus",data:Object.values(perRW)}]}
+  });
+
+  loadTrend(rw);
 }
 
 async function loadTrend(rw){
- let months=[...Array(12)].map((_,i)=>`${bulanInput.value.slice(0,4)}-${String(i+1).padStart(2,"0")}`);
- let values=[];
- for(let m of months){
-  let q=rw?
-  query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",m),where("rw","==",rw)):
-  query(collection(db,"kesehatan_agregat"),where("bulanLapor","==",m));
-  const s=await getDocs(q);
-  let sum=0;
-  s.forEach(d=>{const x=d.data();sum+=x.ibuHamilNormal+x.ibuHamilRisti});
-  values.push(sum);
- }
- chartTrend=new Chart(chartTrendEl,{type:"line",data:{labels:months,datasets:[{label:"Ibu Hamil",data:values}]}})
+  const year = bulanInput.value.slice(0,4);
+  const months=[...Array(12)].map((_,i)=>`${year}-${String(i+1).padStart(2,"0")}`);
+  const values=[];
+
+  for(const m of months){
+    let q=rw
+      ? query(collection(db,"kesehatan_agregat"),
+          where("bulanLapor","==",m),
+          where("rw","==",rw))
+      : query(collection(db,"kesehatan_agregat"),
+          where("bulanLapor","==",m));
+    const s=await getDocs(q);
+    let sum=0;
+    s.forEach(d=>{
+      const x=d.data();
+      sum+=x.ibuHamilNormal+x.ibuHamilRisti;
+    });
+    values.push(sum);
+  }
+
+  chartTrend=new Chart(chartTrendEl,{
+    type:"line",
+    options:{responsive:true,maintainAspectRatio:false},
+    data:{labels:months,datasets:[{label:"Ibu Hamil",data:values}]}
+  });
 }
 
 function destroyCharts(){
- [chartIbu,chartBalita,chartTB,chartDis,chartRW,chartTrend].forEach(c=>{if(c)c.destroy()});
+  [chartIbu,chartBalita,chartTB,chartDis,chartRW,chartTrend]
+  .forEach(c=>{ if(c) c.destroy(); });
 }
 
 function exportPDF(bulan,rw){
- if(!lastSnapshot.length){alert("Tampilkan data dulu");return;}
- const pdf=new jsPDF();
- pdf.text("LAPORAN DATA KESEHATAN",14,15);
- pdf.text(`Bulan: ${bulan}`,14,22);
- pdf.text(`RW: ${rw||"SEMUA RW"}`,14,27);
- pdf.addImage(chartIbu.toBase64Image(),"PNG",14,35,80,50);
- pdf.addImage(chartBalita.toBase64Image(),"PNG",110,35,80,50);
- pdf.addImage(chartTB.toBase64Image(),"PNG",14,90,80,50);
- pdf.addImage(chartDis.toBase64Image(),"PNG",110,90,80,50);
- pdf.addImage(chartRW.toBase64Image(),"PNG",14,145,180,50);
- pdf.save(`Laporan_${bulan}_${rw||"SEMUA_RW"}.pdf`);
+  if(!lastSnapshot.length){ alert("Tampilkan data dulu"); return; }
+  const pdf=new jsPDF();
+  pdf.text("LAPORAN DATA KESEHATAN",14,15);
+  pdf.text(`Bulan: ${bulan}`,14,22);
+  pdf.text(`RW: ${rw||"SEMUA RW"}`,14,27);
+
+  pdf.addImage(chartIbu.toBase64Image(),"PNG",14,35,80,45);
+  pdf.addImage(chartBalita.toBase64Image(),"PNG",110,35,80,45);
+  pdf.addImage(chartTB.toBase64Image(),"PNG",14,85,80,45);
+  pdf.addImage(chartDis.toBase64Image(),"PNG",110,85,80,45);
+  pdf.addImage(chartRW.toBase64Image(),"PNG",14,135,180,45);
+
+  pdf.save(`Laporan_${bulan}_${rw||"SEMUA_RW"}.pdf`);
 }
 
 loadDashboard(bulanInput.value,"");
