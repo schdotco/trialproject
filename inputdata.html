@@ -96,16 +96,22 @@ input:focus,select:focus{
 <!-- HEADER -->
 <div class="header">
   <h2>Input Data Agregat Puskesmas</h2>
-  <p>Master data wilayah & laporan kesehatan bulanan</p>
+  <p>Data wilayah per RW & laporan kesehatan bulanan</p>
 </div>
 
-<!-- ================= MASTER DATA PUSKESMAS ================= -->
+<!-- ================= DATA WILAYAH & KEPESERTAAN ================= -->
 <div class="card">
-  <h3>Data Wilayah & Kepesertaan (Profil Puskesmas)</h3>
+  <h3>Data Wilayah & Kepesertaan (Per RW)</h3>
 
   <div class="row">
     <div>
-      <label>Jumlah RT (Total Semua RW)</label>
+      <label>RW</label>
+      <select id="rwWilayah">
+        <option value="">Pilih RW</option>
+      </select>
+    </div>
+    <div>
+      <label>Jumlah RT</label>
       <input id="jmlRT" type="number">
     </div>
     <div>
@@ -117,14 +123,18 @@ input:focus,select:focus{
       <input id="jmlJKN" type="number">
     </div>
     <div>
-      <label>Fasilitas LS (Text)</label>
-      <input id="fasilitasLS" type="text" placeholder="Contoh: Dapur MBG, Pos Gizi">
+      <label>Jumlah Sekolah</label>
+      <input id="jmlSekolah" type="number">
+    </div>
+    <div>
+      <label>Jumlah MBG</label>
+      <input id="jmlMBG" type="number">
     </div>
   </div>
 
   <div class="footer">
     <button id="btnSimpanProfil" class="btn secondary">
-      💾 Simpan Profil Puskesmas
+      💾 Simpan Data Wilayah
     </button>
   </div>
 </div>
@@ -213,47 +223,58 @@ import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// default bulan
-const bulanInput = document.getElementById("bulanLapor");
-bulanInput.value = new Date().toISOString().slice(0,7);
-
-// dropdown RW
-const rwSelect = document.getElementById("rw");
-for(let i=1;i<=16;i++){
-  const o=document.createElement("option");
-  o.value=`RW.${String(i).padStart(2,"0")}`;
-  o.textContent=o.value;
-  rwSelect.appendChild(o);
+// dropdown RW (1–16)
+function isiRW(select){
+  for(let i=1;i<=16;i++){
+    const o=document.createElement("option");
+    o.value=`RW.${i}`;
+    o.textContent=`RW ${i}`;
+    select.appendChild(o);
+  }
 }
 
-// ===== SIMPAN PROFIL PUSKESMAS (MASTER) =====
+isiRW(rwWilayah);
+isiRW(rw);
+
+// default bulan
+bulanLapor.value = new Date().toISOString().slice(0,7);
+
+// ===== SIMPAN DATA WILAYAH (PER RW, MASTER) =====
 btnSimpanProfil.onclick = async () => {
+  if(!rwWilayah.value){
+    alert("RW wajib dipilih");
+    return;
+  }
+
   await setDoc(
-    doc(db,"profil_puskesmas","profil"),
+    doc(db,"profil_puskesmas",rwWilayah.value),
     {
+      rw: rwWilayah.value,
       jumlahRT:+jmlRT.value||0,
       jumlahPenduduk:+jmlPenduduk.value||0,
       jumlahJKN:+jmlJKN.value||0,
-      fasilitasLS:fasilitasLS.value||"",
+      jumlahSekolah:+jmlSekolah.value||0,
+      jumlahMBG:+jmlMBG.value||0,
       updatedAt:serverTimestamp()
     },
     { merge:true }
   );
-  alert("✅ Profil Puskesmas berhasil disimpan");
+
+  alert("✅ Data wilayah berhasil disimpan");
 };
 
 // ===== SIMPAN DATA KESEHATAN BULANAN =====
 btnSimpan.onclick = async () => {
-  if(!bulanInput.value || !rwSelect.value){
+  if(!bulanLapor.value || !rw.value){
     alert("Bulan & RW wajib diisi");
     return;
   }
 
-  const id = `${bulanInput.value}_${rwSelect.value}`;
+  const id = `${bulanLapor.value}_${rw.value}`;
 
   await setDoc(doc(db,"kesehatan_agregat",id),{
-    bulanLapor:bulanInput.value,
-    rw:rwSelect.value,
+    bulanLapor:bulanLapor.value,
+    rw:rw.value,
     ibuHamilNormal:+ihNormal.value||0,
     ibuHamilRisti:+ihRisti.value||0,
     balitaNormal:+bNormal.value||0,
