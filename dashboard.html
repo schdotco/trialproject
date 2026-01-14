@@ -5,7 +5,6 @@
 <title>Dashboard Puskesmas</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body{
@@ -76,9 +75,9 @@ button.secondary{background:#495057}
 <body>
 
 <h2>Dashboard Puskesmas</h2>
-<small>Profil wilayah & rekap data kesehatan bulanan</small>
+<small>Profil wilayah agregat & rekap data kesehatan bulanan</small>
 
-<!-- ================= PROFIL PUSKESMAS ================= -->
+<!-- ================= PROFIL WILAYAH (TOTAL SEMUA RW) ================= -->
 <div class="row">
   <div class="card green">
     <h1 id="rtVal">0</h1>
@@ -93,8 +92,12 @@ button.secondary{background:#495057}
     <span>Peserta JKN</span>
   </div>
   <div class="card orange">
-    <h1 id="lsVal">-</h1>
-    <span>Fasilitas LS</span>
+    <h1 id="sekolahVal">0</h1>
+    <span>Total Sekolah (SD+SMP+SMA)</span>
+  </div>
+  <div class="card purple">
+    <h1 id="mbgVal">0</h1>
+    <span>Total MBG</span>
   </div>
 </div>
 
@@ -107,13 +110,12 @@ button.secondary{background:#495057}
       <option value="">SEMUA RW</option>
     </select>
     <button id="btnTampil">Tampilkan</button>
-    <button id="btnExport" class="secondary">Export PDF</button>
   </div>
 </div>
 
 <!-- ================= RINGKASAN KESEHATAN ================= -->
 <div class="row">
-  <div class="card purple">
+  <div class="card dark">
     <h1 id="ibuHamilVal">0</h1>
     <span>Ibu Hamil</span>
   </div>
@@ -121,11 +123,11 @@ button.secondary{background:#495057}
     <h1 id="balitaVal">0</h1>
     <span>Balita</span>
   </div>
-  <div class="card dark">
+  <div class="card gray">
     <h1 id="tbVal">0</h1>
     <span>TB Terdeteksi</span>
   </div>
-  <div class="card gray">
+  <div class="card green">
     <h1 id="disVal">0</h1>
     <span>Disabilitas</span>
   </div>
@@ -156,32 +158,39 @@ button.secondary{background:#495057}
 
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc, collection, query, where, getDocs }
+import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* ================= PROFIL PUSKESMAS ================= */
-async function loadProfil(){
-  const snap = await getDoc(doc(db,"profil_puskesmas","profil"));
-  if(!snap.exists()) return;
-  const p = snap.data();
-  rtVal.innerText = p.jumlahRT || 0;
-  pendudukVal.innerText = p.jumlahPenduduk || 0;
-  jknVal.innerText = p.jumlahJKN || 0;
-  lsVal.innerText = p.fasilitasLS || "-";
+/* ================= PROFIL WILAYAH (AGREGAT SEMUA RW) ================= */
+async function loadProfilWilayah(){
+  const snap = await getDocs(collection(db,"profil_puskesmas"));
+
+  let rt=0, penduduk=0, jkn=0, sekolah=0, mbg=0;
+
+  snap.forEach(doc=>{
+    const d=doc.data();
+    rt += d.jumlahRT||0;
+    penduduk += d.jumlahPenduduk||0;
+    jkn += d.jumlahJKN||0;
+    sekolah += (d.sekolahSD||0)+(d.sekolahSMP||0)+(d.sekolahSMA||0);
+    mbg += d.jumlahMBG||0;
+  });
+
+  rtVal.innerText = rt;
+  pendudukVal.innerText = penduduk;
+  jknVal.innerText = jkn;
+  sekolahVal.innerText = sekolah;
+  mbgVal.innerText = mbg;
 }
 
 /* ================= FILTER ================= */
-const bulanInput = document.getElementById("bulanInput");
 bulanInput.value = new Date().toISOString().slice(0,7);
-
-const rwInput = document.getElementById("rwInput");
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
-  o.value=`RW.${String(i).padStart(2,"0")}`;
-  o.textContent=o.value;
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
   rwInput.appendChild(o);
 }
-
 btnTampil.onclick = loadKesehatan;
 
 /* ================= DATA KESEHATAN ================= */
@@ -238,7 +247,7 @@ async function loadKesehatan(){
   });
 }
 
-loadProfil();
+loadProfilWilayah();
 loadKesehatan();
 </script>
 
