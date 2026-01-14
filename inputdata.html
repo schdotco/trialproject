@@ -123,8 +123,16 @@ input:focus,select:focus{
       <input id="jmlJKN" type="number">
     </div>
     <div>
-      <label>Jumlah Sekolah</label>
-      <input id="jmlSekolah" type="number">
+      <label>Sekolah SD</label>
+      <input id="jmlSD" type="number">
+    </div>
+    <div>
+      <label>Sekolah SMP</label>
+      <input id="jmlSMP" type="number">
+    </div>
+    <div>
+      <label>Sekolah SMA</label>
+      <input id="jmlSMA" type="number">
     </div>
     <div>
       <label>Jumlah MBG</label>
@@ -223,7 +231,7 @@ import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// dropdown RW (1–16)
+// isi RW 1–16
 function isiRW(select){
   for(let i=1;i<=16;i++){
     const o=document.createElement("option");
@@ -232,14 +240,13 @@ function isiRW(select){
     select.appendChild(o);
   }
 }
-
 isiRW(rwWilayah);
 isiRW(rw);
 
 // default bulan
 bulanLapor.value = new Date().toISOString().slice(0,7);
 
-// ===== SIMPAN DATA WILAYAH (PER RW, MASTER) =====
+// ===== SIMPAN DATA WILAYAH (MASTER PER RW) =====
 btnSimpanProfil.onclick = async () => {
   if(!rwWilayah.value){
     alert("RW wajib dipilih");
@@ -253,7 +260,9 @@ btnSimpanProfil.onclick = async () => {
       jumlahRT:+jmlRT.value||0,
       jumlahPenduduk:+jmlPenduduk.value||0,
       jumlahJKN:+jmlJKN.value||0,
-      jumlahSekolah:+jmlSekolah.value||0,
+      sekolahSD:+jmlSD.value||0,
+      sekolahSMP:+jmlSMP.value||0,
+      sekolahSMA:+jmlSMA.value||0,
       jumlahMBG:+jmlMBG.value||0,
       updatedAt:serverTimestamp()
     },
