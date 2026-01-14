@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Puskesmas</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  font-family:Arial, sans-serif;
+  background:#f4f6f9;
+  padding:20px;
+  color:#212529;
+}
+h2{margin-bottom:4px}
+small{color:#6c757d}
+
+.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+
+.card{
+  flex:1;
+  padding:16px;
+  border-radius:12px;
+  color:#fff;
+  min-width:220px
+}
+.card h1{margin:0;font-size:26px}
+.card span{font-size:13px;opacity:.9}
+
+.green{background:#2f9e44}
+.blue{background:#3b5bdb}
+.teal{background:#0ca678}
+.orange{background:#f59f00}
+.purple{background:#7048e8}
+.dark{background:#343a40}
+.gray{background:#495057}
+
+.white{
+  background:#fff;
+  padding:16px;
+  border-radius:12px;
+  flex:1;
+  min-width:300px
+}
+
+.chart-box{position:relative;width:100%;height:300px}
+
+input,select,button{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc
+}
+button{background:#3b5bdb;color:#fff;border:none;cursor:pointer}
+</style>
+</head>
+
+<body>
+
+<h2>Dashboard Puskesmas</h2>
+<small>Data wilayah & kesehatan per RW per bulan</small>
+
+<!-- ================= FILTER GLOBAL ================= -->
+<div class="row">
+  <div class="white">
+    <b>Filter Data</b><br><br>
+    <select id="rwInput">
+      <option value="">Pilih RW</option>
+    </select>
+    <input type="month" id="bulanInput">
+    <button id="btnTampil">Tampilkan</button>
+  </div>
+</div>
+
+<!-- ================= DATA WILAYAH ================= -->
+<div class="row">
+  <div class="card green"><h1 id="rtVal">0</h1><span>Jumlah RT</span></div>
+  <div class="card blue"><h1 id="pendudukVal">0</h1><span>Jumlah Penduduk</span></div>
+  <div class="card teal"><h1 id="jknVal">0</h1><span>Peserta JKN</span></div>
+  <div class="card orange"><h1 id="mbgVal">0</h1><span>Jumlah MBG</span></div>
+</div>
+
+<div class="row">
+  <div class="card purple"><h1 id="sdVal">0</h1><span>Sekolah SD</span></div>
+  <div class="card dark"><h1 id="smpVal">0</h1><span>Sekolah SMP</span></div>
+  <div class="card gray"><h1 id="smaVal">0</h1><span>Sekolah SMA</span></div>
+</div>
+
+<!-- ================= RINGKASAN KESEHATAN ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="ibuHamilVal">0</h1><span>Ibu Hamil</span></div>
+  <div class="card blue"><h1 id="balitaVal">0</h1><span>Balita</span></div>
+  <div class="card gray"><h1 id="tbVal">0</h1><span>TB Terdeteksi</span></div>
+  <div class="card green"><h1 id="disVal">0</h1><span>Disabilitas</span></div>
+</div>
+
+<!-- ================= GRAFIK ================= -->
+<div class="row">
+  <div class="white"><b>Ibu Hamil</b><div class="chart-box"><canvas id="chartIbu"></canvas></div></div>
+  <div class="white"><b>Balita</b><div class="chart-box"><canvas id="chartBalita"></canvas></div></div>
+</div>
+
+<div class="row">
+  <div class="white"><b>TB</b><div class="chart-box"><canvas id="chartTB"></canvas></div></div>
+  <div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDis"></canvas></div></div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, getDocs, query, where }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+/* INIT FILTER */
+bulanInput.value = new Date().toISOString().slice(0,7);
+for(let i=1;i<=16;i++){
+  const o=document.createElement("option");
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
+  rwInput.appendChild(o);
+}
+btnTampil.onclick = loadAll;
+
+/* ================= DATA WILAYAH ================= */
+async function loadProfilWilayah(){
+  const id = `${bulanInput.value}_${rwInput.value}`;
+
+  const q = query(
+    collection(db,"profil_puskesmas"),
+    where("bulanLapor","==",bulanInput.value),
+    where("rw","==",rwInput.value)
+  );
+
+  const snap = await getDocs(q);
+  if(snap.empty){ return; }
+
+  const d = snap.docs[0].data();
+
+  rtVal.innerText = d.jumlahRT||0;
+  pendudukVal.innerText = d.jumlahPenduduk||0;
+  jknVal.innerText = d.jumlahJKN||0;
+  mbgVal.innerText = d.jumlahMBG||0;
+  sdVal.innerText = d.sekolahSD||0;
+  smpVal.innerText = d.sekolahSMP||0;
+  smaVal.innerText = d.sekolahSMA||0;
+}
+
+/* ================= DATA KESEHATAN ================= */
+let cIbu,cBalita,cTB,cDis;
+
+async function loadKesehatan(){
+  const q = query(
+    collection(db,"kesehatan_agregat"),
+    where("bulanLapor","==",bulanInput.value),
+    where("rw","==",rwInput.value)
+  );
+
+  const snap = await getDocs(q);
+  if(snap.empty){ return; }
+
+  let t={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
+
+  snap.forEach(d=>{
+    const x=d.data();
+    t.ihN+=x.ibuHamilNormal;
+    t.ihR+=x.ibuHamilRisti;
+    t.bN+=x.balitaNormal;
+    t.bS+=x.balitaStunting;
+    t.bG+=x.balitaGiziBuruk;
+    t.tbT+=x.tbTotal;
+    t.tbP+=x.tbPengobatan;
+    t.dis+=x.disabilitas;
+  });
+
+  ibuHamilVal.innerText=t.ihN+t.ihR;
+  balitaVal.innerText=t.bN+t.bS+t.bG;
+  tbVal.innerText=t.tbT;
+  disVal.innerText=t.dis;
+
+  [cIbu,cBalita,cTB,cDis].forEach(c=>{if(c)c.destroy()});
+  const opt={responsive:true,maintainAspectRatio:false};
+
+  cIbu=new Chart(chartIbu,{type:"pie",options:opt,
+    data:{labels:["Normal","Risiko Tinggi"],datasets:[{data:[t.ihN,t.ihR]}]}
+  });
+  cBalita=new Chart(chartBalita,{type:"pie",options:opt,
+    data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[t.bN,t.bS,t.bG]}]}
+  });
+  cTB=new Chart(chartTB,{type:"bar",options:opt,
+    data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[t.tbP,t.tbT]}]}
+  });
+  cDis=new Chart(chartDis,{type:"bar",options:opt,
+    data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
+  });
+}
+
+/* LOAD ALL */
+async function loadAll(){
+  if(!rwInput.value || !bulanInput.value){
+    alert("Pilih RW dan Bulan");
+    return;
+  }
+  await loadProfilWilayah();
+  await loadKesehatan();
+}
+
+loadAll();
+</script>
+
+</body>
+</html>
