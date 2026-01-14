@@ -31,7 +31,7 @@ small{color:#6c757d}
   min-width:220px;
 }
 
-.card h1{margin:0;font-size:28px}
+.card h1{margin:0;font-size:26px}
 .card span{font-size:13px;opacity:.9}
 
 .green{background:#2f9e44}
@@ -68,16 +68,27 @@ button{
   border:none;
   cursor:pointer;
 }
-button.secondary{background:#495057}
 </style>
 </head>
 
 <body>
 
 <h2>Dashboard Puskesmas</h2>
-<small>Profil Wilayah</small>
+<small>Profil wilayah & rekap data kesehatan</small>
 
-<!-- ================= PROFIL WILAYAH (TOTAL SEMUA RW) ================= -->
+<!-- ================= FILTER (RW + BULAN) ================= -->
+<div class="row">
+  <div class="white">
+    <b>Filter Data</b><br><br>
+    <select id="rwInput">
+      <option value="">SEMUA RW</option>
+    </select>
+    <input type="month" id="bulanInput">
+    <button id="btnTampil">Tampilkan</button>
+  </div>
+</div>
+
+<!-- ================= PROFIL WILAYAH ================= -->
 <div class="row">
   <div class="card green">
     <h1 id="rtVal">0</h1>
@@ -92,24 +103,23 @@ button.secondary{background:#495057}
     <span>Peserta JKN</span>
   </div>
   <div class="card orange">
-    <h1 id="sekolahVal">0</h1>
-    <span>Total Sekolah (SD+SMP+SMA)</span>
-  </div>
-  <div class="card purple">
     <h1 id="mbgVal">0</h1>
-    <span>Total MBG</span>
+    <span>Jumlah MBG</span>
   </div>
 </div>
 
-<!-- ================= FILTER KESEHATAN ================= -->
 <div class="row">
-  <div class="white">
-    <b>Filter Data Kesehatan</b><br><br>
-    <input type="month" id="bulanInput">
-    <select id="rwInput">
-      <option value="">SEMUA RW</option>
-    </select>
-    <button id="btnTampil">Tampilkan</button>
+  <div class="card purple">
+    <h1 id="sdVal">0</h1>
+    <span>Sekolah SD</span>
+  </div>
+  <div class="card dark">
+    <h1 id="smpVal">0</h1>
+    <span>Sekolah SMP</span>
+  </div>
+  <div class="card gray">
+    <h1 id="smaVal">0</h1>
+    <span>Sekolah SMA</span>
   </div>
 </div>
 
@@ -161,29 +171,7 @@ import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* ================= PROFIL WILAYAH (AGREGAT SEMUA RW) ================= */
-async function loadProfilWilayah(){
-  const snap = await getDocs(collection(db,"profil_puskesmas"));
-
-  let rt=0, penduduk=0, jkn=0, sekolah=0, mbg=0;
-
-  snap.forEach(doc=>{
-    const d=doc.data();
-    rt += d.jumlahRT||0;
-    penduduk += d.jumlahPenduduk||0;
-    jkn += d.jumlahJKN||0;
-    sekolah += (d.sekolahSD||0)+(d.sekolahSMP||0)+(d.sekolahSMA||0);
-    mbg += d.jumlahMBG||0;
-  });
-
-  rtVal.innerText = rt;
-  pendudukVal.innerText = penduduk;
-  jknVal.innerText = jkn;
-  sekolahVal.innerText = sekolah;
-  mbgVal.innerText = mbg;
-}
-
-/* ================= FILTER ================= */
+/* ================= INIT FILTER ================= */
 bulanInput.value = new Date().toISOString().slice(0,7);
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
@@ -191,7 +179,37 @@ for(let i=1;i<=16;i++){
   o.textContent=`RW ${i}`;
   rwInput.appendChild(o);
 }
-btnTampil.onclick = loadKesehatan;
+btnTampil.onclick = loadAll;
+
+/* ================= LOAD PROFIL WILAYAH ================= */
+async function loadProfilWilayah(){
+  let q = rwInput.value
+    ? query(collection(db,"profil_puskesmas"), where("rw","==",rwInput.value))
+    : collection(db,"profil_puskesmas");
+
+  const snap = await getDocs(q);
+
+  let rt=0, penduduk=0, jkn=0, mbg=0, sd=0, smp=0, sma=0;
+
+  snap.forEach(doc=>{
+    const d=doc.data();
+    rt += d.jumlahRT||0;
+    penduduk += d.jumlahPenduduk||0;
+    jkn += d.jumlahJKN||0;
+    mbg += d.jumlahMBG||0;
+    sd += d.sekolahSD||0;
+    smp += d.sekolahSMP||0;
+    sma += d.sekolahSMA||0;
+  });
+
+  rtVal.innerText = rt;
+  pendudukVal.innerText = penduduk;
+  jknVal.innerText = jkn;
+  mbgVal.innerText = mbg;
+  sdVal.innerText = sd;
+  smpVal.innerText = smp;
+  smaVal.innerText = sma;
+}
 
 /* ================= DATA KESEHATAN ================= */
 let cIbu,cBalita,cTB,cDis;
@@ -247,8 +265,12 @@ async function loadKesehatan(){
   });
 }
 
-loadProfilWilayah();
-loadKesehatan();
+async function loadAll(){
+  await loadProfilWilayah();
+  await loadKesehatan();
+}
+
+loadAll();
 </script>
 
 </body>
