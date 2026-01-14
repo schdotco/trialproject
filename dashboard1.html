@@ -60,12 +60,12 @@ button{background:#3b5bdb;color:#fff;border:none;cursor:pointer}
 <h2>Dashboard Puskesmas</h2>
 <small>Data wilayah & kesehatan per RW per bulan</small>
 
-<!-- ================= FILTER GLOBAL ================= -->
+<!-- ================= FILTER ================= -->
 <div class="row">
   <div class="white">
     <b>Filter Data</b><br><br>
     <select id="rwInput">
-      <option value="">Pilih RW</option>
+      <option value="">SEMUA RW</option>
     </select>
     <input type="month" id="bulanInput">
     <button id="btnTampil">Tampilkan</button>
@@ -111,64 +111,85 @@ import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 /* INIT FILTER */
+const rwInput = document.getElementById("rwInput");
+const bulanInput = document.getElementById("bulanInput");
 bulanInput.value = new Date().toISOString().slice(0,7);
+
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
   o.value=`RW.${i}`;
   o.textContent=`RW ${i}`;
   rwInput.appendChild(o);
 }
+
 btnTampil.onclick = loadAll;
 
 /* ================= DATA WILAYAH ================= */
 async function loadProfilWilayah(){
-  const id = `${bulanInput.value}_${rwInput.value}`;
-
-  const q = query(
-    collection(db,"profil_puskesmas"),
-    where("bulanLapor","==",bulanInput.value),
-    where("rw","==",rwInput.value)
-  );
+  let q = rwInput.value
+    ? query(
+        collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value)
+      )
+    : query(
+        collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value)
+      );
 
   const snap = await getDocs(q);
-  if(snap.empty){ return; }
 
-  const d = snap.docs[0].data();
+  let rt=0, penduduk=0, jkn=0, mbg=0, sd=0, smp=0, sma=0;
 
-  rtVal.innerText = d.jumlahRT||0;
-  pendudukVal.innerText = d.jumlahPenduduk||0;
-  jknVal.innerText = d.jumlahJKN||0;
-  mbgVal.innerText = d.jumlahMBG||0;
-  sdVal.innerText = d.sekolahSD||0;
-  smpVal.innerText = d.sekolahSMP||0;
-  smaVal.innerText = d.sekolahSMA||0;
+  snap.forEach(doc=>{
+    const d=doc.data();
+    rt+=d.jumlahRT||0;
+    penduduk+=d.jumlahPenduduk||0;
+    jkn+=d.jumlahJKN||0;
+    mbg+=d.jumlahMBG||0;
+    sd+=d.sekolahSD||0;
+    smp+=d.sekolahSMP||0;
+    sma+=d.sekolahSMA||0;
+  });
+
+  rtVal.innerText=rt;
+  pendudukVal.innerText=penduduk;
+  jknVal.innerText=jkn;
+  mbgVal.innerText=mbg;
+  sdVal.innerText=sd;
+  smpVal.innerText=smp;
+  smaVal.innerText=sma;
 }
 
 /* ================= DATA KESEHATAN ================= */
 let cIbu,cBalita,cTB,cDis;
 
 async function loadKesehatan(){
-  const q = query(
-    collection(db,"kesehatan_agregat"),
-    where("bulanLapor","==",bulanInput.value),
-    where("rw","==",rwInput.value)
-  );
+  let q = rwInput.value
+    ? query(
+        collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value)
+      )
+    : query(
+        collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value)
+      );
 
   const snap = await getDocs(q);
-  if(snap.empty){ return; }
 
   let t={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
 
   snap.forEach(d=>{
     const x=d.data();
-    t.ihN+=x.ibuHamilNormal;
-    t.ihR+=x.ibuHamilRisti;
-    t.bN+=x.balitaNormal;
-    t.bS+=x.balitaStunting;
-    t.bG+=x.balitaGiziBuruk;
-    t.tbT+=x.tbTotal;
-    t.tbP+=x.tbPengobatan;
-    t.dis+=x.disabilitas;
+    t.ihN+=x.ibuHamilNormal||0;
+    t.ihR+=x.ibuHamilRisti||0;
+    t.bN+=x.balitaNormal||0;
+    t.bS+=x.balitaStunting||0;
+    t.bG+=x.balitaGiziBuruk||0;
+    t.tbT+=x.tbTotal||0;
+    t.tbP+=x.tbPengobatan||0;
+    t.dis+=x.disabilitas||0;
   });
 
   ibuHamilVal.innerText=t.ihN+t.ihR;
@@ -176,7 +197,7 @@ async function loadKesehatan(){
   tbVal.innerText=t.tbT;
   disVal.innerText=t.dis;
 
-  [cIbu,cBalita,cTB,cDis].forEach(c=>{if(c)c.destroy()});
+  [cIbu,cBalita,cTB,cDis].forEach(c=>c&&c.destroy());
   const opt={responsive:true,maintainAspectRatio:false};
 
   cIbu=new Chart(chartIbu,{type:"pie",options:opt,
@@ -195,8 +216,8 @@ async function loadKesehatan(){
 
 /* LOAD ALL */
 async function loadAll(){
-  if(!rwInput.value || !bulanInput.value){
-    alert("Pilih RW dan Bulan");
+  if(!bulanInput.value){
+    alert("Pilih bulan");
     return;
   }
   await loadProfilWilayah();
