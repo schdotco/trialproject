@@ -58,9 +58,9 @@ button{background:#3b5bdb;color:#fff;border:none;cursor:pointer}
 <body>
 
 <h2>Dashboard Puskesmas</h2>
-<small>Data wilayah & Kesehatan per RW per bulan</small>
+<small>Data wilayah per RW & laporan kesehatan bulanan</small>
 
-<!-- ================= FILTER GLOBAL ================= -->
+<!-- ================= FILTER ================= -->
 <div class="row">
   <div class="white">
     <b>Filter Data</b><br><br>
@@ -110,7 +110,7 @@ import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* INIT FILTER */
+/* ================= INIT ================= */
 bulanInput.value = new Date().toISOString().slice(0,7);
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
@@ -120,21 +120,23 @@ for(let i=1;i<=16;i++){
 }
 btnTampil.onclick = loadAll;
 
-/* ================= DATA WILAYAH ================= */
+/* ================= PROFIL WILAYAH (RW SAJA) ================= */
 async function loadProfilWilayah(){
-  const id = `${bulanInput.value}_${rwInput.value}`;
+  if(!rwInput.value) return;
 
   const q = query(
     collection(db,"profil_puskesmas"),
-    where("bulanLapor","==",bulanInput.value),
     where("rw","==",rwInput.value)
   );
 
   const snap = await getDocs(q);
-  if(snap.empty){ return; }
+  if(snap.empty){
+    rtVal.innerText=pendudukVal.innerText=jknVal.innerText=
+    mbgVal.innerText=sdVal.innerText=smpVal.innerText=smaVal.innerText=0;
+    return;
+  }
 
   const d = snap.docs[0].data();
-
   rtVal.innerText = d.jumlahRT||0;
   pendudukVal.innerText = d.jumlahPenduduk||0;
   jknVal.innerText = d.jumlahJKN||0;
@@ -144,18 +146,20 @@ async function loadProfilWilayah(){
   smaVal.innerText = d.sekolahSMA||0;
 }
 
-/* ================= DATA KESEHATAN ================= */
+/* ================= DATA KESEHATAN (RW + BULAN) ================= */
 let cIbu,cBalita,cTB,cDis;
 
 async function loadKesehatan(){
+  if(!rwInput.value || !bulanInput.value) return;
+
   const q = query(
     collection(db,"kesehatan_agregat"),
-    where("bulanLapor","==",bulanInput.value),
-    where("rw","==",rwInput.value)
+    where("rw","==",rwInput.value),
+    where("bulanLapor","==",bulanInput.value)
   );
 
   const snap = await getDocs(q);
-  if(snap.empty){ return; }
+  if(snap.empty) return;
 
   let t={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
 
@@ -193,17 +197,16 @@ async function loadKesehatan(){
   });
 }
 
-/* LOAD ALL */
+/* ================= LOAD ALL ================= */
 async function loadAll(){
-  if(!rwInput.value || !bulanInput.value){
-    alert("Pilih RW dan Bulan");
+  if(!rwInput.value){
+    alert("Pilih RW terlebih dahulu");
     return;
   }
   await loadProfilWilayah();
   await loadKesehatan();
 }
 
-loadAll();
 </script>
 
 </body>
