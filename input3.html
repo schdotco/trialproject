@@ -175,73 +175,53 @@ import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// elemen
-const rw = document.getElementById("rw");
-const bulanLapor = document.getElementById("bulanLapor");
-const btnSimpan = document.getElementById("btnSimpan");
+const rw=document.getElementById("rw");
+const bulan=document.getElementById("bulanLapor");
+const btn=document.getElementById("btnSimpan");
 
-// isi RW
 for(let i=1;i<=16;i++){
-  const o=document.createElement("option");
-  o.value=`RW.${i}`;
-  o.textContent=`RW ${i}`;
-  rw.appendChild(o);
+  rw.innerHTML+=`<option value="RW.${i}">RW ${i}</option>`;
 }
+bulan.value=new Date().toISOString().slice(0,7);
 
-// default bulan
-bulanLapor.value = new Date().toISOString().slice(0,7);
-
-// simpan
-btnSimpan.onclick = async () => {
-  if(!bulanLapor.value || !rw.value){
-    alert("Bulan & RW wajib diisi");
+btn.onclick=async()=>{
+  if(!rw.value||!bulan.value){
+    alert("RW & Bulan wajib diisi");
     return;
   }
 
-  const id = `${bulanLapor.value}_${rw.value}`;
+  const id=`${bulan.value}_${rw.value}`;
 
- await setDoc(
-  doc(db,"sanitasi_agregat",id),
-  {
-    bulanLapor: bulanLapor.value,
-    rw: rw.value,
+  await setDoc(doc(db,"sanitasi_agregat",id),{
+    bulanLapor:bulan.value,
+    rw:rw.value,
 
-    tpp:{
-      jasaBoga:+tppJasaBoga.value||0,
-      restoran:+tppRestoran.value||0,
-      homeIndustri:+tppHomeIndustri.value||0,
-      damiu:+tppDamiu.value||0,
-      rumahMakan:+tppRumahMakan.value||0,
-      gerai:+tppGerai.value||0,
-      keliling:+tppKeliling.value||0,
-      dapur:+tppDapur.value||0,
-      sentra:+tppSentra.value||0
-    },
+    tppJasaBoga:+tppJasaBoga.value||0,
+    tppRestoran:+tppRestoran.value||0,
+    tppHomeIndustri:+tppHomeIndustri.value||0,
+    tppDamiu:+tppDamiu.value||0,
+    tppRumahMakan:+tppRumahMakan.value||0,
+    tppGeraiJajanan:+tppGeraiJajanan.value||0,
+    tppGeraiKeliling:+tppGeraiKeliling.value||0,
+    tppDapurGerai:+tppDapurGerai.value||0,
+    tppSentraKantin:+tppSentraKantin.value||0,
 
-    jamban:{
-      aman:+jambanAman.value||0,
-      komunal:+jambanKomunal.value||0,
-      belum:+jambanBelum.value||0
-    },
+    jambanSepticAman:+jambanSepticAman.value||0,
+    jambanKomunal:+jambanKomunal.value||0,
+    jambanBelum:+jambanBelum.value||0,
 
-    airBersih:{
-      sumurBor:+airSumurBor.value||0,
-      pdam:+airPDAM.value||0,
-      artesis:+airArtesis.value||0
-    },
+    airSumurBor:+airSumurBor.value||0,
+    airPDAM:+airPDAM.value||0,
+    airArtesis:+airArtesis.value||0,
 
-    airMinum:{
-      amk:+airAMK.value||0,
-      isiUlang:+airIsiUlang.value||0,
-      dimasak:+airDimasak.value||0
-    },
+    airMinumAMK:+airMinumAMK.value||0,
+    airMinumIsiUlang:+airMinumIsiUlang.value||0,
+    airMinumMasak:+airMinumMasak.value||0,
 
-    updatedAt: serverTimestamp()
-  },
-  { merge:true }
-);
+    updatedAt:serverTimestamp()
+  },{merge:true});
 
-  alert("✅ Data sanitasi berhasil disimpan");
+  alert("✅ Data sanitasi tersimpan");
   location.reload();
 };
 </script>
