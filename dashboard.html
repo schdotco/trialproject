@@ -332,6 +332,9 @@ import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+/* ================= GLOBAL CHART ================= */
+let cIbu,cBalita,cTB,cDis,cLansia,cDiagTop10;
+
 /* ================= INIT FILTER ================= */
 const rwInput    = document.getElementById("rwInput");
 const bulanInput = document.getElementById("bulanInput");
@@ -348,7 +351,7 @@ for(let i=1;i<=16;i++){
 
 btnTampil.onclick = loadAll;
 
-/* ================= DATA WILAYAH (INPUT2.HTML) ================= */
+/* ================= DATA WILAYAH ================= */
 async function loadProfilWilayah(){
   const q = rwInput.value
     ? query(collection(db,"profil_puskesmas"),
@@ -359,7 +362,7 @@ async function loadProfilWilayah(){
 
   const snap = await getDocs(q);
 
-  let t={
+  const t={
     rt:0, penduduk:0, jkn:0, mbg:0,
     tk:0, sd:0, smp:0, sma:0,
     ibadah:0, ponpes:0, hotel:0, kantor:0
@@ -367,41 +370,26 @@ async function loadProfilWilayah(){
 
   snap.forEach(d=>{
     const x=d.data();
-    t.rt        += x.jumlahRT || 0;
-    t.penduduk += x.jumlahPenduduk || 0;
-    t.jkn       += x.jumlahJKN || 0;
-    t.mbg       += x.jumlahMBG || 0;
-
-    t.tk        += x.sekolahTK || 0;
-    t.sd        += x.sekolahSD || 0;
-    t.smp       += x.sekolahSMP || 0;
-    t.sma       += x.sekolahSMA || 0;
-
-    t.ibadah   += x.tempatIbadah || 0;
-    t.ponpes   += x.pondokPesantren || 0;
-    t.hotel    += x.hotel || 0;
-    t.kantor   += x.perkantoran || 0;
+    Object.keys(t).forEach(k=>t[k]+=x[k]||0);
   });
 
-  rtVal.innerText        = t.rt;
+  rtVal.innerText = t.rt;
   pendudukVal.innerText = t.penduduk;
-  jknVal.innerText      = t.jkn;
-  mbgVal.innerText      = t.mbg;
+  jknVal.innerText = t.jkn;
+  mbgVal.innerText = t.mbg;
 
-  tkVal.innerText   = t.tk;
-  sdVal.innerText   = t.sd;
-  smpVal.innerText  = t.smp;
-  smaVal.innerText  = t.sma;
+  tkVal.innerText = t.tk;
+  sdVal.innerText = t.sd;
+  smpVal.innerText = t.smp;
+  smaVal.innerText = t.sma;
 
   ibadahVal.innerText = t.ibadah;
   ponpesVal.innerText = t.ponpes;
-  hotelVal.innerText  = t.hotel;
+  hotelVal.innerText = t.hotel;
   kantorVal.innerText = t.kantor;
 }
 
-/* ================= DATA KESEHATAN (INPUTDATA.HTML) ================= */
-let cIbu,cBalita,cTB,cDis,cLansia;
-
+/* ================= DATA KESEHATAN ================= */
 async function loadKesehatan(){
   const q = rwInput.value
     ? query(collection(db,"kesehatan_agregat"),
@@ -412,7 +400,7 @@ async function loadKesehatan(){
 
   const snap = await getDocs(q);
 
-  let t={
+  const t={
     ihNormal:0, ihRisti:0, ihKEK:0,
     inNormal:0, inRisti:0,
     bayi:0,
@@ -426,114 +414,96 @@ async function loadKesehatan(){
 
   snap.forEach(d=>{
     const x=d.data();
-    Object.keys(t).forEach(k=>{
-      t[k]+=x[k]||0;
-    });
-  });
-
-  /* ===== ISI CARD ===== */
-  ihNormalVal.innerText = t.ihNormal;
-  ihRistiVal.innerText = t.ihRisti;
-  ihKEKVal.innerText   = t.ihKEK;
-
-  inNormalVal.innerText = t.inNormal;
-  inRistiVal.innerText  = t.inRisti;
-
-  bayiTotalVal.innerText = t.bayi;
-
-  bNormalVal.innerText   = t.bNormal;
-  bStuntingVal.innerText= t.bStunting;
-  bGiziVal.innerText    = t.bGizi;
-  bPMTVal.innerText     = t.bPMT;
-
-  tbPengobatanVal.innerText = t.tbPengobatan;
-  tbSelesaiVal.innerText    = t.tbSelesai;
-
-  dgHTVal.innerText     = t.dgHT;
-  dgDMVal.innerText     = t.dgDM;
-  dgODGJVal.innerText   = t.dgODGJ;
-  dgKankerVal.innerText = t.dgKanker;
-
-  pkprTotalVal.innerText     = t.pkprTotal;
-  pkprLakiVal.innerText      = t.pkprL;
-  pkprPerempuanVal.innerText = t.pkprP;
-
-  disabilitasVal.innerText = t.dis;
-
-  lMandiriVal.innerText = t.lMandiri;
-  lBSedangVal.innerText = t.lBS;
-  lBRinganVal.innerText = t.lBR;
-  lCVal.innerText       = t.lC;
-
-  /* ===== GRAFIK ===== */
-  [cIbu,cBalita,cTB,cDis,cLansia].forEach(c=>c&&c.destroy());
-
-  cIbu=new Chart(chartIbu,{type:"pie",
-    data:{labels:["Normal","Risti","KEK"],
-    datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKEK]}]}
-  });
-
-  cBalita=new Chart(chartBalita,{type:"pie",
-    data:{labels:["Normal","Stunting","Gizi Buruk","PMT"],
-    datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
-  });
-
-  cTB=new Chart(chartTB,{type:"bar",
-    data:{labels:["Pengobatan","Selesai"],
-    datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
-  });
-
-  cDis=new Chart(chartDis,{type:"bar",
-    data:{labels:["Disabilitas"],
-    datasets:[{data:[t.dis]}]}
-  });
-
-  cLansia=new Chart(chartLansia,{type:"pie",
-    data:{labels:["Mandiri","B Sedang","B Ringan","C"],
-    datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
-  });
-}
-
-/* ================= SANITASI (INPUT3.HTML) ================= */
-async function loadSanitasi(){
-  const q = rwInput.value
-    ? query(collection(db,"sanitasi_agregat"),
-        where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value))
-    : query(collection(db,"sanitasi_agregat"),
-        where("bulanLapor","==",bulanInput.value));
-
-  const snap = await getDocs(q);
-
-  const t={
-    tppJasaBoga:0,tppRestoran:0,tppHomeIndustri:0,tppDamiu:0,
-    tppRumahMakan:0,tppGeraiJajanan:0,tppGeraiKeliling:0,
-    tppDapurGerai:0,tppSentraKantin:0,
-    jambanSepticAman:0,jambanKomunal:0,jambanBelum:0,
-    airSumurBor:0,airPDAM:0,airArtesis:0,
-    airMinumAMK:0,airMinumIsiUlang:0,airMinumMasak:0
-  };
-
-  snap.forEach(d=>{
-    const x=d.data();
     Object.keys(t).forEach(k=>t[k]+=x[k]||0);
   });
 
-  Object.keys(t).forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.innerText=t[id];
+  /* ===== CARD ===== */
+  ihNormalVal.innerText=t.ihNormal;
+  ihRistiVal.innerText=t.ihRisti;
+  ihKEKVal.innerText=t.ihKEK;
+  inNormalVal.innerText=t.inNormal;
+  inRistiVal.innerText=t.inRisti;
+  bayiTotalVal.innerText=t.bayi;
+  bNormalVal.innerText=t.bNormal;
+  bStuntingVal.innerText=t.bStunting;
+  bGiziVal.innerText=t.bGizi;
+  bPMTVal.innerText=t.bPMT;
+  tbPengobatanVal.innerText=t.tbPengobatan;
+  tbSelesaiVal.innerText=t.tbSelesai;
+  dgHTVal.innerText=t.dgHT;
+  dgDMVal.innerText=t.dgDM;
+  dgODGJVal.innerText=t.dgODGJ;
+  dgKankerVal.innerText=t.dgKanker;
+  pkprTotalVal.innerText=t.pkprTotal;
+  pkprLakiVal.innerText=t.pkprL;
+  pkprPerempuanVal.innerText=t.pkprP;
+  disabilitasVal.innerText=t.dis;
+  lMandiriVal.innerText=t.lMandiri;
+  lBSedangVal.innerText=t.lBS;
+  lBRinganVal.innerText=t.lBR;
+  lCVal.innerText=t.lC;
+
+  /* ===== DESTROY ===== */
+  [cIbu,cBalita,cTB,cDis,cLansia].forEach(c=>c&&c.destroy());
+
+  /* ===== CHART ===== */
+  if(chartIbu) cIbu=new Chart(chartIbu,{type:"pie",
+    data:{labels:["Normal","Risti","KEK"],datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKEK]}]}
+  });
+
+  if(chartBalita) cBalita=new Chart(chartBalita,{type:"pie",
+    data:{labels:["Normal","Stunting","Gizi","PMT"],datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
+  });
+
+  if(chartTB) cTB=new Chart(chartTB,{type:"bar",
+    data:{labels:["Pengobatan","Selesai"],datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
+  });
+
+  if(chartDis) cDis=new Chart(chartDis,{type:"bar",
+    data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
+  });
+
+  if(chartLansia) cLansia=new Chart(chartLansia,{type:"pie",
+    data:{labels:["Mandiri","B Sedang","B Ringan","C"],datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
+  });
+}
+
+/* ================= DIAGNOSA TOP 10 ================= */
+async function loadDiagnosaTop10(){
+  const q = query(collection(db,"profil_puskesmas"),
+    where("bulanLapor","==",bulanInput.value));
+
+  const snap = await getDocs(q);
+  const map={};
+
+  snap.forEach(d=>{
+    const x=d.data();
+    if(Array.isArray(x.diagnosaTop10)){
+      x.diagnosaTop10.forEach(i=>{
+        if(i.nama) map[i.nama]=(map[i.nama]||0)+(i.jumlah||0);
+      });
+    }
+  });
+
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  if(!sorted.length) return;
+
+  const labels=sorted.map(i=>i[0]);
+  const data=sorted.map(i=>i[1]);
+
+  cDiagTop10 && cDiagTop10.destroy();
+
+  cDiagTop10=new Chart(chartdiagnosaTop10,{
+    type:"bar",
+    data:{labels,datasets:[{data,backgroundColor:"#1c7ed6"}]}
   });
 }
 
 /* ================= LOAD ALL ================= */
 async function loadAll(){
-  if(!bulanInput.value){
-    alert("Pilih bulan");
-    return;
-  }
   await loadProfilWilayah();
   await loadKesehatan();
-  await loadSanitasi();
+  await loadDiagnosaTop10();
 }
 
 loadAll();
