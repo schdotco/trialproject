@@ -99,40 +99,6 @@ input:focus,select:focus{
   <p>Data wilayah per RW & laporan kesehatan bulanan</p>
 </div>
 
-<!-- ================= DATA WILAYAH & KEPESERTAAN ================= -->
-<div class="card">
-  <h3>Data Wilayah & Kepesertaan (Per RW)</h3>
-
-  <div class="row">
-    <div>
-      <label>Bulan Laporan</label>
-      <input type="month" id="bulanWilayah">
-    </div>
-    <div>
-      <label>RW</label>
-      <select id="rwWilayah">
-        <option value="">Pilih RW</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="row">
-    <div><label>Jumlah RT</label><input id="jmlRT" type="number"></div>
-    <div><label>Jumlah Penduduk</label><input id="jmlPenduduk" type="number"></div>
-    <div><label>Jumlah Peserta JKN</label><input id="jmlJKN" type="number"></div>
-    <div><label>Sekolah SD</label><input id="jmlSD" type="number"></div>
-    <div><label>Sekolah SMP</label><input id="jmlSMP" type="number"></div>
-    <div><label>Sekolah SMA</label><input id="jmlSMA" type="number"></div>
-    <div><label>Jumlah MBG</label><input id="jmlMBG" type="number"></div>
-  </div>
-
-  <div class="footer">
-    <button id="btnSimpanProfil" class="btn secondary">
-      💾 Simpan Data Wilayah
-    </button>
-  </div>
-</div>
-
 <!-- ================= IDENTITAS LAPORAN KESEHATAN ================= -->
 <div class="card">
   <h3>Identitas Laporan Kesehatan</h3>
@@ -232,35 +198,6 @@ isiRW(rw);
 // default bulan
 bulanWilayah.value = new Date().toISOString().slice(0,7);
 bulanLapor.value   = new Date().toISOString().slice(0,7);
-
-// ===== SIMPAN DATA WILAYAH =====
-btnSimpanProfil.onclick = async () => {
-  if(!rwWilayah.value || !bulanWilayah.value){
-    alert("Bulan & RW wajib diisi");
-    return;
-  }
-
-  const id = `${bulanWilayah.value}_${rwWilayah.value}`;
-
-  await setDoc(
-    doc(db,"profil_puskesmas",id),
-    {
-      bulanLapor: bulanWilayah.value,
-      rw: rwWilayah.value,
-      jumlahRT:+jmlRT.value||0,
-      jumlahPenduduk:+jmlPenduduk.value||0,
-      jumlahJKN:+jmlJKN.value||0,
-      sekolahSD:+jmlSD.value||0,
-      sekolahSMP:+jmlSMP.value||0,
-      sekolahSMA:+jmlSMA.value||0,
-      jumlahMBG:+jmlMBG.value||0,
-      updatedAt:serverTimestamp()
-    },
-    { merge:true }
-  );
-
-  alert("✅ Data wilayah berhasil disimpan");
-};
 
 // ===== SIMPAN DATA KESEHATAN =====
 btnSimpan.onclick = async () => {
