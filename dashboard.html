@@ -332,32 +332,51 @@ import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* ================= GLOBAL CHART ================= */
+/* ======================================================
+   GLOBAL CHART INSTANCE
+====================================================== */
 let cIbu,cBalita,cTB,cDisabilitas,cLansia,cDiagTop10;
 
-/* ================= FILTER ================= */
+/* ======================================================
+   FILTER
+====================================================== */
 const rwInput=document.getElementById("rwInput");
 const bulanInput=document.getElementById("bulanInput");
 const btnTampil=document.getElementById("btnTampil");
 
 bulanInput.value=new Date().toISOString().slice(0,7);
+
 for(let i=1;i<=16;i++){
-  rwInput.innerHTML+=`<option value="RW.${i}">RW ${i}</option>`;
+  const o=document.createElement("option");
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
+  rwInput.appendChild(o);
 }
+
 btnTampil.onclick=loadAll;
 
-/* ================= DATA WILAYAH ================= */
+/* ======================================================
+   DATA WILAYAH (profil_puskesmas)
+====================================================== */
 async function loadProfilWilayah(){
   const q = rwInput.value
-    ? query(collection(db,"profil_puskesmas"),
+    ? query(
+        collection(db,"profil_puskesmas"),
         where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value))
-    : query(collection(db,"profil_puskesmas"),
-        where("bulanLapor","==",bulanInput.value));
+        where("rw","==",rwInput.value)
+      )
+    : query(
+        collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value)
+      );
 
   const snap=await getDocs(q);
 
-  const t={rt:0,penduduk:0,jkn:0,mbg:0,tk:0,sd:0,smp:0,sma:0,ibadah:0,ponpes:0,hotel:0,kantor:0};
+  const t={
+    rt:0,penduduk:0,jkn:0,mbg:0,
+    tk:0,sd:0,smp:0,sma:0,
+    ibadah:0,ponpes:0,hotel:0,kantor:0
+  };
 
   snap.forEach(d=>{
     const x=d.data();
@@ -381,14 +400,20 @@ async function loadProfilWilayah(){
   });
 }
 
-/* ================= DATA KESEHATAN ================= */
+/* ======================================================
+   DATA KESEHATAN (kesehatan_agregat)
+====================================================== */
 async function loadKesehatan(){
   const q = rwInput.value
-    ? query(collection(db,"kesehatan_agregat"),
+    ? query(
+        collection(db,"kesehatan_agregat"),
         where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value))
-    : query(collection(db,"kesehatan_agregat"),
-        where("bulanLapor","==",bulanInput.value));
+        where("rw","==",rwInput.value)
+      )
+    : query(
+        collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value)
+      );
 
   const snap=await getDocs(q);
 
@@ -414,6 +439,9 @@ async function loadKesehatan(){
     if(el) el.innerText=t[k];
   });
 
+  /* ===== DESTROY OLD CHART ===== */
+  [cIbu,cBalita,cTB,cDisabilitas,cLansia].forEach(c=>c&&c.destroy());
+
   /* ===== CHART ===== */
   const ctxIbu=document.getElementById("chartIbu");
   const ctxBalita=document.getElementById("chartBalita");
@@ -421,33 +449,99 @@ async function loadKesehatan(){
   const ctxDis=document.getElementById("chartDisabilitas");
   const ctxLansia=document.getElementById("chartLansia");
 
-  [cIbu,cBalita,cTB,cDisabilitas,cLansia].forEach(c=>c&&c.destroy());
+  if(ctxIbu){
+    cIbu=new Chart(ctxIbu,{
+      type:"pie",
+      data:{labels:["Normal","Risti","KEK"],
+      datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKek]}]}
+    });
+  }
 
-  if(ctxIbu) cIbu=new Chart(ctxIbu,{type:"pie",
-    data:{labels:["Normal","Risti","KEK"],datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKek]}]}
+  if(ctxBalita){
+    cBalita=new Chart(ctxBalita,{
+      type:"pie",
+      data:{labels:["Normal","Stunting","Gizi Buruk","PMT"],
+      datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
+    });
+  }
+
+  if(ctxTB){
+    cTB=new Chart(ctxTB,{
+      type:"bar",
+      data:{labels:["Pengobatan","Selesai"],
+      datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
+    });
+  }
+
+  if(ctxDis){
+    cDisabilitas=new Chart(ctxDis,{
+      type:"bar",
+      data:{labels:["Disabilitas"],
+      datasets:[{data:[t.disabilitas]}]}
+    });
+  }
+
+  if(ctxLansia){
+    cLansia=new Chart(ctxLansia,{
+      type:"pie",
+      data:{labels:["Mandiri","B Sedang","B Ringan","C"],
+      datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
+    });
+  }
+}
+
+/* ======================================================
+   SANITASI (sanitasi_agregat)
+====================================================== */
+async function loadSanitasi(){
+  const q = rwInput.value
+    ? query(
+        collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value)
+      )
+    : query(
+        collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value)
+      );
+
+  const snap=await getDocs(q);
+
+  const t={
+    tppJasaBoga:0,tppRestoran:0,tppHomeIndustri:0,tppDamiu:0,
+    tppRumahMakan:0,tppGeraiJajanan:0,tppGeraiKeliling:0,
+    tppDapurGerai:0,tppSentraKantin:0,
+    jambanSepticAman:0,jambanKomunal:0,jambanBelum:0,
+    airSumurBor:0,airPDAM:0,airArtesis:0,
+    airMinumAMK:0,airMinumIsiUlang:0,airMinumMasak:0
+  };
+
+  snap.forEach(d=>{
+    const x=d.data();
+    Object.keys(t).forEach(k=>t[k]+=x[k]||0);
   });
 
-  if(ctxBalita) cBalita=new Chart(ctxBalita,{type:"pie",
-    data:{labels:["Normal","Stunting","Gizi","PMT"],datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
-  });
-
-  if(ctxTB) cTB=new Chart(ctxTB,{type:"bar",
-    data:{labels:["Pengobatan","Selesai"],datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
-  });
-
-  if(ctxDis) cDisabilitas=new Chart(ctxDis,{type:"bar",
-    data:{labels:["Disabilitas"],datasets:[{data:[t.disabilitas]}]}
-  });
-
-  if(ctxLansia) cLansia=new Chart(ctxLansia,{type:"pie",
-    data:{labels:["Mandiri","B Sedang","B Ringan","C"],datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
+  Object.keys(t).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerText=t[id];
   });
 }
 
-/* ================= DIAGNOSA TOP 10 ================= */
+/* ======================================================
+   DIAGNOSA TOP 10 (profil_puskesmas)
+====================================================== */
 async function loadDiagnosaTop10(){
-  const q=query(collection(db,"profil_puskesmas"),
-    where("bulanLapor","==",bulanInput.value));
+  const q = rwInput.value
+    ? query(
+        collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value)
+      )
+    : query(
+        collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value)
+      );
+
   const snap=await getDocs(q);
   const map={};
 
@@ -455,27 +549,41 @@ async function loadDiagnosaTop10(){
     const x=d.data();
     if(Array.isArray(x.diagnosaTop10)){
       x.diagnosaTop10.forEach(i=>{
-        if(i.nama) map[i.nama]=(map[i.nama]||0)+i.jumlah;
+        if(i.nama) map[i.nama]=(map[i.nama]||0)+(i.jumlah||0);
       });
     }
   });
 
-  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const sorted=Object.entries(map)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,10);
+
   if(!sorted.length) return;
 
+  const ctx=document.getElementById("chartdiagnosaTop10");
+  if(!ctx) return;
+
   cDiagTop10 && cDiagTop10.destroy();
-  cDiagTop10=new Chart(chartdiagnosaTop10,{
+
+  cDiagTop10=new Chart(ctx,{
     type:"bar",
-    data:{labels:sorted.map(i=>i[0]),datasets:[{data:sorted.map(i=>i[1])}]}
+    data:{
+      labels:sorted.map(i=>i[0]),
+      datasets:[{label:"Jumlah Kasus",data:sorted.map(i=>i[1])}]
+    }
   });
 }
 
-/* ================= LOAD ALL ================= */
+/* ======================================================
+   LOAD ALL
+====================================================== */
 async function loadAll(){
   await loadProfilWilayah();
   await loadKesehatan();
+  await loadSanitasi();
   await loadDiagnosaTop10();
 }
+
 loadAll();
 </script>
 
