@@ -332,51 +332,35 @@ import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* ======================================================
-   GLOBAL CHART INSTANCE
-====================================================== */
+/* ================= GLOBAL CHART ================= */
 let cIbu,cBalita,cTB,cDisabilitas,cLansia,cDiagTop10;
 
-/* ======================================================
-   FILTER
-====================================================== */
+/* ================= FILTER ================= */
 const rwInput=document.getElementById("rwInput");
 const bulanInput=document.getElementById("bulanInput");
 const btnTampil=document.getElementById("btnTampil");
 
 bulanInput.value=new Date().toISOString().slice(0,7);
-
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
   o.value=`RW.${i}`;
   o.textContent=`RW ${i}`;
   rwInput.appendChild(o);
 }
-
 btnTampil.onclick=loadAll;
 
-/* ======================================================
-   DATA WILAYAH (profil_puskesmas)
-====================================================== */
+/* ================= DATA WILAYAH ================= */
 async function loadProfilWilayah(){
   const q = rwInput.value
-    ? query(
-        collection(db,"profil_puskesmas"),
+    ? query(collection(db,"profil_puskesmas"),
         where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value)
-      )
-    : query(
-        collection(db,"profil_puskesmas"),
-        where("bulanLapor","==",bulanInput.value)
-      );
+        where("rw","==",rwInput.value))
+    : query(collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value));
 
   const snap=await getDocs(q);
 
-  const t={
-    rt:0,penduduk:0,jkn:0,mbg:0,
-    tk:0,sd:0,smp:0,sma:0,
-    ibadah:0,ponpes:0,hotel:0,kantor:0
-  };
+  const t={rt:0,penduduk:0,jkn:0,mbg:0,tk:0,sd:0,smp:0,sma:0,ibadah:0,ponpes:0,hotel:0,kantor:0};
 
   snap.forEach(d=>{
     const x=d.data();
@@ -400,38 +384,64 @@ async function loadProfilWilayah(){
   });
 }
 
-/* ======================================================
-   DATA KESEHATAN (kesehatan_agregat)
-====================================================== */
+/* ================= DATA KESEHATAN ================= */
 async function loadKesehatan(){
   const q = rwInput.value
-    ? query(
-        collection(db,"kesehatan_agregat"),
+    ? query(collection(db,"kesehatan_agregat"),
         where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value)
-      )
-    : query(
-        collection(db,"kesehatan_agregat"),
-        where("bulanLapor","==",bulanInput.value)
-      );
+        where("rw","==",rwInput.value))
+    : query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value));
 
   const snap=await getDocs(q);
 
   const t={
-    ihNormal:0,ihRisti:0,ihKek:0,
-    inNormal:0,inRisti:0,
+    ihNormal:0, ihRisti:0, ihKek:0,
+    inNormal:0, inRisti:0,
     bayiTotal:0,
-    bNormal:0,bStunting:0,bGizi:0,bPMT:0,
-    tbPengobatan:0,tbSelesai:0,
-    dgHT:0,dgDM:0,dgODGJ:0,dgKanker:0,
-    pkprTotal:0,pkprLaki:0,pkprPerempuan:0,
+    bNormal:0, bStunting:0, bGizi:0, bPMT:0,
+    tbPengobatan:0, tbSelesai:0,
+    dgHT:0, dgDM:0, dgODGJ:0, dgKanker:0,
+    pkprTotal:0, pkprLaki:0, pkprPerempuan:0,
     disabilitas:0,
-    lMandiri:0,lBS:0,lBR:0,lC:0
+    lMandiri:0, lBS:0, lBR:0, lC:0
   };
 
   snap.forEach(d=>{
     const x=d.data();
-    Object.keys(t).forEach(k=>t[k]+=x[k]||0);
+
+    t.ihNormal += x.ihNormal || 0;
+    t.ihRisti  += x.ihRisti || 0;
+    t.ihKek    += x.ihKEK || x.ihKek || 0;
+
+    t.inNormal += x.inNormal || 0;
+    t.inRisti  += x.inRisti || 0;
+
+    t.bayiTotal += x.bayiTotal || x.bayi || 0;
+
+    t.bNormal   += x.bNormal || 0;
+    t.bStunting += x.bStunting || 0;
+    t.bGizi     += x.bGizi || x.bGiziBuruk || 0;
+    t.bPMT      += x.bPMT || 0;
+
+    t.tbPengobatan += x.tbPengobatan || 0;
+    t.tbSelesai    += x.tbSelesai || 0;
+
+    t.dgHT     += x.dgHT || 0;
+    t.dgDM     += x.dgDM || 0;
+    t.dgODGJ   += x.dgODGJ || 0;
+    t.dgKanker += x.dgKanker || 0;
+
+    t.pkprTotal      += x.pkprTotal || 0;
+    t.pkprLaki       += x.pkprLaki || x.pkprL || 0;
+    t.pkprPerempuan  += x.pkprPerempuan || x.pkprP || 0;
+
+    t.disabilitas += x.disabilitas || x.jumlahDisabilitas || 0;
+
+    t.lMandiri += x.lMandiri || 0;
+    t.lBS      += x.lBS || x.lansiaBS || 0;
+    t.lBR      += x.lBR || x.lansiaBR || 0;
+    t.lC       += x.lC || 0;
   });
 
   Object.keys(t).forEach(k=>{
@@ -439,71 +449,37 @@ async function loadKesehatan(){
     if(el) el.innerText=t[k];
   });
 
-  /* ===== DESTROY OLD CHART ===== */
   [cIbu,cBalita,cTB,cDisabilitas,cLansia].forEach(c=>c&&c.destroy());
 
-  /* ===== CHART ===== */
-  const ctxIbu=document.getElementById("chartIbu");
-  const ctxBalita=document.getElementById("chartBalita");
-  const ctxTB=document.getElementById("chartTB");
-  const ctxDis=document.getElementById("chartDisabilitas");
-  const ctxLansia=document.getElementById("chartLansia");
+  if(chartIbu) cIbu=new Chart(chartIbu,{type:"pie",
+    data:{labels:["Normal","Risti","KEK"],datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKek]}]}
+  });
 
-  if(ctxIbu){
-    cIbu=new Chart(ctxIbu,{
-      type:"pie",
-      data:{labels:["Normal","Risti","KEK"],
-      datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKek]}]}
-    });
-  }
+  if(chartBalita) cBalita=new Chart(chartBalita,{type:"pie",
+    data:{labels:["Normal","Stunting","Gizi Buruk","PMT"],datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
+  });
 
-  if(ctxBalita){
-    cBalita=new Chart(ctxBalita,{
-      type:"pie",
-      data:{labels:["Normal","Stunting","Gizi Buruk","PMT"],
-      datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
-    });
-  }
+  if(chartTB) cTB=new Chart(chartTB,{type:"bar",
+    data:{labels:["Pengobatan","Selesai"],datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
+  });
 
-  if(ctxTB){
-    cTB=new Chart(ctxTB,{
-      type:"bar",
-      data:{labels:["Pengobatan","Selesai"],
-      datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
-    });
-  }
+  if(chartDisabilitas) cDisabilitas=new Chart(chartDisabilitas,{type:"bar",
+    data:{labels:["Disabilitas"],datasets:[{data:[t.disabilitas]}]}
+  });
 
-  if(ctxDis){
-    cDisabilitas=new Chart(ctxDis,{
-      type:"bar",
-      data:{labels:["Disabilitas"],
-      datasets:[{data:[t.disabilitas]}]}
-    });
-  }
-
-  if(ctxLansia){
-    cLansia=new Chart(ctxLansia,{
-      type:"pie",
-      data:{labels:["Mandiri","B Sedang","B Ringan","C"],
-      datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
-    });
-  }
+  if(chartLansia) cLansia=new Chart(chartLansia,{type:"pie",
+    data:{labels:["Mandiri","B Sedang","B Ringan","C"],datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
+  });
 }
 
-/* ======================================================
-   SANITASI (sanitasi_agregat)
-====================================================== */
+/* ================= SANITASI ================= */
 async function loadSanitasi(){
   const q = rwInput.value
-    ? query(
-        collection(db,"sanitasi_agregat"),
+    ? query(collection(db,"sanitasi_agregat"),
         where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value)
-      )
-    : query(
-        collection(db,"sanitasi_agregat"),
-        where("bulanLapor","==",bulanInput.value)
-      );
+        where("rw","==",rwInput.value))
+    : query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value));
 
   const snap=await getDocs(q);
 
@@ -518,7 +494,27 @@ async function loadSanitasi(){
 
   snap.forEach(d=>{
     const x=d.data();
-    Object.keys(t).forEach(k=>t[k]+=x[k]||0);
+    t.tppJasaBoga      += x.tppJasaBoga || x.jasaBoga || 0;
+    t.tppRestoran     += x.tppRestoran || x.restoran || 0;
+    t.tppHomeIndustri += x.tppHomeIndustri || x.homeIndustri || 0;
+    t.tppDamiu        += x.tppDamiu || x.damiu || 0;
+    t.tppRumahMakan   += x.tppRumahMakan || x.rumahMakan || 0;
+    t.tppGeraiJajanan += x.tppGeraiJajanan || x.geraiJajanan || 0;
+    t.tppGeraiKeliling+= x.tppGeraiKeliling || x.geraiKeliling || 0;
+    t.tppDapurGerai   += x.tppDapurGerai || x.dapurGerai || 0;
+    t.tppSentraKantin += x.tppSentraKantin || x.sentraKantin || 0;
+
+    t.jambanSepticAman+= x.jambanSepticAman || x.septicAman || 0;
+    t.jambanKomunal   += x.jambanKomunal || x.septicKomunal || 0;
+    t.jambanBelum     += x.jambanBelum || x.belumSeptic || 0;
+
+    t.airSumurBor     += x.airSumurBor || x.sumurBor || 0;
+    t.airPDAM         += x.airPDAM || x.pdam || 0;
+    t.airArtesis      += x.airArtesis || x.artesis || 0;
+
+    t.airMinumAMK     += x.airMinumAMK || x.amk || 0;
+    t.airMinumIsiUlang+= x.airMinumIsiUlang || x.isiUlang || 0;
+    t.airMinumMasak   += x.airMinumMasak || x.dimasak || 0;
   });
 
   Object.keys(t).forEach(id=>{
@@ -527,20 +523,10 @@ async function loadSanitasi(){
   });
 }
 
-/* ======================================================
-   DIAGNOSA TOP 10 (profil_puskesmas)
-====================================================== */
+/* ================= DIAGNOSA TOP 10 ================= */
 async function loadDiagnosaTop10(){
-  const q = rwInput.value
-    ? query(
-        collection(db,"profil_puskesmas"),
-        where("bulanLapor","==",bulanInput.value),
-        where("rw","==",rwInput.value)
-      )
-    : query(
-        collection(db,"profil_puskesmas"),
-        where("bulanLapor","==",bulanInput.value)
-      );
+  const q=query(collection(db,"profil_puskesmas"),
+    where("bulanLapor","==",bulanInput.value));
 
   const snap=await getDocs(q);
   const map={};
@@ -554,36 +540,23 @@ async function loadDiagnosaTop10(){
     }
   });
 
-  const sorted=Object.entries(map)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,10);
-
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
   if(!sorted.length) return;
 
-  const ctx=document.getElementById("chartdiagnosaTop10");
-  if(!ctx) return;
-
   cDiagTop10 && cDiagTop10.destroy();
-
-  cDiagTop10=new Chart(ctx,{
+  cDiagTop10=new Chart(chartdiagnosaTop10,{
     type:"bar",
-    data:{
-      labels:sorted.map(i=>i[0]),
-      datasets:[{label:"Jumlah Kasus",data:sorted.map(i=>i[1])}]
-    }
+    data:{labels:sorted.map(i=>i[0]),datasets:[{data:sorted.map(i=>i[1])}]}
   });
 }
 
-/* ======================================================
-   LOAD ALL
-====================================================== */
+/* ================= LOAD ALL ================= */
 async function loadAll(){
   await loadProfilWilayah();
   await loadKesehatan();
   await loadSanitasi();
   await loadDiagnosaTop10();
 }
-
 loadAll();
 </script>
 
