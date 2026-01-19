@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Input Data Kesehatan</title>
+
+<style>
+:root{
+  --primary:#3b5bdb;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --text:#212529;
+  --muted:#6c757d;
+}
+*{box-sizing:border-box}
+body{
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  padding: 24px;
+  color: var(--text);
+}
+.container{max-width:1100px;margin:auto}
+.header{margin-bottom:24px}
+.header h2{margin:0;font-size:24px}
+.header p{margin:6px 0 0;color:var(--muted)}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;
+}
+
+.card{
+  background: var(--card);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.card h3{
+  margin:0 0 12px;
+  font-size:16px;
+  border-left:4px solid var(--primary);
+  padding-left:8px;
+}
+
+.row{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+
+label{font-size:12px;color:var(--muted)}
+
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #dee2e6;
+  font-size:14px;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:var(--primary);
+}
+
+.footer{
+  margin-top:16px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.btn{
+  padding:12px 24px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(59,91,219,.3);
+}
+
+.btn.secondary{
+  background:#495057;
+  margin-right:10px;
+}
+.btn:hover{opacity:.95}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h2>Input Data Agregat Puskesmas</h2>
+  <p>Data wilayah per RW & laporan kesehatan bulanan</p>
+</div>
+
+<!-- ================= DATA WILAYAH & KEPESERTAAN ================= -->
+<div class="card">
+  <h3>Data Wilayah & Kepesertaan (Per RW)</h3>
+
+  <div class="row">
+    <div>
+      <label>Bulan Laporan</label>
+      <input type="month" id="bulanWilayah">
+    </div>
+    <div>
+      <label>RW</label>
+      <select id="rwWilayah">
+        <option value="">Pilih RW</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div><label>Jumlah RT</label><input id="jmlRT" type="number"></div>
+    <div><label>Jumlah Penduduk</label><input id="jmlPenduduk" type="number"></div>
+    <div><label>Jumlah Peserta JKN</label><input id="jmlJKN" type="number"></div>
+    <div><label>Sekolah SD</label><input id="jmlSD" type="number"></div>
+    <div><label>Sekolah SMP</label><input id="jmlSMP" type="number"></div>
+    <div><label>Sekolah SMA</label><input id="jmlSMA" type="number"></div>
+    <div><label>Jumlah MBG</label><input id="jmlMBG" type="number"></div>
+  </div>
+
+  <div class="footer">
+    <button id="btnSimpanProfil" class="btn secondary">
+      💾 Simpan Data Wilayah
+    </button>
+  </div>
+</div>
+
+  <!-- ================= SCRIPT ================= -->
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, setDoc, serverTimestamp }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+// isi RW 1–16
+function isiRW(select){
+  for(let i=1;i<=16;i++){
+    const o=document.createElement("option");
+    o.value=`RW.${i}`;
+    o.textContent=`RW ${i}`;
+    select.appendChild(o);
+  }
+}
+isiRW(rwWilayah);
+isiRW(rw);
+
+// default bulan
+bulanWilayah.value = new Date().toISOString().slice(0,7);
+bulanLapor.value   = new Date().toISOString().slice(0,7);
+
+// ===== SIMPAN DATA WILAYAH =====
+btnSimpanProfil.onclick = async () => {
+  if(!rwWilayah.value || !bulanWilayah.value){
+    alert("Bulan & RW wajib diisi");
+    return;
+  }
+
+  const id = `${bulanWilayah.value}_${rwWilayah.value}`;
+
+  await setDoc(
+    doc(db,"profil_puskesmas",id),
+    {
+      bulanLapor: bulanWilayah.value,
+      rw: rwWilayah.value,
+      jumlahRT:+jmlRT.value||0,
+      jumlahPenduduk:+jmlPenduduk.value||0,
+      jumlahJKN:+jmlJKN.value||0,
+      sekolahSD:+jmlSD.value||0,
+      sekolahSMP:+jmlSMP.value||0,
+      sekolahSMA:+jmlSMA.value||0,
+      jumlahMBG:+jmlMBG.value||0,
+      updatedAt:serverTimestamp()
+    },
+    { merge:true }
+  );
+
+  alert("✅ Data wilayah berhasil disimpan");
+};
+</script>
+
+</body>
+</html>
