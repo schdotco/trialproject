@@ -89,12 +89,24 @@ border:none;
 cursor:pointer
 }
 
+/* ===== PALET WARNA PROFESIONAL ===== */
+.card-primary { background:#1c7ed6; }   /* biru utama */
+.card-info    { background:#228be6; }   /* biru muda */
+.card-success { background:#2f9e44; }   /* hijau */
+.card-teal    { background:#0ca678; }   /* tosca */
+.card-warning { background:#f59f00; }   /* oranye */
+.card-danger  { background:#e03131; }   /* merah lembut */
+.card-purple  { background:#7048e8; }   /* ungu */
+.card-indigo  { background:#364fc7; }   /* indigo */
+.card-slate   { background:#495057; }   /* abu gelap */
+.card-muted   { background:#868e96; }   /* abu netral */
+
+/* separator biar rapi */
 .separator{
   width:100%;
   height:1px;
   background:#dee2e6;
   margin:24px 0;
-  border-radius:2px;
 }
 </style>
 </head>
@@ -124,73 +136,73 @@ cursor:pointer
 
 <!-- ================= DATA WILAYAH ================= -->
 <div class="row">
-  <div class="card green"><h1 id="rtVal">0</h1><span>Jumlah RT</span></div>
-  <div class="card blue"><h1 id="pendudukVal">0</h1><span>Jumlah Penduduk</span></div>
-  <div class="card teal"><h1 id="jknVal">0</h1><span>Peserta JKN</span></div>
-  <div class="card orange"><h1 id="mbgVal">0</h1><span>Dapur MBG</span></div>
+  <div class="card card-primary"><h1 id="rtVal">0</h1><span>Jumlah RT</span></div>
+  <div class="card card-info"><h1 id="pendudukVal">0</h1><span>Jumlah Penduduk</span></div>
+  <div class="card card-teal"><h1 id="jknVal">0</h1><span>Peserta JKN</span></div>
+  <div class="card card-warning"><h1 id="mbgVal">0</h1><span>Dapur MBG</span></div>
 </div>
 
 <div class="row">
-  <div class="card purple"><h1 id="tkVal">0</h1><span>TK / PAUD</span></div>
-  <div class="card purple"><h1 id="sdVal">0</h1><span>Sekolah SD</span></div>
-  <div class="card dark"><h1 id="smpVal">0</h1><span>Sekolah SMP</span></div>
-  <div class="card gray"><h1 id="smaVal">0</h1><span>Sekolah SMA / SMK</span></div>
+  <div class="card card-indigo"><h1 id="tkVal">0</h1><span>TK / PAUD</span></div>
+  <div class="card card-primary"><h1 id="sdVal">0</h1><span>Sekolah SD</span></div>
+  <div class="card card-slate"><h1 id="smpVal">0</h1><span>Sekolah SMP</span></div>
+  <div class="card card-muted"><h1 id="smaVal">0</h1><span>Sekolah SMA / SMK</span></div>
 </div>
 
 <div class="row">
-  <div class="card dark"><h1 id="ibadahVal">0</h1><span>Tempat Ibadah</span></div>
-  <div class="card blue"><h1 id="ponpesVal">0</h1><span>Ponpes</span></div>
-  <div class="card gray"><h1 id="hotelVal">0</h1><span>Hotel</span></div>
-  <div class="card green"><h1 id="kantorVal">0</h1><span>Perkantoran</span></div>
+  <div class="card card-indigo"><h1 id="ibadahVal">0</h1><span>Tempat Ibadah</span></div>
+  <div class="card card-purple"><h1 id="ponpesVal">0</h1><span>Ponpes</span></div>
+  <div class="card card-slate"><h1 id="hotelVal">0</h1><span>Hotel</span></div>
+  <div class="card card-info"><h1 id="kantorVal">0</h1><span>Perkantoran</span></div>
 </div>
 <div class="separator"></div>
 
 <!-- ================= KEHAMILAN ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="ihNormalVal">0</h1><span>Hamil Normal</span></div>
-  <div class="card blue"><h1 id="ihRistiVal">0</h1><span>Hamil Risti</span></div>
-  <div class="card gray"><h1 id="ihKEKVal">0</h1><span>KEK</span></div>
+  <div class="card card-success"><h1 id="ihNormalVal">0</h1><span>Hamil Normal</span></div>
+  <div class="card card-warning"><h1 id="ihRistiVal">0</h1><span>Hamil Risti</span></div>
+  <div class="card card-danger"><h1 id="ihKEKVal">0</h1><span>KEK</span></div>
 </div>
 
 <!-- ================= NIFAS ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="inNormalVal">0</h1><span>Nifas Normal</span></div>
-  <div class="card blue"><h1 id="inRistiVal">0</h1><span>Nifas Risti</span></div>
+  <div class="card card-success"><h1 id="inNormalVal">0</h1><span>Nifas Normal</span></div>
+  <div class="card card-warning"><h1 id="inRistiVal">0</h1><span>Nifas Risti</span></div>
 </div>
 
 <!-- ================= BAYI ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="bayiTotalVal">0</h1><span>Total Bayi</span></div>
+  <div class="card card-info"><h1 id="bayiTotalVal">0</h1><span>Total Bayi</span></div>
 </div>
 
 <!-- ================= BALITA ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="bNormalVal">0</h1><span>Normal</span></div>
-  <div class="card blue"><h1 id="bStuntingVal">0</h1><span>Stunting</span></div>
-  <div class="card gray"><h1 id="bGiziVal">0</h1><span>Gizi Buruk</span></div>
-  <div class="card gray"><h1 id="bPMTVal">0</h1><span>Penerima PMT</span></div>
+  <div class="card card-success"><h1 id="bNormalVal">0</h1><span>Normal</span></div>
+  <div class="card card-warning"><h1 id="bStuntingVal">0</h1><span>Stunting</span></div>
+  <div class="card card-danger"><h1 id="bGiziVal">0</h1><span>Gizi Buruk</span></div>
+  <div class="card card-teal"><h1 id="bPMTVal">0</h1><span>Penerima PMT</span></div>
 </div>
 <div class="separator"></div>
   
 <!-- ================= TB ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="tbPengobatanVal">0</h1><span>Dalam Pengobatan</span></div>
-  <div class="card blue"><h1 id="tbSelesaiVal">0</h1><span>Selesai Pengobatan</span></div>
+  <div class="card card-warning"><h1 id="tbPengobatanVal">0</h1><span>Dalam Pengobatan</span></div>
+  <div class="card card-success"><h1 id="tbSelesaiVal">0</h1><span>Selesai Pengobatan</span></div>
 </div>
 
 <!-- ================= DIAGNOSA ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="dgHTVal">0</h1><span>Hipertensi</span></div>
-  <div class="card blue"><h1 id="dgDMVal">0</h1><span>DM</span></div>
-  <div class="card gray"><h1 id="dgODGJVal">0</h1><span>ODGJ</span></div>
-  <div class="card gray"><h1 id="dgKankerVal">0</h1><span>Kanker</span></div>
+  <div class="card card-danger"><h1 id="dgHTVal">0</h1><span>Hipertensi</span></div>
+  <div class="card card-warning"><h1 id="dgDMVal">0</h1><span>DM</span></div>
+  <div class="card card-slate"><h1 id="dgODGJVal">0</h1><span>ODGJ</span></div>
+  <div class="card card-danger"><h1 id="dgKankerVal">0</h1><span>Kanker</span></div>
 </div>
 
 <!-- ================= PKPR ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="pkprTotalVal">0</h1><span>Total PKPR</span></div>
-  <div class="card blue"><h1 id="pkprLakiVal">0</h1><span>Laki-laki</span></div>
-  <div class="card gray"><h1 id="pkprPerempuanVal">0</h1><span>Perempuan</span></div>
+  <div class="card card-primary""><h1 id="pkprTotalVal">0</h1><span>Total PKPR</span></div>
+  <div class="card card-info"><h1 id="pkprLakiVal">0</h1><span>Laki-laki</span></div>
+  <div class="card card-purple"><h1 id="pkprPerempuanVal">0</h1><span>Perempuan</span></div>
 </div>
 
 <!-- ================= Disabilitas ================= -->
@@ -200,45 +212,45 @@ cursor:pointer
 
 <!-- ================= LANSIA ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="lMandiriVal">0</h1><span>Mandiri</span></div>
-  <div class="card blue"><h1 id="lBSedangVal">0</h1><span>Kategori B Sedang</span></div>
-  <div class="card gray"><h1 id="lBRinganVal">0</h1><span>Kategori B Ringan</span></div>
-  <div class="card gray"><h1 id="lCVal">0</h1><span>Kategori C</span></div>
+  <div class="card card-success"><h1 id="lMandiriVal">0</h1><span>Mandiri</span></div>
+  <div class="card card-warning"><h1 id="lBSedangVal">0</h1><span>Kategori B Sedang</span></div>
+  <div class="card card-muted"><h1 id="lBRinganVal">0</h1><span>Kategori B Ringan</span></div>
+  <div class="card card-danger"><h1 id="lCVal">0</h1><span>Kategori C</span></div>
 </div>
 <div class="separator"></div>
 
 <!-- ================= SANITASI TPP ================= -->
 <div class="row">
-<div class="card dark"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
-<div class="card blue"><h1 id="tppRestoran">0</h1><span>Restoran</span></div>
-<div class="card gray"><h1 id="tppHomeIndustri">0</h1><span>Home Industri</span></div>
-<div class="card green"><h1 id="tppDamiu">0</h1><span>DAMIU</span></div>
-<div class="card green"><h1 id="tppRumahMakan">0</h1><span>Rumah Makan</span></div>
-<div class="card green"><h1 id="tppGeraiJajanan">0</h1><span>Gerai Jajanan</span></div>
-<div class="card green"><h1 id="tppGeraiKeliling">0</h1><span>Gerai Keliling</span></div>
-<div class="card green"><h1 id="tppDapurGerai">0</h1><span>Dapur Gerai</span></div>
-<div class="card green"><h1 id="tppSentraKantin">0</h1><span>Sentra / Kantin</span></div>
+<div class="card card-teal"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
+<div class="card card-primary"><h1 id="tppRestoran">0</h1><span>Restoran</span></div>
+<div class="card card-slate"><h1 id="tppHomeIndustri">0</h1><span>Home Industri</span></div>
+<div class="card card-info"><h1 id="tppDamiu">0</h1><span>DAMIU</span></div>
+<div class="card card-success"><h1 id="tppRumahMakan">0</h1><span>Rumah Makan</span></div>
+<div class="card card-warning"><h1 id="tppGeraiJajanan">0</h1><span>Gerai Jajanan</span></div>
+<div class="card card-danger"><h1 id="tppGeraiKeliling">0</h1><span>Gerai Keliling</span></div>
+<div class="card card-info"><h1 id="tppDapurGerai">0</h1><span>Dapur Gerai</span></div>
+<div class="card card-primary"><h1 id="tppSentraKantin">0</h1><span>Sentra / Kantin</span></div>
 </div>
 
 <!-- ================= SANITASI JAMBAN SEHAT (KK) ================= -->
 <div class="row">
-<div class="card dark"><h1 id="jambanSepticAman">0</h1><span>Septic Tank Aman</span></div>
-<div class="card blue"><h1 id="jambanKomunal">0</h1><span>Septic Komunal</span></div>
-<div class="card gray"><h1 id="jambanBelum">0</h1><span>Belum Septic Tank</span></div>
+<div class="card card-success"><h1 id="jambanSepticAman">0</h1><span>Septic Tank Aman</span></div>
+<div class="card card-warning"><h1 id="jambanKomunal">0</h1><span>Septic Komunal</span></div>
+<div class="card card-danger"><h1 id="jambanBelum">0</h1><span>Belum Septic Tank</span></div>
 </div>
 
 <!-- ================= SANITASI AKSES AIR BERSIH ================= -->
 <div class="row">
-<div class="card dark"><h1 id="airSumurBor">0</h1><span>Sumur Bor</span></div>
-<div class="card blue"><h1 id="airPDAM">0</h1><span>Ledeng / PDAM</span></div>
-<div class="card gray"><h1 id="airArtesis">0</h1><span>Artesis</span></div>
+<div class="card card-info"><h1 id="airSumurBor">0</h1><span>Sumur Bor</span></div>
+<div class="card card-primary"><h1 id="airPDAM">0</h1><span>Ledeng / PDAM</span></div>
+<div class="card card-teal"><h1 id="airArtesis">0</h1><span>Artesis</span></div>
 </div>
 
 <!-- ================= SANITASI AKSES AIR MINUM ================= -->
 <div class="row">
-<div class="card dark"><h1 id="airMinumAMK">0</h1><span>AMK</span></div>
-<div class="card blue"><h1 id="airMinumIsiUlang">0</h1><span>Air Isi Ulang</span></div>
-<div class="card gray"><h1 id="airMinumMasak">0</h1><span>Air Dimasak</span></div>
+<div class="card card-primary"><h1 id="airMinumAMK">0</h1><span>AMK</span></div>
+<div class="card card-info"><h1 id="airMinumIsiUlang">0</h1><span>Air Isi Ulang</span></div>
+<div class="card card-teal"><h1 id="airMinumMasak">0</h1><span>Air Dimasak</span></div>
 </div>
 <div class="separator"></div>
 
