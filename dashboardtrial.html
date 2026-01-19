@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>UPTD PUSKESMAS CIKUTRA LAMA</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  font-family:Arial, sans-serif;
+  background:#f4f6f9;
+  padding:20px;
+  color:#212529;
+}
+small{color:#6c757d}
+
+/* ===== HEADER ===== */
+.header{
+  display:flex;
+  align-items:center;
+  gap:20px;
+  margin-bottom:24px;
+  padding:16px 20px;
+  background:#ffffff;
+  border-radius:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+.header img{width:160px}
+.header h2{margin:0;font-size:34px}
+.header small{font-size:18px}
+
+/* ===== LAYOUT ===== */
+.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+
+.card{
+  flex:1;
+  padding:16px;
+  border-radius:12px;
+  color:#fff;
+  min-width:220px
+}
+.card h1{margin:0;font-size:26px}
+.card span{font-size:13px;opacity:.9}
+
+.green{background:#2f9e44}
+.blue{background:#3b5bdb}
+.teal{background:#0ca678}
+.orange{background:#f59f00}
+.purple{background:#7048e8}
+.dark{background:#343a40}
+.gray{background:#495057}
+
+.white{
+  background:#fff;
+  padding:16px;
+  border-radius:12px;
+  flex:1;
+  min-width:300px
+}
+
+.chart-box{position:relative;width:100%;height:300px}
+
+input,select,button{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #ccc
+}
+button{
+  background:#3b5bdb;
+  color:#fff;
+  border:none;
+  cursor:pointer
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <img src="logo-puskesmas.png">
+  <div>
+    <h2>UPTD PUSKESMAS CIKUTRA LAMA</h2>
+    <small>Dashboard Data Wilayah, Kesehatan & Sanitasi</small>
+  </div>
+</div>
+
+<!-- ===== FILTER ===== -->
+<div class="row">
+  <div class="white">
+    <b>Filter Data</b><br><br>
+    <select id="rwInput">
+      <option value="">SEMUA RW</option>
+    </select>
+    <input type="month" id="bulanInput">
+    <button id="btnTampil">Tampilkan</button>
+  </div>
+</div>
+
+<!-- ===== DATA WILAYAH ===== -->
+<div class="row">
+  <div class="card green"><h1 id="rtVal">0</h1><span>Jumlah RT</span></div>
+  <div class="card blue"><h1 id="pendudukVal">0</h1><span>Jumlah Penduduk</span></div>
+  <div class="card teal"><h1 id="jknVal">0</h1><span>Peserta JKN</span></div>
+  <div class="card orange"><h1 id="mbgVal">0</h1><span>Jumlah MBG</span></div>
+</div>
+
+<div class="row">
+  <div class="card purple"><h1 id="sdVal">0</h1><span>Sekolah SD</span></div>
+  <div class="card dark"><h1 id="smpVal">0</h1><span>Sekolah SMP</span></div>
+  <div class="card gray"><h1 id="smaVal">0</h1><span>Sekolah SMA</span></div>
+</div>
+
+<!-- ===== KESEHATAN ===== -->
+<div class="row">
+  <div class="card dark"><h1 id="ibuHamilVal">0</h1><span>Ibu Hamil</span></div>
+  <div class="card blue"><h1 id="balitaVal">0</h1><span>Balita</span></div>
+  <div class="card gray"><h1 id="tbVal">0</h1><span>TB Terdeteksi</span></div>
+  <div class="card green"><h1 id="disVal">0</h1><span>Disabilitas</span></div>
+</div>
+
+<!-- ===== GRAFIK ===== -->
+<div class="row">
+  <div class="white"><b>Ibu Hamil</b><div class="chart-box"><canvas id="chartIbu"></canvas></div></div>
+  <div class="white"><b>Balita</b><div class="chart-box"><canvas id="chartBalita"></canvas></div></div>
+</div>
+
+<div class="row">
+  <div class="white"><b>TB</b><div class="chart-box"><canvas id="chartTB"></canvas></div></div>
+  <div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDis"></canvas></div></div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, getDocs, query, where }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+/* ===== INIT ===== */
+const rwInput=document.getElementById("rwInput");
+const bulanInput=document.getElementById("bulanInput");
+bulanInput.value=new Date().toISOString().slice(0,7);
+
+for(let i=1;i<=16;i++){
+  const o=document.createElement("option");
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
+  rwInput.appendChild(o);
+}
+btnTampil.onclick=loadAll;
+
+/* ===== PROFIL WILAYAH ===== */
+async function loadProfilWilayah(){
+  let q = rwInput.value
+    ? query(collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value));
+
+  const snap=await getDocs(q);
+  let rt=0,pend=0,jkn=0,mbg=0,sd=0,smp=0,sma=0;
+
+  snap.forEach(d=>{
+    const x=d.data();
+    rt+=x.jumlahRT||0;
+    pend+=x.jumlahPenduduk||0;
+    jkn+=x.jumlahJKN||0;
+    mbg+=x.jumlahMBG||0;
+    sd+=x.sekolahSD||0;
+    smp+=x.sekolahSMP||0;
+    sma+=x.sekolahSMA||0;
+  });
+
+  rtVal.innerText=rt;
+  pendudukVal.innerText=pend;
+  jknVal.innerText=jkn;
+  mbgVal.innerText=mbg;
+  sdVal.innerText=sd;
+  smpVal.innerText=smp;
+  smaVal.innerText=sma;
+}
+
+/* ===== KESEHATAN ===== */
+let cIbu,cBalita,cTB,cDis;
+
+async function loadKesehatan(){
+  let q = rwInput.value
+    ? query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value));
+
+  const snap=await getDocs(q);
+  let t={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
+
+  snap.forEach(d=>{
+    const x=d.data();
+    t.ihN+=x.ibuHamilNormal||0;
+    t.ihR+=x.ibuHamilRisti||0;
+    t.bN+=x.balitaNormal||0;
+    t.bS+=x.balitaStunting||0;
+    t.bG+=x.balitaGiziBuruk||0;
+    t.tbT+=x.tbTotal||0;
+    t.tbP+=x.tbPengobatan||0;
+    t.dis+=x.disabilitas||0;
+  });
+
+  ibuHamilVal.innerText=t.ihN+t.ihR;
+  balitaVal.innerText=t.bN+t.bS+t.bG;
+  tbVal.innerText=t.tbT;
+  disVal.innerText=t.dis;
+
+  [cIbu,cBalita,cTB,cDis].forEach(c=>c&&c.destroy());
+  const opt={responsive:true,maintainAspectRatio:false};
+
+  cIbu=new Chart(chartIbu,{type:"pie",options:opt,
+    data:{labels:["Normal","Risiko Tinggi"],datasets:[{data:[t.ihN,t.ihR]}]}
+  });
+  cBalita=new Chart(chartBalita,{type:"pie",options:opt,
+    data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[t.bN,t.bS,t.bG]}]}
+  });
+  cTB=new Chart(chartTB,{type:"bar",options:opt,
+    data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[t.tbP,t.tbT]}]}
+  });
+  cDis=new Chart(chartDis,{type:"bar",options:opt,
+    data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
+  });
+}
+
+/* ===== SANITASI ===== */
+async function loadSanitasi(){
+  let q = rwInput.value
+    ? query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value));
+
+  const snap=await getDocs(q);
+  snap.forEach(d=>{
+    const x=d.data();
+    console.log("SANITASI:",x);
+  });
+}
+
+/* ===== LOAD ALL ===== */
+async function loadAll(){
+  if(!bulanInput.value){alert("Pilih bulan");return;}
+  await loadProfilWilayah();
+  await loadKesehatan();
+  await loadSanitasi();
+}
+loadAll();
+</script>
+
+</body>
+</html>
