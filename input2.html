@@ -14,10 +14,10 @@
 }
 *{box-sizing:border-box}
 body{
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  padding: 24px;
-  color: var(--text);
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  padding:24px;
+  color:var(--text);
 }
 .container{max-width:1100px;margin:auto}
 .header{margin-bottom:24px}
@@ -25,13 +25,12 @@ body{
 .header p{margin:6px 0 0;color:var(--muted)}
 
 .card{
-  background: var(--card);
+  background:var(--card);
   border-radius:12px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
   margin-bottom:16px;
 }
-
 .card h3{
   margin:0 0 12px;
   font-size:16px;
@@ -41,12 +40,11 @@ body{
 
 .row{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
   gap:12px;
 }
 
 label{font-size:12px;color:var(--muted)}
-
 input,select{
   width:100%;
   padding:10px;
@@ -55,12 +53,26 @@ input,select{
   font-size:14px;
 }
 
-.footer{
-  margin-top:16px;
+/* ===== DIAGNOSA KIRI - KANAN ===== */
+.diagnosa-list{
   display:flex;
-  justify-content:flex-end;
+  flex-direction:column;
+  gap:14px;
+}
+.diagnosa-row{
+  display:grid;
+  grid-template-columns:3fr 1.2fr;
+  gap:14px;
+}
+@media(max-width:600px){
+  .diagnosa-row{grid-template-columns:1fr}
 }
 
+.footer{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:16px;
+}
 .btn{
   padding:12px 24px;
   background:var(--primary);
@@ -69,6 +81,10 @@ input,select{
   border-radius:10px;
   font-size:15px;
   cursor:pointer;
+}
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
 }
 </style>
 </head>
@@ -84,7 +100,7 @@ input,select{
 
 <!-- ================= DATA WILAYAH ================= -->
 <div class="card">
-  <h3>Data Wilayah & Kepesertaan (Per RW)</h3>
+  <h3>Data Wilayah & Kepesertaan</h3>
 
   <div class="row">
     <div>
@@ -124,76 +140,26 @@ input,select{
 <!-- ================= DIAGNOSA ================= -->
 <div class="card">
   <h3>Diagnosa Penyakit (Top 10)</h3>
+  <div class="diagnosa-list">
 
-  <div class="diagnosa-grid">
-    <!-- Baris 1–10 -->
-    <div class="diagnosa-row">
-      <div>
-        <label>Nama Diagnosa 1</label>
-        <input id="diagNama1" type="text">
-      </div>
-      <div>
-        <label>Jumlah</label>
-        <input id="diagJumlah1" type="number">
-      </div>
-    </div>
+    <!-- LOOP 1–10 -->
+    <script>
+      for(let i=1;i<=10;i++){
+        document.write(`
+        <div class="diagnosa-row">
+          <div>
+            <label>Nama Diagnosa ${i}</label>
+            <input id="diagNama${i}" type="text">
+          </div>
+          <div>
+            <label>Jumlah</label>
+            <input id="diagJumlah${i}" type="number">
+          </div>
+        </div>
+        `);
+      }
+    </script>
 
-    <div class="diagnosa-row">
-      <div>
-        <label>Nama Diagnosa 2</label>
-        <input id="diagNama2" type="text">
-      </div>
-      <div>
-        <label>Jumlah</label>
-        <input id="diagJumlah2" type="number">
-      </div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div>
-        <label>Nama Diagnosa 3</label>
-        <input id="diagNama3" type="text">
-      </div>
-      <div>
-        <label>Jumlah</label>
-        <input id="diagJumlah3" type="number">
-      </div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 4</label><input id="diagNama4" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah4" type="number"></div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 5</label><input id="diagNama5" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah5" type="number"></div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 6</label><input id="diagNama6" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah6" type="number"></div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 7</label><input id="diagNama7" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah7" type="number"></div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 8</label><input id="diagNama8" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah8" type="number"></div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 9</label><input id="diagNama9" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah9" type="number"></div>
-    </div>
-
-    <div class="diagnosa-row">
-      <div><label>Nama Diagnosa 10</label><input id="diagNama10" type="text"></div>
-      <div><label>Jumlah</label><input id="diagJumlah10" type="number"></div>
-    </div>
   </div>
 </div>
 
@@ -211,7 +177,7 @@ import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* ISI RW */
+/* INIT RW */
 const rwWilayah=document.getElementById("rwWilayah");
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
@@ -220,8 +186,12 @@ for(let i=1;i<=16;i++){
   rwWilayah.appendChild(o);
 }
 
+/* DEFAULT BULAN */
 const bulanWilayah=document.getElementById("bulanWilayah");
 bulanWilayah.value=new Date().toISOString().slice(0,7);
+
+/* INPUT */
+const get=id=>document.getElementById(id);
 
 /* SIMPAN */
 document.getElementById("btnSimpanProfil").onclick=async()=>{
@@ -230,12 +200,17 @@ document.getElementById("btnSimpanProfil").onclick=async()=>{
     return;
   }
 
-  /* kumpulkan diagnosa */
+  const btn=get("btnSimpanProfil");
+  btn.disabled=true;
+  btn.innerText="Menyimpan...";
+
   const diagnosa=[];
   for(let i=1;i<=10;i++){
-    const nama=document.getElementById(`diagNama${i}`).value;
-    const jumlah=+document.getElementById(`diagJumlah${i}`).value||0;
-    if(nama) diagnosa.push({nama, jumlah});
+    const nama=get(`diagNama${i}`).value.trim();
+    const jumlah=+get(`diagJumlah${i}`).value||0;
+    if(nama){
+      diagnosa.push({urutan:i,nama,jumlah});
+    }
   }
 
   const id=`${bulanWilayah.value}_${rwWilayah.value}`;
@@ -244,28 +219,27 @@ document.getElementById("btnSimpanProfil").onclick=async()=>{
     bulanLapor:bulanWilayah.value,
     rw:rwWilayah.value,
 
-    jumlahRT:+jmlRT.value||0,
-    jumlahPenduduk:+jmlPenduduk.value||0,
-    jumlahJKN:+jmlJKN.value||0,
+    jumlahRT:+get("jmlRT").value||0,
+    jumlahPenduduk:+get("jmlPenduduk").value||0,
+    jumlahJKN:+get("jmlJKN").value||0,
 
-    sekolahTK:+jmlTK.value||0,
-    sekolahSD:+jmlSD.value||0,
-    sekolahSMP:+jmlSMP.value||0,
-    sekolahSMA:+jmlSMA.value||0,
+    sekolahTK:+get("jmlTK").value||0,
+    sekolahSD:+get("jmlSD").value||0,
+    sekolahSMP:+get("jmlSMP").value||0,
+    sekolahSMA:+get("jmlSMA").value||0,
 
-    jumlahMBG:+jmlMBG.value||0,
-    tempatIbadah:+jmlIbadah.value||0,
-    pondokPesantren:+jmlPonpes.value||0,
-    hotel:+jmlHotel.value||0,
-    perkantoran:+jmlKantor.value||0,
-    salon:+jmlSalon.value||0,
-    villa:+jmlVilla.value||0,
-    tempatOlahraga:+jmlOlahraga.value||0,
-    jejaring:+jmlJejaring.value||0,
+    jumlahMBG:+get("jmlMBG").value||0,
+    tempatIbadah:+get("jmlIbadah").value||0,
+    pondokPesantren:+get("jmlPonpes").value||0,
+    hotel:+get("jmlHotel").value||0,
+    perkantoran:+get("jmlKantor").value||0,
+    salon:+get("jmlSalon").value||0,
+    villa:+get("jmlVilla").value||0,
+    tempatOlahraga:+get("jmlOlahraga").value||0,
+    jejaring:+get("jmlJejaring").value||0,
 
-    diagnosaTop10: diagnosa,
-
-    updatedAt: serverTimestamp()
+    diagnosaTop10:diagnosa,
+    updatedAt:serverTimestamp()
   },{merge:true});
 
   alert("✅ Data berhasil disimpan");
