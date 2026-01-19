@@ -119,51 +119,90 @@ input:focus,select:focus{
 <!-- ================= GRID DATA KESEHATAN ================= -->
 <div class="grid">
 
+  <!-- IBU HAMIL -->
   <div class="card">
     <h3>Ibu Hamil</h3>
     <div class="row">
       <div><label>Normal</label><input id="ihNormal" type="number"></div>
       <div><label>Risiko Tinggi</label><input id="ihRisti" type="number"></div>
+      <div><label>KEK</label><input id="ihKek" type="number"></div>
     </div>
   </div>
 
+  <!-- IBU NIFAS -->
+  <div class="card">
+    <h3>Ibu Nifas</h3>
+    <div class="row">
+      <div><label>Normal</label><input id="inNormal" type="number"></div>
+      <div><label>Risiko Tinggi</label><input id="inRisti" type="number"></div>
+    </div>
+  </div>
+
+  <!-- BAYI -->
+  <div class="card">
+    <h3>Bayi</h3>
+    <div class="row">
+      <div><label>Jumlah Bayi</label><input id="bayiTotal" type="number"></div>
+    </div>
+  </div>
+
+  <!-- BALITA -->
   <div class="card">
     <h3>Balita</h3>
     <div class="row">
       <div><label>Normal</label><input id="bNormal" type="number"></div>
       <div><label>Stunting</label><input id="bStunting" type="number"></div>
       <div><label>Gizi Buruk</label><input id="bGizi" type="number"></div>
+      <div><label>Penerima PMT</label><input id="bPMT" type="number"></div>
     </div>
   </div>
 
+  <!-- TB -->
   <div class="card">
     <h3>TB</h3>
     <div class="row">
-      <div><label>TB Dalam Pengobatan</label><input id="tbPengobatan" type="number"></div>
-      <div><label>TB Terdeteksi</label><input id="tbTotal" type="number"></div>
+      <div><label>Dalam Pengobatan</label><input id="tbPengobatan" type="number"></div>
+      <div><label>Selesai Pengobatan</label><input id="tbSelesai" type="number"></div>
     </div>
   </div>
 
+  <!-- DIAGNOSA -->
+  <div class="card">
+    <h3>Diagnosa Penyakit</h3>
+    <div class="row">
+      <div><label>Hipertensi (HT)</label><input id="dgHT" type="number"></div>
+      <div><label>Diabetes (DM)</label><input id="dgDM" type="number"></div>
+      <div><label>ODGJ Berat</label><input id="dgODGJ" type="number"></div>
+      <div><label>Kanker</label><input id="dgKanker" type="number"></div>
+    </div>
+  </div>
+
+  <!-- PKPR -->
+  <div class="card">
+    <h3>PKPR (Usia 10–18 Tahun)</h3>
+    <div class="row">
+      <div><label>Total</label><input id="pkprTotal" type="number"></div>
+      <div><label>Laki-laki</label><input id="pkprLaki" type="number"></div>
+      <div><label>Perempuan</label><input id="pkprPerempuan" type="number"></div>
+    </div>
+  </div>
+
+  <!-- DISABILITAS -->
   <div class="card">
     <h3>Disabilitas</h3>
     <div class="row">
-      <div><label>Jumlah Disabilitas</label><input id="disabilitas" type="number"></div>
+      <div><label>Jumlah</label><input id="disabilitas" type="number"></div>
     </div>
   </div>
 
+  <!-- LANSIA -->
   <div class="card">
     <h3>Lansia</h3>
     <div class="row">
       <div><label>Mandiri</label><input id="lMandiri" type="number"></div>
-      <div><label>Kategori B</label><input id="lB" type="number"></div>
+      <div><label>Kategori B Sedang</label><input id="lBSedang" type="number"></div>
+      <div><label>Kategori B Ringan</label><input id="lBRingan" type="number"></div>
       <div><label>Kategori C</label><input id="lC" type="number"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Sanitasi</h3>
-    <div class="row">
-      <div><label>Status ODF (0 / 1)</label><input id="odf" type="number"></div>
     </div>
   </div>
 
