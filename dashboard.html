@@ -319,7 +319,7 @@ cursor:pointer
 
 <div class="row">
 <div class="white"><b>TB</b><div class="chart-box"><canvas id="chartTB"></canvas></div></div>
-<div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDis"></canvas></div></div>
+<div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDisabilitas"></canvas></div></div>
 </div>
 
 <div class="row">
@@ -335,7 +335,7 @@ from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 /* ======================================================
    GLOBAL CHART INSTANCE
 ====================================================== */
-let cIbu,cBalita,cTB,cDis,cLansia,cDiagTop10;
+let cIbu,cBalita,cTB,cDisabilitas,cLansia,cDiagTop10;
 
 /* ======================================================
    INIT FILTER
@@ -425,7 +425,7 @@ async function loadKesehatan(){
     tbPengobatan:0, tbSelesai:0,
     dgHT:0, dgDM:0, dgODGJ:0, dgKanker:0,
     pkprTotal:0, pkprLaki:0, pkprPerempuan:0,
-    dis:0,
+    disabilitas:0,
     lMandiri:0, lBS:0, lBR:0, lC:0
   };
 
@@ -454,14 +454,14 @@ async function loadKesehatan(){
   pkprTotalVal.innerText=t.pkprTotal;
   pkprLakiVal.innerText=t.pkprLaki;
   pkprPerempuanVal.innerText=t.pkprPerempuan;
-  disabilitasVal.innerText=t.dis;
+  disabilitasVal.innerText=t.disabilitas;
   lMandiriVal.innerText=t.lMandiri;
   lBSedangVal.innerText=t.lBS;
   lBRinganVal.innerText=t.lBR;
   lCVal.innerText=t.lC;
 
   /* ===== DESTROY ===== */
-  [cIbu,cBalita,cTB,cDis,cLansia].forEach(c=>c&&c.destroy());
+  [cIbu,cBalita,cTB,cDisabilitas,cLansia].forEach(c=>c&&c.destroy());
 
   /* ===== CHART ===== */
   if(chartIbu) cIbu=new Chart(chartIbu,{type:"pie",
@@ -476,8 +476,8 @@ async function loadKesehatan(){
     data:{labels:["Pengobatan","Selesai"],datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
   });
 
-  if(chartDis) cDis=new Chart(chartDis,{type:"bar",
-    data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
+  if(chartDisabilitas) cDisabilitas=new Chart(chartDisabilitas,{type:"bar",
+    data:{labels:["Disabilitas"],datasets:[{data:[t.disabilitas]}]}
   });
 
   if(chartLansia) cLansia=new Chart(chartLansia,{type:"pie",
