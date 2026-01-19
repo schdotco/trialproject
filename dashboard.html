@@ -108,6 +108,30 @@ cursor:pointer
   background:#dee2e6;
   margin:24px 0;
 }
+
+/* ===== JUDUL HASIL AGREGAT ===== */
+.aggregate-title{
+  margin:28px 0 16px;
+  padding:14px 18px;
+  background:#ffffff;
+  border-left:6px solid #1c7ed6;
+  border-radius:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.aggregate-title h3{
+  margin:0;
+  font-size:18px;
+  font-weight:700;
+  color:#212529;
+}
+
+.aggregate-title span{
+  display:block;
+  margin-top:4px;
+  font-size:13px;
+  color:#6c757d;
+}
 </style>
 </head>
 
@@ -135,6 +159,9 @@ cursor:pointer
 </div>
 
 <!-- ================= DATA WILAYAH ================= -->
+<div class="aggregate-title">
+  <h3>DATA WILAYAH</h3>
+</div>
 <div class="row">
   <div class="card card-primary"><h1 id="rtVal">0</h1><span>Jumlah RT</span></div>
   <div class="card card-info"><h1 id="pendudukVal">0</h1><span>Jumlah Penduduk</span></div>
@@ -158,6 +185,9 @@ cursor:pointer
 <div class="separator"></div>
 
 <!-- ================= KEHAMILAN ================= -->
+<div class="aggregate-title">
+  <h3>KEHAMILAN</h3>
+</div>
 <div class="row">
   <div class="card card-success"><h1 id="ihNormalVal">0</h1><span>Hamil Normal</span></div>
   <div class="card card-warning"><h1 id="ihRistiVal">0</h1><span>Hamil Risti</span></div>
@@ -165,17 +195,26 @@ cursor:pointer
 </div>
 
 <!-- ================= NIFAS ================= -->
+<div class="aggregate-title">
+  <h3>NIFAS</h3>
+</div>
 <div class="row">
   <div class="card card-success"><h1 id="inNormalVal">0</h1><span>Nifas Normal</span></div>
   <div class="card card-warning"><h1 id="inRistiVal">0</h1><span>Nifas Risti</span></div>
 </div>
 
 <!-- ================= BAYI ================= -->
+<div class="aggregate-title">
+  <h3>BAYI</h3>
+</div>
 <div class="row">
   <div class="card card-info"><h1 id="bayiTotalVal">0</h1><span>Total Bayi</span></div>
 </div>
 
 <!-- ================= BALITA ================= -->
+<div class="aggregate-title">
+  <h3>BALITA</h3>
+</div>
 <div class="row">
   <div class="card card-success"><h1 id="bNormalVal">0</h1><span>Normal</span></div>
   <div class="card card-warning"><h1 id="bStuntingVal">0</h1><span>Stunting</span></div>
@@ -185,12 +224,18 @@ cursor:pointer
 <div class="separator"></div>
   
 <!-- ================= TB ================= -->
+<div class="aggregate-title">
+  <h3>KEHAMILAN</h3>
+</div>
 <div class="row">
   <div class="card card-warning"><h1 id="tbPengobatanVal">0</h1><span>Dalam Pengobatan</span></div>
   <div class="card card-success"><h1 id="tbSelesaiVal">0</h1><span>Selesai Pengobatan</span></div>
 </div>
 
 <!-- ================= DIAGNOSA ================= -->
+<div class="aggregate-title">
+  <h3>DIAGNOSA</h3>
+</div>
 <div class="row">
   <div class="card card-danger"><h1 id="dgHTVal">0</h1><span>Hipertensi</span></div>
   <div class="card card-warning"><h1 id="dgDMVal">0</h1><span>DM</span></div>
@@ -199,6 +244,9 @@ cursor:pointer
 </div>
 
 <!-- ================= PKPR ================= -->
+<div class="aggregate-title">
+  <h3>PKPR</h3>
+</div>
 <div class="row">
   <div class="card card-primary""><h1 id="pkprTotalVal">0</h1><span>Total PKPR</span></div>
   <div class="card card-info"><h1 id="pkprLakiVal">0</h1><span>Laki-laki</span></div>
@@ -206,11 +254,17 @@ cursor:pointer
 </div>
 
 <!-- ================= Disabilitas ================= -->
+<div class="aggregate-title">
+  <h3>DISABILITAS</h3>
+</div>
 <div class="row">
   <div class="card dark"><h1 id="disabilitasVal">0</h1><span>Disabilitas</span></div>
 </div>
 
 <!-- ================= LANSIA ================= -->
+<div class="aggregate-title">
+  <h3>LANSIA</h3>
+</div>
 <div class="row">
   <div class="card card-success"><h1 id="lMandiriVal">0</h1><span>Mandiri</span></div>
   <div class="card card-warning"><h1 id="lBSedangVal">0</h1><span>Kategori B Sedang</span></div>
@@ -220,6 +274,9 @@ cursor:pointer
 <div class="separator"></div>
 
 <!-- ================= SANITASI TPP ================= -->
+<div class="aggregate-title">
+  <h3>SANITASI</h3>
+</div>
 <div class="row">
 <div class="card card-teal"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
 <div class="card card-primary"><h1 id="tppRestoran">0</h1><span>Restoran</span></div>
