@@ -88,6 +88,14 @@ color:#fff;
 border:none;
 cursor:pointer
 }
+
+.separator{
+  width:100%;
+  height:1px;
+  background:#dee2e6;
+  margin:24px 0;
+  border-radius:2px;
+}
 </style>
 </head>
 
@@ -135,80 +143,70 @@ cursor:pointer
   <div class="card gray"><h1 id="hotelVal">0</h1><span>Hotel</span></div>
   <div class="card green"><h1 id="kantorVal">0</h1><span>Perkantoran</span></div>
 </div>
+<div class="separator"></div>
 
-<!-- ================= RINGKASAN KESEHATAN ================= -->
+<!-- ================= KEHAMILAN ================= -->
 <div class="row">
-
-  <div class="card blue">
-    <h1 id="ibuHamilVal">0</h1>
-    <span>Ibu Hamil (Normal + Risti + KEK)</span>
-  </div>
-
-  <div class="card green">
-    <h1 id="ibuNifasVal">0</h1>
-    <span>Ibu Nifas</span>
-  </div>
-
-  <div class="card purple">
-    <h1 id="bayiVal">0</h1>
-    <span>Bayi</span>
-  </div>
-
-  <div class="card teal">
-    <h1 id="balitaVal">0</h1>
-    <span>Balita</span>
-  </div>
-
+  <div class="card dark"><h1 id="ihNormalVal">0</h1><span>Hamil Normal</span></div>
+  <div class="card blue"><h1 id="ihRistiVal">0</h1><span>Hamil Risti</span></div>
+  <div class="card gray"><h1 id="ihKEKVal">0</h1><span>KEK</span></div>
 </div>
 
+<!-- ================= NIFAS ================= -->
 <div class="row">
-
-  <div class="card orange">
-    <h1 id="tbVal">0</h1>
-    <span>TB</span>
-  </div>
-
-  <div class="card blue">
-    <h1 id="pkprVal">0</h1>
-    <span>PKPR (10–18 Tahun)</span>
-  </div>
-
-  <div class="card green">
-    <h1 id="disVal">0</h1>
-    <span>Disabilitas</span>
-  </div>
-
-  <div class="card gray">
-    <h1 id="lansiaVal">0</h1>
-    <span>Lansia</span>
-  </div>
-
+  <div class="card dark"><h1 id="inNormalVal">0</h1><span>Nifas Normal</span></div>
+  <div class="card blue"><h1 id="inRistiVal">0</h1><span>Nifas Risti</span></div>
 </div>
 
+<!-- ================= BAYI ================= -->
 <div class="row">
-
-  <div class="card dark">
-    <h1 id="dgHTVal">0</h1>
-    <span>Hipertensi (HT)</span>
-  </div>
-
-  <div class="card dark">
-    <h1 id="dgDMVal">0</h1>
-    <span>Diabetes (DM)</span>
-  </div>
-
-  <div class="card dark">
-    <h1 id="dgODGJVal">0</h1>
-    <span>ODGJ Berat</span>
-  </div>
-
-  <div class="card dark">
-    <h1 id="dgKankerVal">0</h1>
-    <span>Kanker</span>
-  </div>
-
+  <div class="card dark"><h1 id="bayiTotalVal">0</h1><span>Total Bayi</span></div>
 </div>
+
+<!-- ================= BALITA ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="bNormalVal">0</h1><span>Normal</span></div>
+  <div class="card blue"><h1 id="bStuntingVal">0</h1><span>Stunting</span></div>
+  <div class="card gray"><h1 id="bGiziVal">0</h1><span>Gizi Buruk</span></div>
+  <div class="card gray"><h1 id="bPMTVal">0</h1><span>Penerima PMT</span></div>
+</div>
+<div class="separator"></div>
   
+<!-- ================= TB ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="tbPengobatanVal">0</h1><span>Dalam Pengobatan</span></div>
+  <div class="card blue"><h1 id="tbSelesaiVal">0</h1><span>Selesai Pengobatan</span></div>
+</div>
+
+<!-- ================= DIAGNOSA ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="dgHTVal">0</h1><span>Hipertensi</span></div>
+  <div class="card blue"><h1 id="dgDMVal">0</h1><span>DM</span></div>
+  <div class="card gray"><h1 id="dgODGJVal">0</h1><span>ODGJ</span></div>
+  <div class="card gray"><h1 id="dgKankerVal">0</h1><span>Kanker</span></div>
+</div>
+
+<!-- ================= PKPR ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="pkprTotalVal">0</h1><span>Total PKPR</span></div>
+  <div class="card blue"><h1 id="pkprLakiVal">0</h1><span>Laki-laki</span></div>
+  <div class="card gray"><h1 id="pkprPerempuanVal">0</h1><span>Perempuan</span></div>
+</div>
+
+<!-- ================= Disabilitas ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="disabilitasVal">0</h1><span>Disabilitas</span></div>
+</div>
+
+<!-- ================= LANSIA ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="lMandiriVal">0</h1><span>Mandiri</span></div>
+  <div class="card blue"><h1 id="lBSedangVal">0</h1><span>Kategori B Sedang</span></div>
+  <div class="card gray"><h1 id="lBRinganVal">0</h1><span>Kategori B Ringan</span></div>
+  <div class="card gray"><h1 id="lCVal">0</h1><span>Kategori C</span></div>
+</div>
+<div class="separator"></div>
+
 <!-- ================= SANITASI TPP ================= -->
 <div class="row">
 <div class="card dark"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
@@ -242,6 +240,7 @@ cursor:pointer
 <div class="card blue"><h1 id="airMinumIsiUlang">0</h1><span>Air Isi Ulang</span></div>
 <div class="card gray"><h1 id="airMinumMasak">0</h1><span>Air Dimasak</span></div>
 </div>
+<div class="separator"></div>
 
 <!-- ================= GRAFIK ================= -->
 <div class="row">
@@ -254,163 +253,218 @@ cursor:pointer
 <div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDis"></canvas></div></div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
+<div class="row">
+<div class="white"><b>10 Besar DIagnosa</b><div class="chart-box"><canvas id="chartdiagnosaTop10"></canvas></div></div>
+<div class="white"><b>Lansia</b><div class="chart-box"><canvas id="chartLansia"></canvas></div></div>
+</div>
+
 <script type="module">
 import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 /* ================= INIT FILTER ================= */
-const rwInput   = document.getElementById("rwInput");
-const bulanInput= document.getElementById("bulanInput");
-const btnTampil = document.getElementById("btnTampil");
+const rwInput    = document.getElementById("rwInput");
+const bulanInput = document.getElementById("bulanInput");
+const btnTampil  = document.getElementById("btnTampil");
 
 bulanInput.value = new Date().toISOString().slice(0,7);
 
 for(let i=1;i<=16;i++){
-const o=document.createElement("option");
-o.value=`RW.${i}`;
-o.textContent=`RW ${i}`;
-rwInput.appendChild(o);
+  const o=document.createElement("option");
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
+  rwInput.appendChild(o);
 }
 
 btnTampil.onclick = loadAll;
 
-/* ================= DATA WILAYAH ================= */
+/* ================= DATA WILAYAH (INPUT2.HTML) ================= */
 async function loadProfilWilayah(){
-let q = rwInput.value
-? query(collection(db,"profil_puskesmas"),
-where("bulanLapor","==",bulanInput.value),
-where("rw","==",rwInput.value))
-: query(collection(db,"profil_puskesmas"),
-where("bulanLapor","==",bulanInput.value));
+  const q = rwInput.value
+    ? query(collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"profil_puskesmas"),
+        where("bulanLapor","==",bulanInput.value));
 
-const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
-let rt=0, penduduk=0, jkn=0, mbg=0, sd=0, smp=0, sma=0;
+  let t={
+    rt:0, penduduk:0, jkn:0, mbg:0,
+    tk:0, sd:0, smp:0, sma:0,
+    ibadah:0, ponpes:0, hotel:0, kantor:0
+  };
 
-snap.forEach(d=>{
-const x=d.data();
-rt        += x.jumlahRT || 0;
-penduduk += x.jumlahPenduduk || 0;
-jkn       += x.jumlahJKN || 0;
-mbg       += x.jumlahMBG || 0;
-sd        += x.sekolahSD || 0;
-smp       += x.sekolahSMP || 0;
-sma       += x.sekolahSMA || 0;
-});
+  snap.forEach(d=>{
+    const x=d.data();
+    t.rt        += x.jumlahRT || 0;
+    t.penduduk += x.jumlahPenduduk || 0;
+    t.jkn       += x.jumlahJKN || 0;
+    t.mbg       += x.jumlahMBG || 0;
 
-rtVal.innerText        = rt;
-pendudukVal.innerText = penduduk;
-jknVal.innerText      = jkn;
-mbgVal.innerText      = mbg;
-sdVal.innerText       = sd;
-smpVal.innerText      = smp;
-smaVal.innerText      = sma;
+    t.tk        += x.sekolahTK || 0;
+    t.sd        += x.sekolahSD || 0;
+    t.smp       += x.sekolahSMP || 0;
+    t.sma       += x.sekolahSMA || 0;
+
+    t.ibadah   += x.tempatIbadah || 0;
+    t.ponpes   += x.pondokPesantren || 0;
+    t.hotel    += x.hotel || 0;
+    t.kantor   += x.perkantoran || 0;
+  });
+
+  rtVal.innerText        = t.rt;
+  pendudukVal.innerText = t.penduduk;
+  jknVal.innerText      = t.jkn;
+  mbgVal.innerText      = t.mbg;
+
+  tkVal.innerText   = t.tk;
+  sdVal.innerText   = t.sd;
+  smpVal.innerText  = t.smp;
+  smaVal.innerText  = t.sma;
+
+  ibadahVal.innerText = t.ibadah;
+  ponpesVal.innerText = t.ponpes;
+  hotelVal.innerText  = t.hotel;
+  kantorVal.innerText = t.kantor;
 }
 
-/* ================= DATA KESEHATAN ================= */
-let cIbu,cBalita,cTB,cDis;
+/* ================= DATA KESEHATAN (INPUTDATA.HTML) ================= */
+let cIbu,cBalita,cTB,cDis,cLansia;
 
 async function loadKesehatan(){
-let q = rwInput.value
-? query(collection(db,"kesehatan_agregat"),
-where("bulanLapor","==",bulanInput.value),
-where("rw","==",rwInput.value))
-: query(collection(db,"kesehatan_agregat"),
-where("bulanLapor","==",bulanInput.value));
+  const q = rwInput.value
+    ? query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"kesehatan_agregat"),
+        where("bulanLapor","==",bulanInput.value));
 
-const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
-let t={
-ihN:0, ihR:0,
-bN:0, bS:0, bG:0,
-tbT:0, tbP:0,
-dis:0
-};
+  let t={
+    ihNormal:0, ihRisti:0, ihKEK:0,
+    inNormal:0, inRisti:0,
+    bayi:0,
+    bNormal:0, bStunting:0, bGizi:0, bPMT:0,
+    tbPengobatan:0, tbSelesai:0,
+    dgHT:0, dgDM:0, dgODGJ:0, dgKanker:0,
+    pkprTotal:0, pkprL:0, pkprP:0,
+    dis:0,
+    lMandiri:0, lBS:0, lBR:0, lC:0
+  };
 
-snap.forEach(d=>{
-const x=d.data();
-t.ihN += x.ibuHamilNormal || 0;
-t.ihR += x.ibuHamilRisti || 0;
-t.bN  += x.balitaNormal || 0;
-t.bS  += x.balitaStunting || 0;
-t.bG  += x.balitaGiziBuruk || 0;
-t.tbT += x.tbTotal || 0;
-t.tbP += x.tbPengobatan || 0;
-t.dis += x.disabilitas || 0;
-});
+  snap.forEach(d=>{
+    const x=d.data();
+    Object.keys(t).forEach(k=>{
+      t[k]+=x[k]||0;
+    });
+  });
 
-ibuHamilVal.innerText = t.ihN + t.ihR;
-balitaVal.innerText   = t.bN + t.bS + t.bG;
-tbVal.innerText       = t.tbT;
-disVal.innerText      = t.dis;
+  /* ===== ISI CARD ===== */
+  ihNormalVal.innerText = t.ihNormal;
+  ihRistiVal.innerText = t.ihRisti;
+  ihKEKVal.innerText   = t.ihKEK;
 
-[cIbu,cBalita,cTB,cDis].forEach(c=>c && c.destroy());
-const opt={responsive:true,maintainAspectRatio:false};
+  inNormalVal.innerText = t.inNormal;
+  inRistiVal.innerText  = t.inRisti;
 
-cIbu=new Chart(chartIbu,{type:"pie",options:opt,
-data:{labels:["Normal","Risiko Tinggi"],datasets:[{data:[t.ihN,t.ihR]}]}
-});
+  bayiTotalVal.innerText = t.bayi;
 
-cBalita=new Chart(chartBalita,{type:"pie",options:opt,
-data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[t.bN,t.bS,t.bG]}]}
-});
+  bNormalVal.innerText   = t.bNormal;
+  bStuntingVal.innerText= t.bStunting;
+  bGiziVal.innerText    = t.bGizi;
+  bPMTVal.innerText     = t.bPMT;
 
-cTB=new Chart(chartTB,{type:"bar",options:opt,
-data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[t.tbP,t.tbT]}]}
-});
+  tbPengobatanVal.innerText = t.tbPengobatan;
+  tbSelesaiVal.innerText    = t.tbSelesai;
 
-cDis=new Chart(chartDis,{type:"bar",options:opt,
-data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
-});
+  dgHTVal.innerText     = t.dgHT;
+  dgDMVal.innerText     = t.dgDM;
+  dgODGJVal.innerText   = t.dgODGJ;
+  dgKankerVal.innerText = t.dgKanker;
+
+  pkprTotalVal.innerText     = t.pkprTotal;
+  pkprLakiVal.innerText      = t.pkprL;
+  pkprPerempuanVal.innerText = t.pkprP;
+
+  disabilitasVal.innerText = t.dis;
+
+  lMandiriVal.innerText = t.lMandiri;
+  lBSedangVal.innerText = t.lBS;
+  lBRinganVal.innerText = t.lBR;
+  lCVal.innerText       = t.lC;
+
+  /* ===== GRAFIK ===== */
+  [cIbu,cBalita,cTB,cDis,cLansia].forEach(c=>c&&c.destroy());
+
+  cIbu=new Chart(chartIbu,{type:"pie",
+    data:{labels:["Normal","Risti","KEK"],
+    datasets:[{data:[t.ihNormal,t.ihRisti,t.ihKEK]}]}
+  });
+
+  cBalita=new Chart(chartBalita,{type:"pie",
+    data:{labels:["Normal","Stunting","Gizi Buruk","PMT"],
+    datasets:[{data:[t.bNormal,t.bStunting,t.bGizi,t.bPMT]}]}
+  });
+
+  cTB=new Chart(chartTB,{type:"bar",
+    data:{labels:["Pengobatan","Selesai"],
+    datasets:[{data:[t.tbPengobatan,t.tbSelesai]}]}
+  });
+
+  cDis=new Chart(chartDis,{type:"bar",
+    data:{labels:["Disabilitas"],
+    datasets:[{data:[t.dis]}]}
+  });
+
+  cLansia=new Chart(chartLansia,{type:"pie",
+    data:{labels:["Mandiri","B Sedang","B Ringan","C"],
+    datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
+  });
 }
 
-/* ================= DATA SANITASI (INPUT3.HTML) ================= */
+/* ================= SANITASI (INPUT3.HTML) ================= */
 async function loadSanitasi(){
-let q = rwInput.value
-? query(collection(db,"sanitasi_agregat"),
-where("bulanLapor","==",bulanInput.value),
-where("rw","==",rwInput.value))
-: query(collection(db,"sanitasi_agregat"),
-where("bulanLapor","==",bulanInput.value));
+  const q = rwInput.value
+    ? query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value));
 
-const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
-const t={
-tppJasaBoga:0, tppRestoran:0, tppHomeIndustri:0, tppDamiu:0,
-tppRumahMakan:0, tppGeraiJajanan:0, tppGeraiKeliling:0,
-tppDapurGerai:0, tppSentraKantin:0,
+  const t={
+    tppJasaBoga:0,tppRestoran:0,tppHomeIndustri:0,tppDamiu:0,
+    tppRumahMakan:0,tppGeraiJajanan:0,tppGeraiKeliling:0,
+    tppDapurGerai:0,tppSentraKantin:0,
+    jambanSepticAman:0,jambanKomunal:0,jambanBelum:0,
+    airSumurBor:0,airPDAM:0,airArtesis:0,
+    airMinumAMK:0,airMinumIsiUlang:0,airMinumMasak:0
+  };
 
-jambanSepticAman:0, jambanKomunal:0, jambanBelum:0,
+  snap.forEach(d=>{
+    const x=d.data();
+    Object.keys(t).forEach(k=>t[k]+=x[k]||0);
+  });
 
-airSumurBor:0, airPDAM:0, airArtesis:0,
-
-airMinumAMK:0, airMinumIsiUlang:0, airMinumMasak:0
-};
-
-snap.forEach(d=>{
-const x=d.data();
-Object.keys(t).forEach(k=>{
-t[k] += x[k] || 0;
-});
-});
-
-Object.keys(t).forEach(id=>{
-const el=document.getElementById(id);
-if(el) el.innerText = t[id];
-});
+  Object.keys(t).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerText=t[id];
+  });
 }
 
 /* ================= LOAD ALL ================= */
 async function loadAll(){
-if(!bulanInput.value){
-alert("Pilih bulan");
-return;
-}
-await loadProfilWilayah();
-await loadKesehatan();
-await loadSanitasi(); // ⬅ INPUT3.HTML
+  if(!bulanInput.value){
+    alert("Pilih bulan");
+    return;
+  }
+  await loadProfilWilayah();
+  await loadKesehatan();
+  await loadSanitasi();
 }
 
 loadAll();
