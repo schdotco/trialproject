@@ -404,7 +404,7 @@ async function loadKesehatan(){
     dgHT:0, dgDM:0, dgODGJ:0, dgKanker:0,
     pkprTotal:0, pkprLaki:0, pkprPerempuan:0,
     disabilitas:0,
-    lMandiri:0, lBS:0, lBR:0, lC:0
+    lMandiri:0, lansiaBS:0, lansiaBR:0, lC:0
   };
 
   snap.forEach(d=>{
@@ -439,8 +439,8 @@ async function loadKesehatan(){
     t.disabilitas += x.disabilitas || x.jumlahDisabilitas || 0;
 
     t.lMandiri += x.lMandiri || 0;
-    t.lBS      += x.lBS || x.lansiaBS || 0;
-    t.lBR      += x.lBR || x.lansiaBR || 0;
+    t.lansiaBS      += x.lansiaBS || x.lansiaBS || 0;
+    t.lansiaBR      += x.lansiaBR || x.lansiaBR || 0;
     t.lC       += x.lC || 0;
   });
 
@@ -468,7 +468,7 @@ async function loadKesehatan(){
   });
 
   if(chartLansia) cLansia=new Chart(chartLansia,{type:"pie",
-    data:{labels:["Mandiri","B Sedang","B Ringan","C"],datasets:[{data:[t.lMandiri,t.lBS,t.lBR,t.lC]}]}
+    data:{labels:["Mandiri","B Sedang","B Ringan","C"],datasets:[{data:[t.lMandiri,t.lansiaBS,t.lansiaBR,t.lC]}]}
   });
 }
 
