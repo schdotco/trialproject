@@ -3,159 +3,431 @@
 <head>
 <meta charset="UTF-8">
 <title>UPTD PUSKESMAS CIKUTRA LAMA</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{font-family:Arial;background:#f4f6f9;padding:20px;color:#212529}
+body{
+font-family:Arial, sans-serif;
+background:#f4f6f9;
+padding:20px;
+color:#212529;
+}
+small{color:#6c757d}
+
+/* ===== HEADER (DIPERBESAR) ===== */
+.header{
+display:flex;
+align-items:center;
+gap:20px;
+margin-bottom:24px;
+padding:16px 20px;
+background:#ffffff;
+border-radius:14px;
+box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+
+.header img{
+width:180px;          /* 🔥 logo lebih besar */
+height:auto;
+}
+
+.header h2{
+margin:0;
+font-size:38px;      /* 🔥 judul utama */
+font-weight:700;
+letter-spacing:.4px;
+}
+
+.header small{
+display:block;
+margin-top:4px;
+font-size:20px;
+color:#6c757d;
+}
+
+/* ===== LAYOUT ===== */
 .row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
-.card{flex:1;min-width:220px;padding:16px;border-radius:12px;color:#fff}
+
+.card{
+flex:1;
+padding:16px;
+border-radius:12px;
+color:#fff;
+min-width:220px
+}
 .card h1{margin:0;font-size:26px}
 .card span{font-size:13px;opacity:.9}
+
 .green{background:#2f9e44}
 .blue{background:#3b5bdb}
 .teal{background:#0ca678}
 .orange{background:#f59f00}
+.purple{background:#7048e8}
 .dark{background:#343a40}
 .gray{background:#495057}
-.white{background:#fff;padding:16px;border-radius:12px;flex:1}
-.chart-box{height:300px}
+
+.white{
+background:#fff;
+padding:16px;
+border-radius:12px;
+flex:1;
+min-width:300px
+}
+
+.chart-box{position:relative;width:100%;height:300px}
+
+input,select,button{
+padding:8px;
+border-radius:6px;
+border:1px solid #ccc
+}
+button{
+background:#3b5bdb;
+color:#fff;
+border:none;
+cursor:pointer
+}
 </style>
 </head>
 
 <body>
 
-<h2>📊 Dashboard Puskesmas Cikutra Lama</h2>
+<!-- ===== HEADER LOGO ===== -->
+<div class="header">
+<img src="logo-puskesmas.png" alt="Logo Puskesmas">
+<div>
+<h2>UPTD PUSKESMAS CIKUTRA LAMA</h2>
+<small>Dashboard Data Wilayah & Kesehatan</small>
+</div>
+</div>
 
+<!-- ================= FILTER ================= -->
+<div class="row">
 <div class="white">
-<select id="rwInput"><option value="">SEMUA RW</option></select>
+<b>Filter Data</b><br><br>
+<select id="rwInput">
+<option value="">SEMUA RW</option>
+</select>
 <input type="month" id="bulanInput">
 <button id="btnTampil">Tampilkan</button>
+</div>
 </div>
 
 <!-- ================= DATA WILAYAH ================= -->
 <div class="row">
-  <div class="card green"><h1 id="rtVal">0</h1><span>RT</span></div>
-  <div class="card blue"><h1 id="pendudukVal">0</h1><span>Penduduk</span></div>
-  <div class="card teal"><h1 id="jknVal">0</h1><span>JKN</span></div>
-  <div class="card orange"><h1 id="mbgVal">0</h1><span>MBG</span></div>
+  <div class="card green"><h1 id="rtVal">0</h1><span>Jumlah RT</span></div>
+  <div class="card blue"><h1 id="pendudukVal">0</h1><span>Jumlah Penduduk</span></div>
+  <div class="card teal"><h1 id="jknVal">0</h1><span>Peserta JKN</span></div>
+  <div class="card orange"><h1 id="mbgVal">0</h1><span>Dapur MBG</span></div>
 </div>
 
 <div class="row">
-  <div class="card dark"><h1 id="sdVal">0</h1><span>SD</span></div>
-  <div class="card gray"><h1 id="smpVal">0</h1><span>SMP</span></div>
-  <div class="card green"><h1 id="smaVal">0</h1><span>SMA/SMK</span></div>
+  <div class="card purple"><h1 id="tkVal">0</h1><span>TK / PAUD</span></div>
+  <div class="card purple"><h1 id="sdVal">0</h1><span>Sekolah SD</span></div>
+  <div class="card dark"><h1 id="smpVal">0</h1><span>Sekolah SMP</span></div>
+  <div class="card gray"><h1 id="smaVal">0</h1><span>Sekolah SMA / SMK</span></div>
 </div>
 
-<!-- ================= KESEHATAN ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="ibuHamilVal">0</h1><span>Ibu Hamil</span></div>
-  <div class="card blue"><h1 id="balitaVal">0</h1><span>Balita</span></div>
-  <div class="card gray"><h1 id="tbVal">0</h1><span>TB</span></div>
-  <div class="card green"><h1 id="disVal">0</h1><span>Disabilitas</span></div>
+  <div class="card dark"><h1 id="ibadahVal">0</h1><span>Tempat Ibadah</span></div>
+  <div class="card blue"><h1 id="ponpesVal">0</h1><span>Ponpes</span></div>
+  <div class="card gray"><h1 id="hotelVal">0</h1><span>Hotel</span></div>
+  <div class="card green"><h1 id="kantorVal">0</h1><span>Perkantoran</span></div>
 </div>
 
-<!-- ================= DIAGNOSA TOP 10 ================= -->
-<div class="white">
-<h3>Diagnosa Top 10</h3>
-<ol id="diagnosaList"></ol>
+<!-- ================= RINGKASAN KESEHATAN ================= -->
+<div class="card blue">
+  <h3>Ibu Hamil</h3>
+
+  <div class="row">
+    <div><label>Normal</label><input id="ihNormal" type="number"></div>
+    <div><label>Risiko Tinggi</label><input id="ihRisti" type="number"></div>
+    <div><label>KEK</label><input id="ihKek" type="number"></div>
+  </div>
 </div>
 
-<!-- ================= SANITASI ================= -->
+<div class="card green">
+  <h3>Ibu Nifas</h3>
+
+  <div class="row">
+    <div><label>Normal</label><input id="inNormal" type="number"></div>
+    <div><label>Risiko Tinggi</label><input id="inRisti" type="number"></div>
+  </div>
+</div>
+
+<div class="card purple">
+  <h3>Bayi</h3>
+
+  <div class="row">
+    <div><label>Jumlah Bayi</label><input id="bayiTotal" type="number"></div>
+  </div>
+</div>
+
+<div class="card teal">
+  <h3>Balita</h3>
+
+  <div class="row">
+    <div><label>Normal</label><input id="bNormal" type="number"></div>
+    <div><label>Stunting</label><input id="bStunting" type="number"></div>
+    <div><label>Gizi Buruk</label><input id="bGizi" type="number"></div>
+    <div><label>Penerima PMT</label><input id="bPMT" type="number"></div>
+  </div>
+</div>
+
+<div class="card orange">
+  <h3>TB</h3>
+
+  <div class="row">
+    <div><label>Dalam Pengobatan</label><input id="tbPengobatan" type="number"></div>
+    <div><label>Selesai Pengobatan</label><input id="tbSelesai" type="number"></div>
+  </div>
+</div>
+
+<div class="card blue">
+  <h3>PKPR (Usia 10–18 Tahun)</h3>
+
+  <div class="row">
+    <div><label>Total</label><input id="pkprTotal" type="number"></div>
+    <div><label>Laki-laki</label><input id="pkprLaki" type="number"></div>
+    <div><label>Perempuan</label><input id="pkprPerempuan" type="number"></div>
+  </div>
+</div>
+
+<div class="card green">
+  <h3>Disabilitas</h3>
+
+  <div class="row">
+    <div><label>Jumlah</label><input id="disabilitas" type="number"></div>
+  </div>
+</div>
+
+<div class="card purple">
+  <h3>Lansia</h3>
+
+  <div class="row">
+    <div><label>Mandiri</label><input id="lMandiri" type="number"></div>
+    <div><label>Kategori B Sedang</label><input id="lBSedang" type="number"></div>
+    <div><label>Kategori B Ringan</label><input id="lBRingan" type="number"></div>
+    <div><label>Kategori C</label><input id="lC" type="number"></div>
+  </div>
+</div>
+
+<div class="card dark">
+  <h3>Diagnosa Penyakit</h3>
+
+  <div class="row">
+    <div><label>Hipertensi (HT)</label><input id="dgHT" type="number"></div>
+    <div><label>Diabetes (DM)</label><input id="dgDM" type="number"></div>
+    <div><label>ODGJ Berat</label><input id="dgODGJ" type="number"></div>
+    <div><label>Kanker</label><input id="dgKanker" type="number"></div>
+  </div>
+</div>
+  
+<!-- ================= SANITASI TPP ================= -->
 <div class="row">
-  <div class="card dark"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
-  <div class="card blue"><h1 id="tppRestoran">0</h1><span>Restoran</span></div>
-  <div class="card gray"><h1 id="tppDamiu">0</h1><span>DAMIU</span></div>
+<div class="card dark"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
+<div class="card blue"><h1 id="tppRestoran">0</h1><span>Restoran</span></div>
+<div class="card gray"><h1 id="tppHomeIndustri">0</h1><span>Home Industri</span></div>
+<div class="card green"><h1 id="tppDamiu">0</h1><span>DAMIU</span></div>
+<div class="card green"><h1 id="tppRumahMakan">0</h1><span>Rumah Makan</span></div>
+<div class="card green"><h1 id="tppGeraiJajanan">0</h1><span>Gerai Jajanan</span></div>
+<div class="card green"><h1 id="tppGeraiKeliling">0</h1><span>Gerai Keliling</span></div>
+<div class="card green"><h1 id="tppDapurGerai">0</h1><span>Dapur Gerai</span></div>
+<div class="card green"><h1 id="tppSentraKantin">0</h1><span>Sentra / Kantin</span></div>
 </div>
 
+<!-- ================= SANITASI JAMBAN SEHAT (KK) ================= -->
+<div class="row">
+<div class="card dark"><h1 id="jambanSepticAman">0</h1><span>Septic Tank Aman</span></div>
+<div class="card blue"><h1 id="jambanKomunal">0</h1><span>Septic Komunal</span></div>
+<div class="card gray"><h1 id="jambanBelum">0</h1><span>Belum Septic Tank</span></div>
+</div>
+
+<!-- ================= SANITASI AKSES AIR BERSIH ================= -->
+<div class="row">
+<div class="card dark"><h1 id="airSumurBor">0</h1><span>Sumur Bor</span></div>
+<div class="card blue"><h1 id="airPDAM">0</h1><span>Ledeng / PDAM</span></div>
+<div class="card gray"><h1 id="airArtesis">0</h1><span>Artesis</span></div>
+</div>
+
+<!-- ================= SANITASI AKSES AIR MINUM ================= -->
+<div class="row">
+<div class="card dark"><h1 id="airMinumAMK">0</h1><span>AMK</span></div>
+<div class="card blue"><h1 id="airMinumIsiUlang">0</h1><span>Air Isi Ulang</span></div>
+<div class="card gray"><h1 id="airMinumMasak">0</h1><span>Air Dimasak</span></div>
+</div>
+
+<!-- ================= GRAFIK ================= -->
+<div class="row">
+<div class="white"><b>Ibu Hamil</b><div class="chart-box"><canvas id="chartIbu"></canvas></div></div>
+<div class="white"><b>Balita</b><div class="chart-box"><canvas id="chartBalita"></canvas></div></div>
+</div>
+
+<div class="row">
+<div class="white"><b>TB</b><div class="chart-box"><canvas id="chartTB"></canvas></div></div>
+<div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDis"></canvas></div></div>
+</div>
+
+<!-- ================= SCRIPT ================= -->
 <script type="module">
 import { db } from "./firebase.js";
-import { collection,getDocs,query,where } from
-"https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { collection, getDocs, query, where }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-const rwInput=document.getElementById("rwInput");
-const bulanInput=document.getElementById("bulanInput");
-bulanInput.value=new Date().toISOString().slice(0,7);
+/* ================= INIT FILTER ================= */
+const rwInput   = document.getElementById("rwInput");
+const bulanInput= document.getElementById("bulanInput");
+const btnTampil = document.getElementById("btnTampil");
+
+bulanInput.value = new Date().toISOString().slice(0,7);
 
 for(let i=1;i<=16;i++){
-  rwInput.innerHTML+=`<option value="RW.${i}">RW ${i}</option>`;
+const o=document.createElement("option");
+o.value=`RW.${i}`;
+o.textContent=`RW ${i}`;
+rwInput.appendChild(o);
 }
-btnTampil.onclick=loadAll;
 
-async function loadProfil(){
-  let q = rwInput.value
-    ? query(collection(db,"profil_puskesmas"),
-      where("bulanLapor","==",bulanInput.value),
-      where("rw","==",rwInput.value))
-    : query(collection(db,"profil_puskesmas"),
-      where("bulanLapor","==",bulanInput.value));
+btnTampil.onclick = loadAll;
 
-  const snap=await getDocs(q);
+/* ================= DATA WILAYAH ================= */
+async function loadProfilWilayah(){
+let q = rwInput.value
+? query(collection(db,"profil_puskesmas"),
+where("bulanLapor","==",bulanInput.value),
+where("rw","==",rwInput.value))
+: query(collection(db,"profil_puskesmas"),
+where("bulanLapor","==",bulanInput.value));
 
-  let rt=0,p=0,j=0,mbg=0,sd=0,smp=0,sma=0;
-  let diag={};
+const snap = await getDocs(q);
 
-  snap.forEach(d=>{
-    const x=d.data();
-    rt+=x.jumlahRT||0;
-    p+=x.jumlahPenduduk||0;
-    j+=x.jumlahJKN||0;
-    mbg+=x.jumlahMBG||0;
-    sd+=x.sekolahSD||0;
-    smp+=x.sekolahSMP||0;
-    sma+=x.sekolahSMA||0;
+let rt=0, penduduk=0, jkn=0, mbg=0, sd=0, smp=0, sma=0;
 
-    (x.diagnosaTop10||[]).forEach(o=>{
-      diag[o.nama]=(diag[o.nama]||0)+o.jumlah;
-    });
-  });
+snap.forEach(d=>{
+const x=d.data();
+rt        += x.jumlahRT || 0;
+penduduk += x.jumlahPenduduk || 0;
+jkn       += x.jumlahJKN || 0;
+mbg       += x.jumlahMBG || 0;
+sd        += x.sekolahSD || 0;
+smp       += x.sekolahSMP || 0;
+sma       += x.sekolahSMA || 0;
+});
 
-  rtVal.innerText=rt;
-  pendudukVal.innerText=p;
-  jknVal.innerText=j;
-  mbgVal.innerText=mbg;
-  sdVal.innerText=sd;
-  smpVal.innerText=smp;
-  smaVal.innerText=sma;
-
-  const list=document.getElementById("diagnosaList");
-  list.innerHTML="";
-  Object.entries(diag)
-    .sort((a,b)=>b[1]-a[1])
-    .slice(0,10)
-    .forEach(d=>{
-      list.innerHTML+=`<li>${d[0]} : ${d[1]}</li>`;
-    });
+rtVal.innerText        = rt;
+pendudukVal.innerText = penduduk;
+jknVal.innerText      = jkn;
+mbgVal.innerText      = mbg;
+sdVal.innerText       = sd;
+smpVal.innerText      = smp;
+smaVal.innerText      = sma;
 }
+
+/* ================= DATA KESEHATAN ================= */
+let cIbu,cBalita,cTB,cDis;
 
 async function loadKesehatan(){
-  let q = rwInput.value
-    ? query(collection(db,"kesehatan_agregat"),
-      where("bulanLapor","==",bulanInput.value),
-      where("rw","==",rwInput.value))
-    : query(collection(db,"kesehatan_agregat"),
-      where("bulanLapor","==",bulanInput.value));
+let q = rwInput.value
+? query(collection(db,"kesehatan_agregat"),
+where("bulanLapor","==",bulanInput.value),
+where("rw","==",rwInput.value))
+: query(collection(db,"kesehatan_agregat"),
+where("bulanLapor","==",bulanInput.value));
 
-  const snap=await getDocs(q);
-  let ih=0,b=0,tb=0,dis=0;
+const snap = await getDocs(q);
 
-  snap.forEach(d=>{
-    const x=d.data();
-    ih+=(x.ibuHamilNormal||0)+(x.ibuHamilRisti||0);
-    b+=(x.balitaNormal||0)+(x.balitaStunting||0)+(x.balitaGiziBuruk||0);
-    tb+=x.tbTotal||0;
-    dis+=x.disabilitas||0;
-  });
+let t={
+ihN:0, ihR:0,
+bN:0, bS:0, bG:0,
+tbT:0, tbP:0,
+dis:0
+};
 
-  ibuHamilVal.innerText=ih;
-  balitaVal.innerText=b;
-  tbVal.innerText=tb;
-  disVal.innerText=dis;
+snap.forEach(d=>{
+const x=d.data();
+t.ihN += x.ibuHamilNormal || 0;
+t.ihR += x.ibuHamilRisti || 0;
+t.bN  += x.balitaNormal || 0;
+t.bS  += x.balitaStunting || 0;
+t.bG  += x.balitaGiziBuruk || 0;
+t.tbT += x.tbTotal || 0;
+t.tbP += x.tbPengobatan || 0;
+t.dis += x.disabilitas || 0;
+});
+
+ibuHamilVal.innerText = t.ihN + t.ihR;
+balitaVal.innerText   = t.bN + t.bS + t.bG;
+tbVal.innerText       = t.tbT;
+disVal.innerText      = t.dis;
+
+[cIbu,cBalita,cTB,cDis].forEach(c=>c && c.destroy());
+const opt={responsive:true,maintainAspectRatio:false};
+
+cIbu=new Chart(chartIbu,{type:"pie",options:opt,
+data:{labels:["Normal","Risiko Tinggi"],datasets:[{data:[t.ihN,t.ihR]}]}
+});
+
+cBalita=new Chart(chartBalita,{type:"pie",options:opt,
+data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[t.bN,t.bS,t.bG]}]}
+});
+
+cTB=new Chart(chartTB,{type:"bar",options:opt,
+data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[t.tbP,t.tbT]}]}
+});
+
+cDis=new Chart(chartDis,{type:"bar",options:opt,
+data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
+});
 }
 
+/* ================= DATA SANITASI (INPUT3.HTML) ================= */
+async function loadSanitasi(){
+let q = rwInput.value
+? query(collection(db,"sanitasi_agregat"),
+where("bulanLapor","==",bulanInput.value),
+where("rw","==",rwInput.value))
+: query(collection(db,"sanitasi_agregat"),
+where("bulanLapor","==",bulanInput.value));
+
+const snap = await getDocs(q);
+
+const t={
+tppJasaBoga:0, tppRestoran:0, tppHomeIndustri:0, tppDamiu:0,
+tppRumahMakan:0, tppGeraiJajanan:0, tppGeraiKeliling:0,
+tppDapurGerai:0, tppSentraKantin:0,
+
+jambanSepticAman:0, jambanKomunal:0, jambanBelum:0,
+
+airSumurBor:0, airPDAM:0, airArtesis:0,
+
+airMinumAMK:0, airMinumIsiUlang:0, airMinumMasak:0
+};
+
+snap.forEach(d=>{
+const x=d.data();
+Object.keys(t).forEach(k=>{
+t[k] += x[k] || 0;
+});
+});
+
+Object.keys(t).forEach(id=>{
+const el=document.getElementById(id);
+if(el) el.innerText = t[id];
+});
+}
+
+/* ================= LOAD ALL ================= */
 async function loadAll(){
-  await loadProfil();
-  await loadKesehatan();
+if(!bulanInput.value){
+alert("Pilih bulan");
+return;
 }
+await loadProfilWilayah();
+await loadKesehatan();
+await loadSanitasi(); // ⬅ INPUT3.HTML
+}
+
 loadAll();
 </script>
 
