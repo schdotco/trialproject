@@ -148,15 +148,17 @@ function isiRW(select){
     select.appendChild(o);
   }
 }
+
+const rwWilayah = document.getElementById("rwWilayah");
+const bulanWilayah = document.getElementById("bulanWilayah");
+
 isiRW(rwWilayah);
-isiRW(rw);
 
 // default bulan
 bulanWilayah.value = new Date().toISOString().slice(0,7);
-bulanLapor.value   = new Date().toISOString().slice(0,7);
 
 // ===== SIMPAN DATA WILAYAH =====
-btnSimpanProfil.onclick = async () => {
+document.getElementById("btnSimpanProfil").onclick = async () => {
   if(!rwWilayah.value || !bulanWilayah.value){
     alert("Bulan & RW wajib diisi");
     return;
@@ -183,6 +185,7 @@ btnSimpanProfil.onclick = async () => {
 
   alert("✅ Data wilayah berhasil disimpan");
 };
+</script>
 </script>
 
 </body>
