@@ -136,6 +136,40 @@ button{
   <div class="card green"><h1 id="disVal">0</h1><span>Disabilitas</span></div>
 </div>
 
+<!-- ================= SANITASI TPP ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="tppJasaBoga">0</h1><span>Jasa Boga</span></div>
+  <div class="card blue"><h1 id="tppRestoran">0</h1><span>Restoran</span></div>
+  <div class="card gray"><h1 id="tppHomeIndustri">0</h1><span>Home Industri</span></div>
+  <div class="card green"><h1 id="tppDamiu">0</h1><span>DAMIU</span></div>
+  <div class="card green"><h1 id="tppRumahMakan">0</h1><span>Rumah Makan</span></div>
+  <div class="card green"><h1 id="tppGeraiJajanan">0</h1><span>Gerai Jajanan</span></div>
+  <div class="card green"><h1 id="tppGeraiKeliling">0</h1><span>Gerai Keliling</span></div>
+  <div class="card green"><h1 id="tppDapurGerai">0</h1><span>Dapur Gerai</span></div>
+  <div class="card green"><h1 id="tppSentraKantin">0</h1><span>Sentra / Kantin</span></div>
+</div>
+  
+<!-- ================= SANITASI JAMBAN SEHAT (KK) ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="jambanSepticAman">0</h1><span>Septic Tank Aman</span></div>
+  <div class="card blue"><h1 id="jambanKomunal">0</h1><span>Septic Komunal</span></div>
+  <div class="card gray"><h1 id="jambanBelum">0</h1><span>Belum Septic Tank</span></div>
+</div>
+
+<!-- ================= SANITASI AKSES AIR BERSIH ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="airSumurBor">0</h1><span>Sumur Bor</span></div>
+  <div class="card blue"><h1 id="airPDAM">0</h1><span>Ledeng / PDAM</span></div>
+  <div class="card gray"><h1 id="airArtesis">0</h1><span>Artesis</span></div>
+</div>
+
+<!-- ================= SANITASI AKSES AIR MINUM ================= -->
+<div class="row">
+  <div class="card dark"><h1 id="airMinumAMK">0</h1><span>AMK</span></div>
+  <div class="card blue"><h1 id="airMinumIsiUlang">0</h1><span>Air Isi Ulang</span></div>
+  <div class="card gray"><h1 id="airMinumMasak">0</h1><span>Air Dimasak</span></div>
+</div>
+  
 <!-- ================= GRAFIK ================= -->
 <div class="row">
   <div class="white"><b>Ibu Hamil</b><div class="chart-box"><canvas id="chartIbu"></canvas></div></div>
@@ -147,15 +181,18 @@ button{
   <div class="white"><b>Disabilitas</b><div class="chart-box"><canvas id="chartDis"></canvas></div></div>
 </div>
 
+/* ================= SCRIPT ================= */
 <script type="module">
 import { db } from "./firebase.js";
 import { collection, getDocs, query, where }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-/* INIT FILTER */
-const rwInput=document.getElementById("rwInput");
-const bulanInput=document.getElementById("bulanInput");
-bulanInput.value=new Date().toISOString().slice(0,7);
+/* ================= INIT FILTER ================= */
+const rwInput   = document.getElementById("rwInput");
+const bulanInput= document.getElementById("bulanInput");
+const btnTampil = document.getElementById("btnTampil");
+
+bulanInput.value = new Date().toISOString().slice(0,7);
 
 for(let i=1;i<=16;i++){
   const o=document.createElement("option");
@@ -163,7 +200,8 @@ for(let i=1;i<=16;i++){
   o.textContent=`RW ${i}`;
   rwInput.appendChild(o);
 }
-btnTampil.onclick=loadAll;
+
+btnTampil.onclick = loadAll;
 
 /* ================= DATA WILAYAH ================= */
 async function loadProfilWilayah(){
@@ -174,28 +212,28 @@ async function loadProfilWilayah(){
     : query(collection(db,"profil_puskesmas"),
         where("bulanLapor","==",bulanInput.value));
 
-  const snap=await getDocs(q);
+  const snap = await getDocs(q);
 
-  let rt=0,penduduk=0,jkn=0,mbg=0,sd=0,smp=0,sma=0;
+  let rt=0, penduduk=0, jkn=0, mbg=0, sd=0, smp=0, sma=0;
 
   snap.forEach(d=>{
     const x=d.data();
-    rt+=x.jumlahRT||0;
-    penduduk+=x.jumlahPenduduk||0;
-    jkn+=x.jumlahJKN||0;
-    mbg+=x.jumlahMBG||0;
-    sd+=x.sekolahSD||0;
-    smp+=x.sekolahSMP||0;
-    sma+=x.sekolahSMA||0;
+    rt        += x.jumlahRT || 0;
+    penduduk += x.jumlahPenduduk || 0;
+    jkn       += x.jumlahJKN || 0;
+    mbg       += x.jumlahMBG || 0;
+    sd        += x.sekolahSD || 0;
+    smp       += x.sekolahSMP || 0;
+    sma       += x.sekolahSMA || 0;
   });
 
-  rtVal.innerText=rt;
-  pendudukVal.innerText=penduduk;
-  jknVal.innerText=jkn;
-  mbgVal.innerText=mbg;
-  sdVal.innerText=sd;
-  smpVal.innerText=smp;
-  smaVal.innerText=sma;
+  rtVal.innerText        = rt;
+  pendudukVal.innerText = penduduk;
+  jknVal.innerText      = jkn;
+  mbgVal.innerText      = mbg;
+  sdVal.innerText       = sd;
+  smpVal.innerText      = smp;
+  smaVal.innerText      = sma;
 }
 
 /* ================= DATA KESEHATAN ================= */
@@ -209,44 +247,89 @@ async function loadKesehatan(){
     : query(collection(db,"kesehatan_agregat"),
         where("bulanLapor","==",bulanInput.value));
 
-  const snap=await getDocs(q);
+  const snap = await getDocs(q);
 
-  let t={ihN:0,ihR:0,bN:0,bS:0,bG:0,tbT:0,tbP:0,dis:0};
+  let t={
+    ihN:0, ihR:0,
+    bN:0, bS:0, bG:0,
+    tbT:0, tbP:0,
+    dis:0
+  };
 
   snap.forEach(d=>{
     const x=d.data();
-    t.ihN+=x.ibuHamilNormal||0;
-    t.ihR+=x.ibuHamilRisti||0;
-    t.bN+=x.balitaNormal||0;
-    t.bS+=x.balitaStunting||0;
-    t.bG+=x.balitaGiziBuruk||0;
-    t.tbT+=x.tbTotal||0;
-    t.tbP+=x.tbPengobatan||0;
-    t.dis+=x.disabilitas||0;
+    t.ihN += x.ibuHamilNormal || 0;
+    t.ihR += x.ibuHamilRisti || 0;
+    t.bN  += x.balitaNormal || 0;
+    t.bS  += x.balitaStunting || 0;
+    t.bG  += x.balitaGiziBuruk || 0;
+    t.tbT += x.tbTotal || 0;
+    t.tbP += x.tbPengobatan || 0;
+    t.dis += x.disabilitas || 0;
   });
 
-  ibuHamilVal.innerText=t.ihN+t.ihR;
-  balitaVal.innerText=t.bN+t.bS+t.bG;
-  tbVal.innerText=t.tbT;
-  disVal.innerText=t.dis;
+  ibuHamilVal.innerText = t.ihN + t.ihR;
+  balitaVal.innerText   = t.bN + t.bS + t.bG;
+  tbVal.innerText       = t.tbT;
+  disVal.innerText      = t.dis;
 
-  [cIbu,cBalita,cTB,cDis].forEach(c=>c&&c.destroy());
+  [cIbu,cBalita,cTB,cDis].forEach(c=>c && c.destroy());
   const opt={responsive:true,maintainAspectRatio:false};
 
   cIbu=new Chart(chartIbu,{type:"pie",options:opt,
     data:{labels:["Normal","Risiko Tinggi"],datasets:[{data:[t.ihN,t.ihR]}]}
   });
+
   cBalita=new Chart(chartBalita,{type:"pie",options:opt,
     data:{labels:["Normal","Stunting","Gizi Buruk"],datasets:[{data:[t.bN,t.bS,t.bG]}]}
   });
+
   cTB=new Chart(chartTB,{type:"bar",options:opt,
     data:{labels:["TB Dalam Pengobatan","TB Terdeteksi"],datasets:[{data:[t.tbP,t.tbT]}]}
   });
+
   cDis=new Chart(chartDis,{type:"bar",options:opt,
     data:{labels:["Disabilitas"],datasets:[{data:[t.dis]}]}
   });
 }
 
+/* ================= DATA SANITASI (INPUT3.HTML) ================= */
+async function loadSanitasi(){
+  let q = rwInput.value
+    ? query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value),
+        where("rw","==",rwInput.value))
+    : query(collection(db,"sanitasi_agregat"),
+        where("bulanLapor","==",bulanInput.value));
+
+  const snap = await getDocs(q);
+
+  const t={
+    tppJasaBoga:0, tppRestoran:0, tppHomeIndustri:0, tppDamiu:0,
+    tppRumahMakan:0, tppGeraiJajanan:0, tppGeraiKeliling:0,
+    tppDapurGerai:0, tppSentraKantin:0,
+
+    jambanSepticAman:0, jambanKomunal:0, jambanBelum:0,
+
+    airSumurBor:0, airPDAM:0, airArtesis:0,
+
+    airMinumAMK:0, airMinumIsiUlang:0, airMinumMasak:0
+  };
+
+  snap.forEach(d=>{
+    const x=d.data();
+    Object.keys(t).forEach(k=>{
+      t[k] += x[k] || 0;
+    });
+  });
+
+  Object.keys(t).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerText = t[id];
+  });
+}
+
+/* ================= LOAD ALL ================= */
 async function loadAll(){
   if(!bulanInput.value){
     alert("Pilih bulan");
@@ -254,6 +337,7 @@ async function loadAll(){
   }
   await loadProfilWilayah();
   await loadKesehatan();
+  await loadSanitasi(); // ⬅ INPUT3.HTML
 }
 
 loadAll();
