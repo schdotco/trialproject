@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Input Data Kesehatan</title>
+<title>Input Data Wilayah & Diagnosa</title>
 
 <style>
 :root{
@@ -24,17 +24,12 @@ body{
 .header h2{margin:0;font-size:24px}
 .header p{margin:6px 0 0;color:var(--muted)}
 
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
-  gap:16px;
-}
-
 .card{
   background: var(--card);
   border-radius:12px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
+  margin-bottom:16px;
 }
 
 .card h3{
@@ -46,7 +41,7 @@ body{
 
 .row{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
   gap:12px;
 }
 
@@ -58,11 +53,6 @@ input,select{
   border-radius:8px;
   border:1px solid #dee2e6;
   font-size:14px;
-}
-
-input:focus,select:focus{
-  outline:none;
-  border-color:var(--primary);
 }
 
 .footer{
@@ -79,14 +69,7 @@ input:focus,select:focus{
   border-radius:10px;
   font-size:15px;
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(59,91,219,.3);
 }
-
-.btn.secondary{
-  background:#495057;
-  margin-right:10px;
-}
-.btn:hover{opacity:.95}
 </style>
 </head>
 
@@ -96,10 +79,10 @@ input:focus,select:focus{
 <!-- HEADER -->
 <div class="header">
   <h2>Input Data Agregat Puskesmas</h2>
-  <p>Data wilayah per RW & laporan kesehatan bulanan</p>
+  <p>Data Wilayah & Diagnosa Penyakit (Per RW & Bulan)</p>
 </div>
 
-<!-- ================= DATA WILAYAH & KEPESERTAAN ================= -->
+<!-- ================= DATA WILAYAH ================= -->
 <div class="card">
   <h3>Data Wilayah & Kepesertaan (Per RW)</h3>
 
@@ -120,72 +103,120 @@ input:focus,select:focus{
     <div><label>Jumlah RT</label><input id="jmlRT" type="number"></div>
     <div><label>Jumlah Penduduk</label><input id="jmlPenduduk" type="number"></div>
     <div><label>Jumlah Peserta JKN</label><input id="jmlJKN" type="number"></div>
+
+    <div><label>Sekolah TK / PAUD</label><input id="jmlTK" type="number"></div>
     <div><label>Sekolah SD</label><input id="jmlSD" type="number"></div>
     <div><label>Sekolah SMP</label><input id="jmlSMP" type="number"></div>
-    <div><label>Sekolah SMA</label><input id="jmlSMA" type="number"></div>
-    <div><label>Jumlah MBG</label><input id="jmlMBG" type="number"></div>
-  </div>
+    <div><label>Sekolah SMA / SMK</label><input id="jmlSMA" type="number"></div>
 
-  <div class="footer">
-    <button id="btnSimpanProfil" class="btn secondary">
-      💾 Simpan Data Wilayah
-    </button>
+    <div><label>Dapur MBG</label><input id="jmlMBG" type="number"></div>
+    <div><label>Tempat Ibadah</label><input id="jmlIbadah" type="number"></div>
+    <div><label>Pondok Pesantren</label><input id="jmlPonpes" type="number"></div>
+    <div><label>Hotel</label><input id="jmlHotel" type="number"></div>
+    <div><label>Perkantoran</label><input id="jmlKantor" type="number"></div>
+    <div><label>Salon</label><input id="jmlSalon" type="number"></div>
+    <div><label>Villa</label><input id="jmlVilla" type="number"></div>
+    <div><label>Tempat Olahraga</label><input id="jmlOlahraga" type="number"></div>
+    <div><label>Jejaring</label><input id="jmlJejaring" type="number"></div>
   </div>
 </div>
 
-  <!-- ================= SCRIPT ================= -->
+<!-- ================= DIAGNOSA ================= -->
+<div class="card">
+  <h3>Diagnosa Penyakit (Top 10)</h3>
+  <div class="row">
+    <!-- otomatis 10 baris -->
+    <script>
+      for(let i=1;i<=10;i++){
+        document.write(`
+          <div>
+            <label>Nama Diagnosa ${i}</label>
+            <input id="diagNama${i}" type="text">
+          </div>
+          <div>
+            <label>Jumlah</label>
+            <input id="diagJumlah${i}" type="number">
+          </div>
+        `);
+      }
+    </script>
+  </div>
+</div>
+
+<div class="footer">
+  <button id="btnSimpanProfil" class="btn">
+    💾 Simpan Data Wilayah & Diagnosa
+  </button>
+</div>
+
+</div>
+
+<!-- ================= SCRIPT FIREBASE ================= -->
 <script type="module">
 import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-// isi RW 1–16
-function isiRW(select){
-  for(let i=1;i<=16;i++){
-    const o=document.createElement("option");
-    o.value=`RW.${i}`;
-    o.textContent=`RW ${i}`;
-    select.appendChild(o);
-  }
+/* ISI RW */
+const rwWilayah=document.getElementById("rwWilayah");
+for(let i=1;i<=16;i++){
+  const o=document.createElement("option");
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
+  rwWilayah.appendChild(o);
 }
 
-const rwWilayah = document.getElementById("rwWilayah");
-const bulanWilayah = document.getElementById("bulanWilayah");
+const bulanWilayah=document.getElementById("bulanWilayah");
+bulanWilayah.value=new Date().toISOString().slice(0,7);
 
-isiRW(rwWilayah);
-
-// default bulan
-bulanWilayah.value = new Date().toISOString().slice(0,7);
-
-// ===== SIMPAN DATA WILAYAH =====
-document.getElementById("btnSimpanProfil").onclick = async () => {
-  if(!rwWilayah.value || !bulanWilayah.value){
+/* SIMPAN */
+document.getElementById("btnSimpanProfil").onclick=async()=>{
+  if(!rwWilayah.value||!bulanWilayah.value){
     alert("Bulan & RW wajib diisi");
     return;
   }
 
-  const id = `${bulanWilayah.value}_${rwWilayah.value}`;
+  /* kumpulkan diagnosa */
+  const diagnosa=[];
+  for(let i=1;i<=10;i++){
+    const nama=document.getElementById(`diagNama${i}`).value;
+    const jumlah=+document.getElementById(`diagJumlah${i}`).value||0;
+    if(nama) diagnosa.push({nama, jumlah});
+  }
 
-  await setDoc(
-    doc(db,"profil_puskesmas",id),
-    {
-      bulanLapor: bulanWilayah.value,
-      rw: rwWilayah.value,
-      jumlahRT:+jmlRT.value||0,
-      jumlahPenduduk:+jmlPenduduk.value||0,
-      jumlahJKN:+jmlJKN.value||0,
-      sekolahSD:+jmlSD.value||0,
-      sekolahSMP:+jmlSMP.value||0,
-      sekolahSMA:+jmlSMA.value||0,
-      jumlahMBG:+jmlMBG.value||0,
-      updatedAt:serverTimestamp()
-    },
-    { merge:true }
-  );
+  const id=`${bulanWilayah.value}_${rwWilayah.value}`;
 
-  alert("✅ Data wilayah berhasil disimpan");
+  await setDoc(doc(db,"profil_puskesmas",id),{
+    bulanLapor:bulanWilayah.value,
+    rw:rwWilayah.value,
+
+    jumlahRT:+jmlRT.value||0,
+    jumlahPenduduk:+jmlPenduduk.value||0,
+    jumlahJKN:+jmlJKN.value||0,
+
+    sekolahTK:+jmlTK.value||0,
+    sekolahSD:+jmlSD.value||0,
+    sekolahSMP:+jmlSMP.value||0,
+    sekolahSMA:+jmlSMA.value||0,
+
+    jumlahMBG:+jmlMBG.value||0,
+    tempatIbadah:+jmlIbadah.value||0,
+    pondokPesantren:+jmlPonpes.value||0,
+    hotel:+jmlHotel.value||0,
+    perkantoran:+jmlKantor.value||0,
+    salon:+jmlSalon.value||0,
+    villa:+jmlVilla.value||0,
+    tempatOlahraga:+jmlOlahraga.value||0,
+    jejaring:+jmlJejaring.value||0,
+
+    diagnosaTop10: diagnosa,
+
+    updatedAt: serverTimestamp()
+  },{merge:true});
+
+  alert("✅ Data berhasil disimpan");
+  location.reload();
 };
-</script>
 </script>
 
 </body>
