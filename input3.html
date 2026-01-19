@@ -122,10 +122,10 @@ input:focus,select:focus{
       <div><label>Home Industri</label><input id="tppHomeIndustri" type="number"></div>
       <div><label>DAMIU</label><input id="tppDamiu" type="number"></div>
       <div><label>Rumah Makan</label><input id="tppRumahMakan" type="number"></div>
-      <div><label>Gerai Jajanan</label><input id="tppGerai" type="number"></div>
-      <div><label>Gerai Keliling</label><input id="tppKeliling" type="number"></div>
-      <div><label>Dapur Gerai</label><input id="tppDapur" type="number"></div>
-      <div><label>Sentra/Kantin</label><input id="tppSentra" type="number"></div>
+      <div><label>Gerai Jajanan</label><input id="tppGeraiJajanan" type="number"></div>
+      <div><label>Gerai Keliling</label><input id="tppGeraiKeliling" type="number"></div>
+      <div><label>Dapur Gerai</label><input id="tppDapurGerai" type="number"></div>
+      <div><label>Sentra / Kantin</label><input id="tppSentraKantin" type="number"></div>
     </div>
   </div>
 
@@ -133,7 +133,7 @@ input:focus,select:focus{
   <div class="card">
     <h3>Jamban Sehat (KK)</h3>
     <div class="row">
-      <div><label>Septic Tank Aman</label><input id="jambanAman" type="number"></div>
+      <div><label>Septic Tank Aman</label><input id="jambanSepticAman" type="number"></div>
       <div><label>Septic Komunal</label><input id="jambanKomunal" type="number"></div>
       <div><label>Belum Septic Tank</label><input id="jambanBelum" type="number"></div>
     </div>
@@ -141,11 +141,11 @@ input:focus,select:focus{
 
   <!-- AIR BERSIH -->
   <div class="card">
-    <h3>Akses Air Bersih</h3>
+    <h3>Akses Air Minum</h3>
     <div class="row">
-      <div><label>Sumur Bor</label><input id="airSumurBor" type="number"></div>
-      <div><label>Ledeng / PDAM</label><input id="airPDAM" type="number"></div>
-      <div><label>Artesis</label><input id="airArtesis" type="number"></div>
+      <div><label>AMK</label><input id="airMinumAMK" type="number"></div>
+      <div><label>Air Isi Ulang</label><input id="airMinumIsiUlang" type="number"></div>
+      <div><label>Air Dimasak</label><input id="airMinumMasak" type="number"></div>
     </div>
   </div>
 
@@ -221,7 +221,7 @@ btn.onclick=async()=>{
     updatedAt:serverTimestamp()
   },{merge:true});
 
-  alert("✅ Data sanitasi tersimpan");
+  alert("✅ Data sanitasi berhasil disimpan");
   location.reload();
 };
 </script>
