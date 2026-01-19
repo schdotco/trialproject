@@ -124,22 +124,76 @@ input,select{
 <!-- ================= DIAGNOSA ================= -->
 <div class="card">
   <h3>Diagnosa Penyakit (Top 10)</h3>
-  <div class="row">
-    <!-- otomatis 10 baris -->
-    <script>
-      for(let i=1;i<=10;i++){
-        document.write(`
-          <div>
-            <label>Nama Diagnosa ${i}</label>
-            <input id="diagNama${i}" type="text">
-          </div>
-          <div>
-            <label>Jumlah</label>
-            <input id="diagJumlah${i}" type="number">
-          </div>
-        `);
-      }
-    </script>
+
+  <div class="diagnosa-grid">
+    <!-- Baris 1–10 -->
+    <div class="diagnosa-row">
+      <div>
+        <label>Nama Diagnosa 1</label>
+        <input id="diagNama1" type="text">
+      </div>
+      <div>
+        <label>Jumlah</label>
+        <input id="diagJumlah1" type="number">
+      </div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div>
+        <label>Nama Diagnosa 2</label>
+        <input id="diagNama2" type="text">
+      </div>
+      <div>
+        <label>Jumlah</label>
+        <input id="diagJumlah2" type="number">
+      </div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div>
+        <label>Nama Diagnosa 3</label>
+        <input id="diagNama3" type="text">
+      </div>
+      <div>
+        <label>Jumlah</label>
+        <input id="diagJumlah3" type="number">
+      </div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 4</label><input id="diagNama4" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah4" type="number"></div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 5</label><input id="diagNama5" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah5" type="number"></div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 6</label><input id="diagNama6" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah6" type="number"></div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 7</label><input id="diagNama7" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah7" type="number"></div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 8</label><input id="diagNama8" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah8" type="number"></div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 9</label><input id="diagNama9" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah9" type="number"></div>
+    </div>
+
+    <div class="diagnosa-row">
+      <div><label>Nama Diagnosa 10</label><input id="diagNama10" type="text"></div>
+      <div><label>Jumlah</label><input id="diagJumlah10" type="number"></div>
+    </div>
   </div>
 </div>
 
