@@ -20,27 +20,33 @@ body{
   color:var(--text);
 }
 .container{max-width:1100px;margin:auto}
+
 h2{margin-bottom:6px}
 p{margin-top:0;color:var(--muted)}
+
+.section-title{
+  margin:28px 0 10px;
+  font-size:16px;
+  font-weight:700;
+  color:#212529;
+  border-left:5px solid var(--primary);
+  padding-left:10px;
+}
 
 .card{
   background:var(--card);
   border-radius:12px;
   padding:16px;
-  margin-bottom:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
+  margin-bottom:20px;
 }
-.card h3{
-  margin:0 0 12px;
-  font-size:16px;
-  border-left:4px solid var(--primary);
-  padding-left:8px;
-}
+
 .row{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:12px;
 }
+
 label{font-size:12px;color:var(--muted)}
 input,select{
   width:100%;
@@ -69,8 +75,8 @@ button:hover{opacity:.95}
 <p>Rekapitulasi sanitasi wilayah (agregat)</p>
 
 <!-- IDENTITAS -->
+<div class="section-title">Identitas Laporan</div>
 <div class="card">
-  <h3>Identitas Laporan</h3>
   <div class="row">
     <div>
       <label>Bulan Laporan</label>
@@ -86,8 +92,8 @@ button:hover{opacity:.95}
 </div>
 
 <!-- TPP -->
+<div class="section-title">TPP (Tempat Pengolahan Pangan)</div>
 <div class="card">
-  <h3>TPP (Tempat Pengolahan Pangan)</h3>
   <div class="row">
     <input id="tppJasaBoga" type="number" placeholder="Jasa Boga">
     <input id="tppRestoran" type="number" placeholder="Restoran">
@@ -102,8 +108,8 @@ button:hover{opacity:.95}
 </div>
 
 <!-- JAMBAN -->
+<div class="section-title">Jamban Sehat (KK)</div>
 <div class="card">
-  <h3>Jamban Sehat (KK)</h3>
   <div class="row">
     <input id="jambanSepticAman" type="number" placeholder="Septic Tank Aman">
     <input id="jambanKomunal" type="number" placeholder="Septic Komunal">
@@ -112,8 +118,8 @@ button:hover{opacity:.95}
 </div>
 
 <!-- AIR BERSIH -->
+<div class="section-title">Akses Air Bersih</div>
 <div class="card">
-  <h3>Akses Air Bersih</h3>
   <div class="row">
     <input id="airSumurBor" type="number" placeholder="Sumur Bor">
     <input id="airPDAM" type="number" placeholder="PDAM">
@@ -122,8 +128,8 @@ button:hover{opacity:.95}
 </div>
 
 <!-- AIR MINUM -->
+<div class="section-title">Akses Air Minum</div>
 <div class="card">
-  <h3>Akses Air Minum</h3>
   <div class="row">
     <input id="airMinumAMK" type="number" placeholder="AMK">
     <input id="airMinumIsiUlang" type="number" placeholder="Air Isi Ulang">
