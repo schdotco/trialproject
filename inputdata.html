@@ -222,6 +222,7 @@ import { db } from "./firebase.js";
 import { doc, setDoc, serverTimestamp }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+/* ================= INIT ================= */
 // isi RW 1–16
 function isiRW(select){
   for(let i=1;i<=16;i++){
@@ -234,34 +235,71 @@ function isiRW(select){
 isiRW(rw);
 
 // default bulan
-bulanLapor.value   = new Date().toISOString().slice(0,7);
+bulanLapor.value = new Date().toISOString().slice(0,7);
 
-// ===== SIMPAN DATA KESEHATAN =====
+/* ================= SIMPAN DATA KESEHATAN ================= */
 btnSimpan.onclick = async () => {
   if(!bulanLapor.value || !rw.value){
     alert("Bulan & RW wajib diisi");
     return;
   }
 
-  const id = `${bulanLapor.value}_${rw.value}`;
+  const docId = `${bulanLapor.value}_${rw.value}`;
 
-  await setDoc(doc(db,"kesehatan_agregat",id),{
-    bulanLapor:bulanLapor.value,
-    rw:rw.value,
-    ibuHamilNormal:+ihNormal.value||0,
-    ibuHamilRisti:+ihRisti.value||0,
-    balitaNormal:+bNormal.value||0,
-    balitaStunting:+bStunting.value||0,
-    balitaGiziBuruk:+bGizi.value||0,
-    disabilitas:+disabilitas.value||0,
-    tbPengobatan:+tbPengobatan.value||0,
-    tbTotal:+tbTotal.value||0,
-    lansiaMandiri:+lMandiri.value||0,
-    lansiaB:+lB.value||0,
-    lansiaC:+lC.value||0,
-    odf:+odf.value||0,
-    updatedAt:serverTimestamp()
-  });
+  await setDoc(
+    doc(db,"kesehatan_agregat",docId),
+    {
+      /* IDENTITAS */
+      bulanLapor: bulanLapor.value,
+      rw: rw.value,
+
+      /* IBU HAMIL */
+      ihNormal: +ihNormal.value || 0,
+      ihRisti: +ihRisti.value || 0,
+      ihKek: +ihKek.value || 0,
+
+      /* IBU NIFAS */
+      inNormal: +inNormal.value || 0,
+      inRisti: +inRisti.value || 0,
+
+      /* BAYI */
+      bayiTotal: +bayiTotal.value || 0,
+
+      /* BALITA */
+      bNormal: +bNormal.value || 0,
+      bStunting: +bStunting.value || 0,
+      bGizi: +bGizi.value || 0,
+      bPMT: +bPMT.value || 0,
+
+      /* TB */
+      tbPengobatan: +tbPengobatan.value || 0,
+      tbSelesai: +tbSelesai.value || 0,
+
+      /* DIAGNOSA */
+      dgHT: +dgHT.value || 0,
+      dgDM: +dgDM.value || 0,
+      dgODGJ: +dgODGJ.value || 0,
+      dgKanker: +dgKanker.value || 0,
+
+      /* PKPR */
+      pkprTotal: +pkprTotal.value || 0,
+      pkprLaki: +pkprLaki.value || 0,
+      pkprPerempuan: +pkprPerempuan.value || 0,
+
+      /* DISABILITAS */
+      disabilitas: +disabilitas.value || 0,
+
+      /* LANSIA */
+      lMandiri: +lMandiri.value || 0,
+      lBSedang: +lBSedang.value || 0,
+      lBRingan: +lBRingan.value || 0,
+      lC: +lC.value || 0,
+
+      /* META */
+      updatedAt: serverTimestamp()
+    },
+    { merge:true }
+  );
 
   alert("✅ Data kesehatan berhasil disimpan");
   location.reload(); // reset form
