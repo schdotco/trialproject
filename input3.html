@@ -200,46 +200,46 @@ btnSimpan.onclick = async () => {
 
   const id = `${bulanLapor.value}_${rw.value}`;
 
-  await setDoc(
-    doc(db,"sanitasi_agregat",id),
-    {
-      bulanLapor,
-      rw: rw.value,
+ await setDoc(
+  doc(db,"sanitasi_agregat",id),
+  {
+    bulanLapor: bulanLapor.value,
+    rw: rw.value,
 
-      tpp:{
-        jasaBoga:+tppJasaBoga.value||0,
-        restoran:+tppRestoran.value||0,
-        homeIndustri:+tppHomeIndustri.value||0,
-        damiu:+tppDamiu.value||0,
-        rumahMakan:+tppRumahMakan.value||0,
-        gerai:+tppGerai.value||0,
-        keliling:+tppKeliling.value||0,
-        dapur:+tppDapur.value||0,
-        sentra:+tppSentra.value||0
-      },
-
-      jamban:{
-        aman:+jambanAman.value||0,
-        komunal:+jambanKomunal.value||0,
-        belum:+jambanBelum.value||0
-      },
-
-      airBersih:{
-        sumurBor:+airSumurBor.value||0,
-        pdam:+airPDAM.value||0,
-        artesis:+airArtesis.value||0
-      },
-
-      airMinum:{
-        amk:+airAMK.value||0,
-        isiUlang:+airIsiUlang.value||0,
-        dimasak:+airDimasak.value||0
-      },
-
-      updatedAt: serverTimestamp()
+    tpp:{
+      jasaBoga:+tppJasaBoga.value||0,
+      restoran:+tppRestoran.value||0,
+      homeIndustri:+tppHomeIndustri.value||0,
+      damiu:+tppDamiu.value||0,
+      rumahMakan:+tppRumahMakan.value||0,
+      gerai:+tppGerai.value||0,
+      keliling:+tppKeliling.value||0,
+      dapur:+tppDapur.value||0,
+      sentra:+tppSentra.value||0
     },
-    { merge:true }
-  );
+
+    jamban:{
+      aman:+jambanAman.value||0,
+      komunal:+jambanKomunal.value||0,
+      belum:+jambanBelum.value||0
+    },
+
+    airBersih:{
+      sumurBor:+airSumurBor.value||0,
+      pdam:+airPDAM.value||0,
+      artesis:+airArtesis.value||0
+    },
+
+    airMinum:{
+      amk:+airAMK.value||0,
+      isiUlang:+airIsiUlang.value||0,
+      dimasak:+airDimasak.value||0
+    },
+
+    updatedAt: serverTimestamp()
+  },
+  { merge:true }
+);
 
   alert("✅ Data sanitasi berhasil disimpan");
   location.reload();
