@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Input Data Sanitasi</title>
+
+<style>
+:root{
+  --primary:#3b5bdb;
+  --bg:#f4f6f9;
+  --card:#ffffff;
+  --text:#212529;
+  --muted:#6c757d;
+}
+*{box-sizing:border-box}
+body{
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  padding: 24px;
+  color: var(--text);
+}
+.container{max-width:1100px;margin:auto}
+.header{margin-bottom:24px}
+.header h2{margin:0;font-size:24px}
+.header p{margin:6px 0 0;color:var(--muted)}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;
+}
+
+.card{
+  background: var(--card);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.card h3{
+  margin:0 0 12px;
+  font-size:16px;
+  border-left:4px solid var(--primary);
+  padding-left:8px;
+}
+
+.row{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+
+label{font-size:12px;color:var(--muted)}
+
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #dee2e6;
+  font-size:14px;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:var(--primary);
+}
+
+.footer{
+  margin-top:20px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.btn{
+  padding:12px 24px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  cursor:pointer;
+}
+.btn:hover{opacity:.95}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h2>Input Data Sanitasi</h2>
+  <p>Rekapitulasi sanitasi wilayah (agregat)</p>
+</div>
+
+<!-- ================= IDENTITAS ================= -->
+<div class="card">
+  <h3>Identitas Laporan</h3>
+  <div class="row">
+    <div>
+      <label>Bulan Laporan</label>
+      <input type="month" id="bulanLapor">
+    </div>
+    <div>
+      <label>RW</label>
+      <select id="rw">
+        <option value="">Pilih RW</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GRID SANITASI ================= -->
+<div class="grid">
+
+  <!-- TPP -->
+  <div class="card">
+    <h3>TPP (Tempat Pengolahan Pangan)</h3>
+    <div class="row">
+      <div><label>Jasa Boga</label><input id="tppJasaBoga" type="number"></div>
+      <div><label>Restoran</label><input id="tppRestoran" type="number"></div>
+      <div><label>Home Industri</label><input id="tppHomeIndustri" type="number"></div>
+      <div><label>DAMIU</label><input id="tppDamiu" type="number"></div>
+      <div><label>Rumah Makan</label><input id="tppRumahMakan" type="number"></div>
+      <div><label>Gerai Jajanan</label><input id="tppGerai" type="number"></div>
+      <div><label>Gerai Keliling</label><input id="tppKeliling" type="number"></div>
+      <div><label>Dapur Gerai</label><input id="tppDapur" type="number"></div>
+      <div><label>Sentra/Kantin</label><input id="tppSentra" type="number"></div>
+    </div>
+  </div>
+
+  <!-- JAMBAN -->
+  <div class="card">
+    <h3>Jamban Sehat (KK)</h3>
+    <div class="row">
+      <div><label>Septic Tank Aman</label><input id="jambanAman" type="number"></div>
+      <div><label>Septic Komunal</label><input id="jambanKomunal" type="number"></div>
+      <div><label>Belum Septic Tank</label><input id="jambanBelum" type="number"></div>
+    </div>
+  </div>
+
+  <!-- AIR BERSIH -->
+  <div class="card">
+    <h3>Akses Air Bersih</h3>
+    <div class="row">
+      <div><label>Sumur Bor</label><input id="airSumurBor" type="number"></div>
+      <div><label>Ledeng / PDAM</label><input id="airPDAM" type="number"></div>
+      <div><label>Artesis</label><input id="airArtesis" type="number"></div>
+    </div>
+  </div>
+
+  <!-- AIR MINUM -->
+  <div class="card">
+    <h3>Akses Air Minum</h3>
+    <div class="row">
+      <div><label>AMK</label><input id="airAMK" type="number"></div>
+      <div><label>Air Isi Ulang</label><input id="airIsiUlang" type="number"></div>
+      <div><label>Air Dimasak</label><input id="airDimasak" type="number"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <button id="btnSimpan" class="btn">
+    💾 Simpan / Update Data Sanitasi
+  </button>
+</div>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, setDoc, serverTimestamp }
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+// elemen
+const rw = document.getElementById("rw");
+const bulanLapor = document.getElementById("bulanLapor");
+const btnSimpan = document.getElementById("btnSimpan");
+
+// isi RW
+for(let i=1;i<=16;i++){
+  const o=document.createElement("option");
+  o.value=`RW.${i}`;
+  o.textContent=`RW ${i}`;
+  rw.appendChild(o);
+}
+
+// default bulan
+bulanLapor.value = new Date().toISOString().slice(0,7);
+
+// simpan
+btnSimpan.onclick = async () => {
+  if(!bulanLapor.value || !rw.value){
+    alert("Bulan & RW wajib diisi");
+    return;
+  }
+
+  const id = `${bulanLapor.value}_${rw.value}`;
+
+  await setDoc(
+    doc(db,"sanitasi_agregat",id),
+    {
+      bulanLapor,
+      rw: rw.value,
+
+      tpp:{
+        jasaBoga:+tppJasaBoga.value||0,
+        restoran:+tppRestoran.value||0,
+        homeIndustri:+tppHomeIndustri.value||0,
+        damiu:+tppDamiu.value||0,
+        rumahMakan:+tppRumahMakan.value||0,
+        gerai:+tppGerai.value||0,
+        keliling:+tppKeliling.value||0,
+        dapur:+tppDapur.value||0,
+        sentra:+tppSentra.value||0
+      },
+
+      jamban:{
+        aman:+jambanAman.value||0,
+        komunal:+jambanKomunal.value||0,
+        belum:+jambanBelum.value||0
+      },
+
+      airBersih:{
+        sumurBor:+airSumurBor.value||0,
+        pdam:+airPDAM.value||0,
+        artesis:+airArtesis.value||0
+      },
+
+      airMinum:{
+        amk:+airAMK.value||0,
+        isiUlang:+airIsiUlang.value||0,
+        dimasak:+airDimasak.value||0
+      },
+
+      updatedAt: serverTimestamp()
+    },
+    { merge:true }
+  );
+
+  alert("✅ Data sanitasi berhasil disimpan");
+  location.reload();
+};
+</script>
+
+</body>
+</html>
