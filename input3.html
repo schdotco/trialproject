@@ -14,65 +14,42 @@
 }
 *{box-sizing:border-box}
 body{
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  padding: 24px;
-  color: var(--text);
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  padding:24px;
+  color:var(--text);
 }
 .container{max-width:1100px;margin:auto}
-.header{margin-bottom:24px}
-.header h2{margin:0;font-size:24px}
-.header p{margin:6px 0 0;color:var(--muted)}
-
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
-  gap:16px;
-}
+h2{margin-bottom:6px}
+p{margin-top:0;color:var(--muted)}
 
 .card{
-  background: var(--card);
+  background:var(--card);
   border-radius:12px;
   padding:16px;
+  margin-bottom:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
 }
-
 .card h3{
   margin:0 0 12px;
   font-size:16px;
   border-left:4px solid var(--primary);
   padding-left:8px;
 }
-
 .row{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:12px;
 }
-
 label{font-size:12px;color:var(--muted)}
-
 input,select{
   width:100%;
   padding:10px;
   border-radius:8px;
   border:1px solid #dee2e6;
-  font-size:14px;
 }
-
-input:focus,select:focus{
-  outline:none;
-  border-color:var(--primary);
-}
-
-.footer{
-  margin-top:20px;
-  display:flex;
-  justify-content:flex-end;
-}
-
-.btn{
-  padding:12px 24px;
+button{
+  padding:14px 28px;
   background:var(--primary);
   color:#fff;
   border:none;
@@ -80,20 +57,18 @@ input:focus,select:focus{
   font-size:15px;
   cursor:pointer;
 }
-.btn:hover{opacity:.95}
+button:hover{opacity:.95}
+.footer{text-align:right;margin-top:20px}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- HEADER -->
-<div class="header">
-  <h2>Input Data Sanitasi</h2>
-  <p>Rekapitulasi sanitasi wilayah (agregat)</p>
-</div>
+<h2>Input Data Sanitasi</h2>
+<p>Rekapitulasi sanitasi wilayah (agregat)</p>
 
-<!-- ================= IDENTITAS ================= -->
+<!-- IDENTITAS -->
 <div class="card">
   <h3>Identitas Laporan</h3>
   <div class="row">
@@ -110,61 +85,54 @@ input:focus,select:focus{
   </div>
 </div>
 
-<!-- ================= GRID SANITASI ================= -->
-<div class="grid">
-
-  <!-- TPP -->
-  <div class="card">
-    <h3>TPP (Tempat Pengolahan Pangan)</h3>
-    <div class="row">
-      <div><label>Jasa Boga</label><input id="tppJasaBoga" type="number"></div>
-      <div><label>Restoran</label><input id="tppRestoran" type="number"></div>
-      <div><label>Home Industri</label><input id="tppHomeIndustri" type="number"></div>
-      <div><label>DAMIU</label><input id="tppDamiu" type="number"></div>
-      <div><label>Rumah Makan</label><input id="tppRumahMakan" type="number"></div>
-      <div><label>Gerai Jajanan</label><input id="tppGeraiJajanan" type="number"></div>
-      <div><label>Gerai Keliling</label><input id="tppGeraiKeliling" type="number"></div>
-      <div><label>Dapur Gerai</label><input id="tppDapurGerai" type="number"></div>
-      <div><label>Sentra / Kantin</label><input id="tppSentraKantin" type="number"></div>
-    </div>
+<!-- TPP -->
+<div class="card">
+  <h3>TPP (Tempat Pengolahan Pangan)</h3>
+  <div class="row">
+    <input id="tppJasaBoga" type="number" placeholder="Jasa Boga">
+    <input id="tppRestoran" type="number" placeholder="Restoran">
+    <input id="tppHomeIndustri" type="number" placeholder="Home Industri">
+    <input id="tppDamiu" type="number" placeholder="DAMIU">
+    <input id="tppRumahMakan" type="number" placeholder="Rumah Makan">
+    <input id="tppGeraiJajanan" type="number" placeholder="Gerai Jajanan">
+    <input id="tppGeraiKeliling" type="number" placeholder="Gerai Keliling">
+    <input id="tppDapurGerai" type="number" placeholder="Dapur Gerai">
+    <input id="tppSentraKantin" type="number" placeholder="Sentra / Kantin">
   </div>
+</div>
 
-  <!-- JAMBAN -->
-  <div class="card">
-    <h3>Jamban Sehat (KK)</h3>
-    <div class="row">
-      <div><label>Septic Tank Aman</label><input id="jambanSepticAman" type="number"></div>
-      <div><label>Septic Komunal</label><input id="jambanKomunal" type="number"></div>
-      <div><label>Belum Septic Tank</label><input id="jambanBelum" type="number"></div>
-    </div>
+<!-- JAMBAN -->
+<div class="card">
+  <h3>Jamban Sehat (KK)</h3>
+  <div class="row">
+    <input id="jambanSepticAman" type="number" placeholder="Septic Tank Aman">
+    <input id="jambanKomunal" type="number" placeholder="Septic Komunal">
+    <input id="jambanBelum" type="number" placeholder="Belum Septic Tank">
   </div>
+</div>
 
-  <!-- AIR BERSIH -->
-  <div class="card">
-    <h3>Akses Air Minum</h3>
-    <div class="row">
-      <div><label>AMK</label><input id="airMinumAMK" type="number"></div>
-      <div><label>Air Isi Ulang</label><input id="airMinumIsiUlang" type="number"></div>
-      <div><label>Air Dimasak</label><input id="airMinumMasak" type="number"></div>
-    </div>
+<!-- AIR BERSIH -->
+<div class="card">
+  <h3>Akses Air Bersih</h3>
+  <div class="row">
+    <input id="airSumurBor" type="number" placeholder="Sumur Bor">
+    <input id="airPDAM" type="number" placeholder="PDAM">
+    <input id="airArtesis" type="number" placeholder="Artesis">
   </div>
+</div>
 
-  <!-- AIR MINUM -->
-  <div class="card">
-    <h3>Akses Air Minum</h3>
-    <div class="row">
-      <div><label>AMK</label><input id="airAMK" type="number"></div>
-      <div><label>Air Isi Ulang</label><input id="airIsiUlang" type="number"></div>
-      <div><label>Air Dimasak</label><input id="airDimasak" type="number"></div>
-    </div>
+<!-- AIR MINUM -->
+<div class="card">
+  <h3>Akses Air Minum</h3>
+  <div class="row">
+    <input id="airMinumAMK" type="number" placeholder="AMK">
+    <input id="airMinumIsiUlang" type="number" placeholder="Air Isi Ulang">
+    <input id="airMinumMasak" type="number" placeholder="Air Dimasak">
   </div>
-
 </div>
 
 <div class="footer">
-  <button id="btnSimpan" class="btn">
-    💾 Simpan / Update Data Sanitasi
-  </button>
+  <button id="btnSimpan">💾 Simpan / Update Data Sanitasi</button>
 </div>
 
 </div>
@@ -179,50 +147,62 @@ const rw=document.getElementById("rw");
 const bulan=document.getElementById("bulanLapor");
 const btn=document.getElementById("btnSimpan");
 
+/* isi RW */
 for(let i=1;i<=16;i++){
   rw.innerHTML+=`<option value="RW.${i}">RW ${i}</option>`;
 }
 bulan.value=new Date().toISOString().slice(0,7);
 
+/* SIMPAN DATA */
 btn.onclick=async()=>{
-  if(!rw.value||!bulan.value){
-    alert("RW & Bulan wajib diisi");
+  if(!rw.value || !bulan.value){
+    alert("RW dan Bulan wajib diisi");
     return;
   }
 
   const id=`${bulan.value}_${rw.value}`;
 
-  await setDoc(doc(db,"sanitasi_agregat",id),{
-    bulanLapor:bulan.value,
-    rw:rw.value,
+  try{
+    await setDoc(
+      doc(db,"sanitasi_agregat",id),
+      {
+        bulanLapor:bulan.value,
+        rw:rw.value,
 
-    tppJasaBoga:+tppJasaBoga.value||0,
-    tppRestoran:+tppRestoran.value||0,
-    tppHomeIndustri:+tppHomeIndustri.value||0,
-    tppDamiu:+tppDamiu.value||0,
-    tppRumahMakan:+tppRumahMakan.value||0,
-    tppGeraiJajanan:+tppGeraiJajanan.value||0,
-    tppGeraiKeliling:+tppGeraiKeliling.value||0,
-    tppDapurGerai:+tppDapurGerai.value||0,
-    tppSentraKantin:+tppSentraKantin.value||0,
+        tppJasaBoga:+tppJasaBoga.value||0,
+        tppRestoran:+tppRestoran.value||0,
+        tppHomeIndustri:+tppHomeIndustri.value||0,
+        tppDamiu:+tppDamiu.value||0,
+        tppRumahMakan:+tppRumahMakan.value||0,
+        tppGeraiJajanan:+tppGeraiJajanan.value||0,
+        tppGeraiKeliling:+tppGeraiKeliling.value||0,
+        tppDapurGerai:+tppDapurGerai.value||0,
+        tppSentraKantin:+tppSentraKantin.value||0,
 
-    jambanSepticAman:+jambanSepticAman.value||0,
-    jambanKomunal:+jambanKomunal.value||0,
-    jambanBelum:+jambanBelum.value||0,
+        jambanSepticAman:+jambanSepticAman.value||0,
+        jambanKomunal:+jambanKomunal.value||0,
+        jambanBelum:+jambanBelum.value||0,
 
-    airSumurBor:+airSumurBor.value||0,
-    airPDAM:+airPDAM.value||0,
-    airArtesis:+airArtesis.value||0,
+        airSumurBor:+airSumurBor.value||0,
+        airPDAM:+airPDAM.value||0,
+        airArtesis:+airArtesis.value||0,
 
-    airMinumAMK:+airMinumAMK.value||0,
-    airMinumIsiUlang:+airMinumIsiUlang.value||0,
-    airMinumMasak:+airMinumMasak.value||0,
+        airMinumAMK:+airMinumAMK.value||0,
+        airMinumIsiUlang:+airMinumIsiUlang.value||0,
+        airMinumMasak:+airMinumMasak.value||0,
 
-    updatedAt:serverTimestamp()
-  },{merge:true});
+        updatedAt:serverTimestamp()
+      },
+      { merge:true }
+    );
 
-  alert("✅ Data sanitasi berhasil disimpan");
-  location.reload();
+    alert("✅ Data sanitasi berhasil disimpan");
+    location.reload();
+
+  }catch(err){
+    console.error(err);
+    alert("❌ Gagal menyimpan data. Cek console.");
+  }
 };
 </script>
 
