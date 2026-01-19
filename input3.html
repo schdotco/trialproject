@@ -14,48 +14,65 @@
 }
 *{box-sizing:border-box}
 body{
-  font-family:Arial, sans-serif;
-  background:var(--bg);
-  padding:24px;
-  color:var(--text);
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  padding: 24px;
+  color: var(--text);
 }
 .container{max-width:1100px;margin:auto}
+.header{margin-bottom:24px}
+.header h2{margin:0;font-size:24px}
+.header p{margin:6px 0 0;color:var(--muted)}
 
-h2{margin-bottom:6px}
-p{margin-top:0;color:var(--muted)}
-
-.section-title{
-  margin:28px 0 10px;
-  font-size:16px;
-  font-weight:700;
-  color:#212529;
-  border-left:5px solid var(--primary);
-  padding-left:10px;
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;
 }
 
 .card{
-  background:var(--card);
+  background: var(--card);
   border-radius:12px;
   padding:16px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
-  margin-bottom:20px;
+}
+
+.card h3{
+  margin:0 0 12px;
+  font-size:16px;
+  border-left:4px solid var(--primary);
+  padding-left:8px;
 }
 
 .row{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
   gap:12px;
 }
 
 label{font-size:12px;color:var(--muted)}
+
 input,select{
   width:100%;
   padding:10px;
   border-radius:8px;
   border:1px solid #dee2e6;
+  font-size:14px;
 }
-button{
-  padding:14px 28px;
+
+input:focus,select:focus{
+  outline:none;
+  border-color:var(--primary);
+}
+
+.footer{
+  margin-top:20px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.btn{
+  padding:12px 24px;
   background:var(--primary);
   color:#fff;
   border:none;
@@ -63,20 +80,22 @@ button{
   font-size:15px;
   cursor:pointer;
 }
-button:hover{opacity:.95}
-.footer{text-align:right;margin-top:20px}
+.btn:hover{opacity:.95}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<h2>Input Data Sanitasi</h2>
-<p>Rekapitulasi sanitasi wilayah (agregat)</p>
+<!-- HEADER -->
+<div class="header">
+  <h2>Input Data Sanitasi</h2>
+  <p>Rekapitulasi sanitasi wilayah (agregat)</p>
+</div>
 
-<!-- IDENTITAS -->
-<div class="section-title">Identitas Laporan</div>
+<!-- ================= IDENTITAS ================= -->
 <div class="card">
+  <h3>Identitas Laporan</h3>
   <div class="row">
     <div>
       <label>Bulan Laporan</label>
@@ -91,57 +110,72 @@ button:hover{opacity:.95}
   </div>
 </div>
 
-<!-- TPP -->
-<div class="section-title">TPP (Tempat Pengolahan Pangan)</div>
-<div class="card">
-  <div class="row">
-    <input id="tppJasaBoga" type="number" placeholder="Jasa Boga">
-    <input id="tppRestoran" type="number" placeholder="Restoran">
-    <input id="tppHomeIndustri" type="number" placeholder="Home Industri">
-    <input id="tppDamiu" type="number" placeholder="DAMIU">
-    <input id="tppRumahMakan" type="number" placeholder="Rumah Makan">
-    <input id="tppGeraiJajanan" type="number" placeholder="Gerai Jajanan">
-    <input id="tppGeraiKeliling" type="number" placeholder="Gerai Keliling">
-    <input id="tppDapurGerai" type="number" placeholder="Dapur Gerai">
-    <input id="tppSentraKantin" type="number" placeholder="Sentra / Kantin">
-  </div>
-</div>
+<!-- ================= GRID SANITASI ================= -->
+<div class="grid">
 
-<!-- JAMBAN -->
-<div class="section-title">Jamban Sehat (KK)</div>
-<div class="card">
-  <div class="row">
-    <input id="jambanSepticAman" type="number" placeholder="Septic Tank Aman">
-    <input id="jambanKomunal" type="number" placeholder="Septic Komunal">
-    <input id="jambanBelum" type="number" placeholder="Belum Septic Tank">
+  <!-- TPP -->
+  <div class="card">
+    <h3>TPP (Tempat Pengolahan Pangan)</h3>
+    <div class="row">
+      <div><label>Jasa Boga</label><input id="tppJasaBoga" type="number"></div>
+      <div><label>Restoran</label><input id="tppRestoran" type="number"></div>
+      <div><label>Home Industri</label><input id="tppHomeIndustri" type="number"></div>
+      <div><label>DAMIU</label><input id="tppDamiu" type="number"></div>
+      <div><label>Rumah Makan</label><input id="tppRumahMakan" type="number"></div>
+      <div><label>Gerai Jajanan</label><input id="tppGerai" type="number"></div>
+      <div><label>Gerai Keliling</label><input id="tppKeliling" type="number"></div>
+      <div><label>Dapur Gerai</label><input id="tppDapur" type="number"></div>
+      <div><label>Sentra/Kantin</label><input id="tppSentra" type="number"></div>
+      <div><label>Gerai Jajanan</label><input id="tppGeraiJajanan" type="number"></div>
+      <div><label>Gerai Keliling</label><input id="tppGeraiKeliling" type="number"></div>
+      <div><label>Dapur Gerai</label><input id="tppDapurGerai" type="number"></div>
+      <div><label>Sentra / Kantin</label><input id="tppSentraKantin" type="number"></div>
+    </div>
   </div>
-</div>
 
-<!-- AIR BERSIH -->
-<div class="section-title">Akses Air Bersih</div>
-<div class="card">
-  <div class="row">
-    <input id="airSumurBor" type="number" placeholder="Sumur Bor">
-    <input id="airPDAM" type="number" placeholder="PDAM">
-    <input id="airArtesis" type="number" placeholder="Artesis">
+  <!-- JAMBAN -->
+  <div class="card">
+    <h3>Jamban Sehat (KK)</h3>
+    <div class="row">
+      <div><label>Septic Tank Aman</label><input id="jambanAman" type="number"></div>
+      <div><label>Septic Tank Aman</label><input id="jambanSepticAman" type="number"></div>
+      <div><label>Septic Komunal</label><input id="jambanKomunal" type="number"></div>
+      <div><label>Belum Septic Tank</label><input id="jambanBelum" type="number"></div>
+    </div>
   </div>
-</div>
 
-<!-- AIR MINUM -->
-<div class="section-title">Akses Air Minum</div>
-<div class="card">
-  <div class="row">
-    <input id="airMinumAMK" type="number" placeholder="AMK">
-    <input id="airMinumIsiUlang" type="number" placeholder="Air Isi Ulang">
-    <input id="airMinumMasak" type="number" placeholder="Air Dimasak">
+  <!-- AIR BERSIH -->
+  <div class="card">
+    <h3>Akses Air Bersih</h3>
+    <h3>Akses Air Minum</h3>
+    <div class="row">
+      <div><label>Sumur Bor</label><input id="airSumurBor" type="number"></div>
+      <div><label>Ledeng / PDAM</label><input id="airPDAM" type="number"></div>
+      <div><label>Artesis</label><input id="airArtesis" type="number"></div>
+      <div><label>AMK</label><input id="airMinumAMK" type="number"></div>
+      <div><label>Air Isi Ulang</label><input id="airMinumIsiUlang" type="number"></div>
+      <div><label>Air Dimasak</label><input id="airMinumMasak" type="number"></div>
+    </div>
   </div>
+
+  <!-- AIR MINUM -->
+  <div class="card">
+    <h3>Akses Air Minum</h3>
+    <div class="row">
+      <div><label>AMK</label><input id="airAMK" type="number"></div>
+      <div><label>Air Isi Ulang</label><input id="airIsiUlang" type="number"></div>
+      <div><label>Air Dimasak</label><input id="airDimasak" type="number"></div>
+    </div>
+  </div>
+
 </div>
 
 <div class="footer">
-  <button id="btnSimpan">💾 Simpan / Update Data Sanitasi</button>
+  <button id="btnSimpan" class="btn">
+    💾 Simpan / Update Data Sanitasi
+  </button>
 </div>
 
-</div>
 
 <!-- ================= SCRIPT ================= -->
 <script type="module">
