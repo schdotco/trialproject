@@ -551,30 +551,31 @@ async function loadSanitasi(){
   });
 }
 
-/* ================= DIAGNOSA TOP 10 ================= */
+/* ================= DIAGNOSA TOP 10 (FINAL) ================= */
 async function loadDiagnosaTop10(){
-  const q=query(collection(db,"profil_puskesmas"),
-    where("bulanLapor","==",bulanInput.value));
+  const ref = doc(db, "diagnosa_bulanan", bulanInput.value);
+  const snap = await getDoc(ref);
 
-  const snap=await getDocs(q);
-  const map={};
+  if(!snap.exists()) return;
 
-  snap.forEach(d=>{
-    const x=d.data();
-    if(Array.isArray(x.diagnosaTop10)){
-      x.diagnosaTop10.forEach(i=>{
-        if(i.nama) map[i.nama]=(map[i.nama]||0)+(i.jumlah||0);
-      });
-    }
-  });
+  const x = snap.data();
+  if(!Array.isArray(x.diagnosaTop10) || !x.diagnosaTop10.length) return;
 
-  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  if(!sorted.length) return;
+  const sorted = x.diagnosaTop10
+    .sort((a,b)=>b.jumlah - a.jumlah)
+    .slice(0,10);
 
   cDiagTop10 && cDiagTop10.destroy();
-  cDiagTop10=new Chart(chartdiagnosaTop10,{
+
+  cDiagTop10 = new Chart(chartdiagnosaTop10,{
     type:"bar",
-    data:{labels:sorted.map(i=>i[0]),datasets:[{data:sorted.map(i=>i[1])}]}
+    data:{
+      labels: sorted.map(i=>i.nama),
+      datasets:[{
+        label:"Jumlah Kasus",
+        data: sorted.map(i=>i.jumlah)
+      }]
+    }
   });
 }
 
