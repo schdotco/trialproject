@@ -137,6 +137,12 @@ input,select{
   </div>
 </div>
 
+<div class="footer">
+  <button id="btnSimpanWilayah" class="btn">
+    💾 Simpan Data Wilayah
+  </button>
+</div>
+
 <!-- ================= DIAGNOSA ================= -->
 <div class="card">
   <h3>Diagnosa Penyakit (Top 10)</h3>
@@ -145,7 +151,7 @@ input,select{
   <div class="row">
     <div>
       <label>Bulan Diagnosa</label>
-      <input type="month" id="bulanWilayah">
+      <input type="month" id="bulanDiagnosa">
     </div>
 </div>
     
@@ -171,9 +177,6 @@ input,select{
 </div>
 
 <div class="footer">
-  <button id="btnSimpanWilayah" class="btn">
-    💾 Simpan Data Wilayah
-  </button>
   <button id="btnSimpanDiagnosa" class="btn" style="margin-left:10px">
     💾 Simpan Diagnosa Bulanan
   </button>
@@ -196,12 +199,22 @@ for(let i=1;i<=16;i++){
   rwWilayah.appendChild(o);
 }
 
-/* DEFAULT BULAN */
-const bulanWilayah = document.getElementById("bulanWilayah");
+/* ================= DEFAULT BULAN ================= */
+const bulanWilayah  = document.getElementById("bulanWilayah");
 const bulanDiagnosa = document.getElementById("bulanDiagnosa");
 
-bulanWilayah.value = new Date().toISOString().slice(0,7);
-bulanDiagnosa.value = bulanWilayah.value;
+const bulanSekarang = new Date().toISOString().slice(0,7);
+
+/* set nilai awal */
+bulanWilayah.value  = bulanSekarang;
+bulanDiagnosa.value = bulanSekarang;
+
+/* sinkron (opsional UX) */
+bulanWilayah.addEventListener("change", () => {
+  if (!bulanDiagnosa.value) {
+    bulanDiagnosa.value = bulanWilayah.value;
+  }
+});
 
 /* INPUT */
 const get=id=>document.getElementById(id);
