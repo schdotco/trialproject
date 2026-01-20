@@ -237,19 +237,19 @@ bulanLapor.value = new Date().toISOString().slice(0,7);
 
 /* ================= SIMPAN DATA KESEHATAN ================= */
 btnSimpan.onclick = async () => {
-  if(!bulanLapor.value || !rw.value){
+  if(!bulanLapor.value || !rwWilayah.value){
     alert("Bulan & RW wajib diisi");
     return;
   }
 
-  const docId = `${bulanLapor.value}_${rw.value}`;
+  const docId = `${bulanLapor.value}_${rwWilayah.value}`;
 
   await setDoc(
     doc(db,"kesehatan_agregat",docId),
     {
       /* IDENTITAS */
       bulanLapor: bulanLapor.value,
-      rw: rw.value,
+      rwWilayah: rwWilayah.value,
 
       /* IBU HAMIL */
       ihNormal: +ihNormal.value || 0,
