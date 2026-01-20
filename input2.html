@@ -248,7 +248,8 @@ document.getElementById("btnSimpanProfil").onclick=async()=>{
       bulanLapor: bulanWilayah.value,
       diagnosaTop10: diagnosa,
       updatedAt: serverTimestamp()
-    }
+    },
+    { merge: true }
   );
   
   alert("✅ Data berhasil disimpan");
