@@ -341,6 +341,7 @@ const chartBalita = document.getElementById("chartBalita");
 const chartTB = document.getElementById("chartTB");
 const chartDisabilitas = document.getElementById("chartDisabilitas");
 const chartLansia = document.getElementById("chartLansia");
+const chartdiagnosaTop10 = document.getElementById("chartdiagnosaTop10"); // ⬅ WAJIB
   
 /* ================= FILTER ================= */
 const rwInput=document.getElementById("rwInput");
@@ -484,19 +485,21 @@ async function loadKesehatan(){
   if (cLansia) cLansia.destroy();
   
   cLansia = new Chart(chartLansia,{
-    type: "pie",
-    data: {
-      labels: ["Mandiri","B Sedang","B Ringan","C"],
-      datasets: [{
-        data: [
-          t.lMandiri,
-          t.lBSedang,
-          t.lBRingan,
-          t.lC
-        ]
-      }]
-    }
-  });
+      type: "pie",
+      data: {
+        labels: ["Mandiri","B Sedang","B Ringan","C"],
+        datasets: [{
+          data: [
+            t.lMandiri,
+            t.lBSedang,
+            t.lBRingan,
+            t.lC
+          ]
+        }]
+      }
+    });
+  
+  }
 
 /* ================= SANITASI ================= */
 async function loadSanitasi(){
