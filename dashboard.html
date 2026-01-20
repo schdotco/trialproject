@@ -554,27 +554,22 @@ async function loadSanitasi(){
 
 /* ================= DIAGNOSA TOP 10 (FINAL) ================= */
 async function loadDiagnosaTop10(){
-  const ref = doc(db, "diagnosa_bulanan", bulanInput.value);
-  const snap = await getDoc(ref);
-
+  const snap = await getDoc(
+    doc(db,"diagnosa_bulanan", bulanInput.value)
+  );
   if(!snap.exists()) return;
 
-  const x = snap.data();
-  if(!Array.isArray(x.diagnosaTop10) || !x.diagnosaTop10.length) return;
-
-  const sorted = x.diagnosaTop10
-    .sort((a,b)=>b.jumlah - a.jumlah)
-    .slice(0,10);
+  const data = snap.data();
+  if(!Array.isArray(data.diagnosaTop10)) return;
 
   cDiagTop10 && cDiagTop10.destroy();
-
   cDiagTop10 = new Chart(chartdiagnosaTop10,{
     type:"bar",
     data:{
-      labels: sorted.map(i=>i.nama),
+      labels: data.diagnosaTop10.map(i=>i.nama),
       datasets:[{
         label:"Jumlah Kasus",
-        data: sorted.map(i=>i.jumlah)
+        data: data.diagnosaTop10.map(i=>i.jumlah)
       }]
     }
   });
