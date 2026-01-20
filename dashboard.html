@@ -552,43 +552,56 @@ async function loadSanitasi(){
   });
 }
 
-/* ================= DIAGNOSA TOP 10 ================= */
+/* ================= DIAGNOSA TOP 10 (BULANAN SAJA) ================= */
 async function loadDiagnosaTop10(){
 
-  const snap = await getDoc(
-    doc(db, "diagnosa_bulanan", bulanInput.value)
-  );
+  // ⛔ jika canvas tidak ada
+  if (!chartdiagnosaTop10) return;
 
-  // ❗ jika dokumen tidak ada
-  if (!snap.exists()) return;
+  const ref = doc(db, "diagnosa_bulanan", bulanInput.value);
+  const snap = await getDoc(ref);
+
+  // ⛔ jika data bulan tsb belum ada
+  if (!snap.exists()) {
+    if (cDiagTop10) {
+      cDiagTop10.destroy();
+      cDiagTop10 = null;
+    }
+    return;
+  }
 
   const data = snap.data();
 
-  // ❗ jika array kosong / tidak valid
+  // ⛔ validasi array
   if (!Array.isArray(data.diagnosaTop10) || !data.diagnosaTop10.length) return;
 
-  // ❗ hancurkan chart lama
+  // 🔥 hancurkan chart lama
   if (cDiagTop10) cDiagTop10.destroy();
 
   // ✅ BUAT CHART BARU
   cDiagTop10 = new Chart(chartdiagnosaTop10,{
     type: "bar",
     data: {
-      labels: data.diagnosaTop10.map(i => i.nama),
+      labels: data.diagnosaTop10.map(d => d.nama),
       datasets: [{
         label: "Jumlah Kasus",
-        data: data.diagnosaTop10.map(i => i.jumlah)
+        data: data.diagnosaTop10.map(d => d.jumlah),
+        backgroundColor: "#1c7ed6"
       }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false
     }
   });
 }
 
 /* ================= LOAD ALL ================= */
 async function loadAll(){
-  await loadProfilWilayah();
-  await loadKesehatan();
-  await loadSanitasi();
-  await loadDiagnosaTop10();
+  await loadProfilWilayah();   // ikut RW
+  await loadKesehatan();       // ikut RW
+  await loadSanitasi();        // ikut RW
+  await loadDiagnosaTop10();   // ⬅ BULAN SAJA
 }
 loadAll();
 </script>
