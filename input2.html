@@ -142,6 +142,13 @@ input,select{
   <h3>Diagnosa Penyakit (Top 10)</h3>
   <div class="diagnosa-list">
 
+  <div class="row">
+  <div>
+    <label>Bulan Diagnosa</label>
+    <input type="month" id="bulanDiagnosa" readonly>
+  </div>
+</div>
+    
     <!-- LOOP 1–10 -->
     <script>
       for(let i=1;i<=10;i++){
@@ -164,8 +171,11 @@ input,select{
 </div>
 
 <div class="footer">
-  <button id="btnSimpanProfil" class="btn">
-    💾 Simpan Data Wilayah & Diagnosa
+  <button id="btnSimpanWilayah" class="btn">
+    💾 Simpan Data Wilayah
+  </button>
+  <button id="btnSimpanDiagnosa" class="btn" style="margin-left:10px">
+    💾 Simpan Diagnosa Bulanan
   </button>
 </div>
 
@@ -187,38 +197,27 @@ for(let i=1;i<=16;i++){
 }
 
 /* DEFAULT BULAN */
-const bulanWilayah=document.getElementById("bulanWilayah");
-bulanWilayah.value=new Date().toISOString().slice(0,7);
+const bulanWilayah = document.getElementById("bulanWilayah");
+const bulanDiagnosa = document.getElementById("bulanDiagnosa");
+
+bulanWilayah.value = new Date().toISOString().slice(0,7);
+bulanDiagnosa.value = bulanWilayah.value;
 
 /* INPUT */
 const get=id=>document.getElementById(id);
 
 /* SIMPAN */
-document.getElementById("btnSimpanProfil").onclick=async()=>{
-  if(!rwWilayah.value||!bulanWilayah.value){
-    alert("Bulan & RW wajib diisi");
-    return;
-  }
-
-  const btn=get("btnSimpanProfil");
-  btn.disabled=true;
-  btn.innerText="Menyimpan...";
-
-  const diagnosa=[];
-  for(let i=1;i<=10;i++){
-    const nama=get(`diagNama${i}`).value.trim();
-    const jumlah=+get(`diagJumlah${i}`).value||0;
-    if(nama){
-      diagnosa.push({urutan:i,nama,jumlah});
+  document.getElementById("btnSimpanWilayah").onclick = async () => {
+    if(!rwWilayah.value || !bulanWilayah.value){
+      alert("Bulan & RW wajib diisi");
+      return;
     }
-  }
-
-  if (rwWilayah.value) {
+  
     const id = `${bulanWilayah.value}_${rwWilayah.value}`;
   
     await setDoc(doc(db,"profil_puskesmas",id),{
-      bulanLapor:bulanWilayah.value,
-      rw:rwWilayah.value,
+      bulanLapor: bulanWilayah.value,
+      rw: rwWilayah.value,
   
       jumlahRT:+get("jmlRT").value||0,
       jumlahPenduduk:+get("jmlPenduduk").value||0,
@@ -239,24 +238,52 @@ document.getElementById("btnSimpanProfil").onclick=async()=>{
       tempatOlahraga:+get("jmlOlahraga").value||0,
       jejaring:+get("jmlJejaring").value||0,
   
-      updatedAt:serverTimestamp()
+      updatedAt: serverTimestamp()
     },{merge:true});
-  }
+  
+    alert("✅ Data wilayah berhasil disimpan");
+  };
 
   // ================= SIMPAN DIAGNOSA BULANAN =================
-  await setDoc(
-    doc(db, "diagnosa_bulanan", bulanWilayah.value),
-    {
-      bulanLapor: bulanWilayah.value,
-      diagnosaTop10: diagnosa,
-      updatedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
+  document.getElementById("btnSimpanDiagnosa").onclick = async () => {
+    const bulan = document.getElementById("bulanDiagnosa").value;
+    if(!bulan){
+      alert("Bulan diagnosa wajib diisi");
+      return;
+    }
   
-  alert("✅ Data berhasil disimpan");
-  location.reload();
-};
+    const diagnosa=[];
+    for(let i=1;i<=10;i++){
+      const nama=get(`diagNama${i}`).value.trim();
+      const jumlah=+get(`diagJumlah${i}`).value||0;
+      if(nama){
+        diagnosa.push({urutan:i,nama,jumlah});
+      }
+    }
+  
+    if(!diagnosa.length){
+      alert("Isi minimal 1 diagnosa");
+      return;
+    }
+  
+    await setDoc(
+      doc(db,"diagnosa_bulanan",bulan),
+      {
+        bulanLapor: bulan,
+        diagnosaTop10: diagnosa,
+        updatedAt: serverTimestamp()
+      },
+      {merge:true}
+    );
+
+        // ✅ RESET INPUT DIAGNOSA
+    for(let i=1;i<=10;i++){
+      get(`diagNama${i}`).value = "";
+      get(`diagJumlah${i}`).value = "";
+    }
+  
+    alert("✅ Diagnosa bulanan berhasil disimpan");
+  };
 </script>
 
 </body>
