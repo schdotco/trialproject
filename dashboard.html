@@ -225,7 +225,7 @@ cursor:pointer
   
 <!-- ================= TB ================= -->
 <div class="aggregate-title">
-  <h3>KEHAMILAN</h3>
+  <h3>TB</h3>
 </div>
 <div class="row">
   <div class="card card-warning"><h1 id="tbPengobatanVal">0</h1><span>Dalam Pengobatan</span></div>
@@ -248,7 +248,7 @@ cursor:pointer
   <h3>PKPR</h3>
 </div>
 <div class="row">
-  <div class="card card-primary""><h1 id="pkprTotalVal">0</h1><span>Total PKPR</span></div>
+  <div class="card card-primary"><h1 id="pkprTotalVal">0</h1><span>Total PKPR</span></div>
   <div class="card card-info"><h1 id="pkprLakiVal">0</h1><span>Laki-laki</span></div>
   <div class="card card-purple"><h1 id="pkprPerempuanVal">0</h1><span>Perempuan</span></div>
 </div>
@@ -335,6 +335,13 @@ from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 /* ================= GLOBAL CHART ================= */
 let cIbu,cBalita,cTB,cDisabilitas,cLansia,cDiagTop10;
 
+/* ================= ELEMENT CHART (WAJIB) ================= */
+const chartIbu = document.getElementById("chartIbu");
+const chartBalita = document.getElementById("chartBalita");
+const chartTB = document.getElementById("chartTB");
+const chartDisabilitas = document.getElementById("chartDisabilitas");
+const chartLansia = document.getElementById("chartLansia");
+  
 /* ================= FILTER ================= */
 const rwInput=document.getElementById("rwInput");
 const bulanInput=document.getElementById("bulanInput");
@@ -439,11 +446,12 @@ async function loadKesehatan(){
     t.disabilitas += x.disabilitas || x.jumlahDisabilitas || 0;
 
     t.lMandiri += x.lMandiri || 0;
-    t.lBSedang      += x.lBSedang || x.lBSedang || 0;
-    t.lBRingan      += x.lBRingan || x.lBRingan || 0;
+    t.lBSedang += x.lBSedang || 0;
+    t.lBRingan += x.lBRingan || 0;
     t.lC       += x.lC || 0;
   });
 
+  console.table(t);
   Object.keys(t).forEach(k=>{
     const el=document.getElementById(k+"Val");
     if(el) el.innerText=t[k];
@@ -467,10 +475,30 @@ async function loadKesehatan(){
     data:{labels:["Disabilitas"],datasets:[{data:[t.disabilitas]}]}
   });
 
-  if(chartLansia) cLansia=new Chart(chartLansia,{type:"pie",
-    data:{labels:["Mandiri","B Sedang","B Ringan","C"],datasets:[{data:[t.lMandiri,t.lBSedang,t.lBRingan,t.lC]}]}
-  });
-}
+  /* ================= LANSIA ================= */
+  lMandiriVal.innerText = t.lMandiri;
+  lBSedangVal.innerText = t.lBSedang;
+  lBRinganVal.innerText = t.lBRingan;
+  lCVal.innerText       = t.lC;
+  
+  if(cLansia) cLansia.destroy();
+  
+  cLansia = new Chart(chartLansia,{
+      type:"pie",
+      data:{
+        labels:["Mandiri","B Sedang","B Ringan","C"],
+        datasets:[{
+          data:[
+            t.lMandiri,
+            t.lBSedang,
+            t.lBRingan,
+            t.lC
+          ]
+        }]
+      }
+    });
+  
+  }
 
 /* ================= SANITASI ================= */
 async function loadSanitasi(){
