@@ -221,43 +221,51 @@ const get=id=>document.getElementById(id);
 
 /* SIMPAN DATA WILAYAH */
 document.getElementById("btnSimpanWilayah").onclick = async () => {
-  if(!rwWilayah.value || !bulanWilayah.value){
-    alert("Bulan & RW wajib diisi");
-    return;
+  try {
+    if (!rwWilayah.value || !bulanWilayah.value) {
+      alert("Bulan & RW wajib diisi");
+      return;
+    }
+
+    const id = `${bulanWilayah.value}_${rwWilayah.value}`;
+
+    await setDoc(doc(db,"profil_puskesmas",id),{
+      bulanLapor: bulanWilayah.value,
+      rw: rwWilayah.value,
+
+      jumlahRT:+get("jmlRT").value||0,
+      jumlahPenduduk:+get("jmlPenduduk").value||0,
+      jumlahJKN:+get("jmlJKN").value||0,
+
+      sekolahTK:+get("jmlTK").value||0,
+      sekolahSD:+get("jmlSD").value||0,
+      sekolahSMP:+get("jmlSMP").value||0,
+      sekolahSMA:+get("jmlSMA").value||0,
+
+      jumlahMBG:+get("jmlMBG").value||0,
+      tempatIbadah:+get("jmlIbadah").value||0,
+      pondokPesantren:+get("jmlPonpes").value||0,
+      hotel:+get("jmlHotel").value||0,
+      perkantoran:+get("jmlKantor").value||0,
+      salon:+get("jmlSalon").value||0,
+      villa:+get("jmlVilla").value||0,
+      tempatOlahraga:+get("jmlOlahraga").value||0,
+      jejaring:+get("jmlJejaring").value||0,
+
+      updatedAt: serverTimestamp()
+    }, { merge:true });
+
+    alert("✅ Data wilayah berhasil disimpan");
+
+    // 🔄 reload aman
+    setTimeout(() => {
+      location.reload();
+    }, 300);
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Gagal menyimpan data");
   }
-
-  const id = `${bulanWilayah.value}_${rwWilayah.value}`;
-
-  await setDoc(doc(db,"profil_puskesmas",id),{
-    bulanLapor: bulanWilayah.value,
-    rw: rwWilayah.value,
-
-    jumlahRT:+get("jmlRT").value||0,
-    jumlahPenduduk:+get("jmlPenduduk").value||0,
-    jumlahJKN:+get("jmlJKN").value||0,
-
-    sekolahTK:+get("jmlTK").value||0,
-    sekolahSD:+get("jmlSD").value||0,
-    sekolahSMP:+get("jmlSMP").value||0,
-    sekolahSMA:+get("jmlSMA").value||0,
-
-    jumlahMBG:+get("jmlMBG").value||0,
-    tempatIbadah:+get("jmlIbadah").value||0,
-    pondokPesantren:+get("jmlPonpes").value||0,
-    hotel:+get("jmlHotel").value||0,
-    perkantoran:+get("jmlKantor").value||0,
-    salon:+get("jmlSalon").value||0,
-    villa:+get("jmlVilla").value||0,
-    tempatOlahraga:+get("jmlOlahraga").value||0,
-    jejaring:+get("jmlJejaring").value||0,
-
-    updatedAt: serverTimestamp()
-  },{merge:true});
-
-  alert("✅ Data wilayah berhasil disimpan");
-
-  // 🔄 RELOAD → semua input kembali kosong
-  location.reload();
 };
 
   // ================= SIMPAN DIAGNOSA BULANAN =================
