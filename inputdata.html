@@ -244,61 +244,59 @@ btnSimpan.onclick = async () => {
 
   const docId = `${bulanLapor.value}_${rwWilayah.value}`;
 
-  await setDoc(
-    doc(db,"kesehatan_agregat",docId),
-    {
-      /* IDENTITAS */
-      bulanLapor: bulanLapor.value,
-      rwWilayah: rwWilayah.value,
+await setDoc(
+  doc(db,"kesehatan_agregat",docId),
+  {
+    /* IDENTITAS */
+    bulanLapor: bulanLapor.value,
+    rw: rwWilayah.value, // 🔥 FIX WAJIB
 
-      /* IBU HAMIL */
-      ihNormal: +ihNormal.value || 0,
-      ihRisti: +ihRisti.value || 0,
-      ihKEK: +ihKek.value || 0,
+    /* IBU HAMIL */
+    ihNormal: +ihNormal.value || 0,
+    ihRisti: +ihRisti.value || 0,
+    ihKEK: +ihKek.value || 0,
 
-      /* IBU NIFAS */
-      inNormal: +inNormal.value || 0,
-      inRisti: +inRisti.value || 0,
+    /* IBU NIFAS */
+    inNormal: +inNormal.value || 0,
+    inRisti: +inRisti.value || 0,
 
-      /* BAYI */
-      bayiTotal: +bayiTotal.value || 0,
+    /* BAYI */
+    bayiTotal: +bayiTotal.value || 0,
 
-      /* BALITA */
-      bNormal: +bNormal.value || 0,
-      bStunting: +bStunting.value || 0,
-      bGizi: +bGizi.value || 0,
-      bPMT: +bPMT.value || 0,
+    /* BALITA */
+    bNormal: +bNormal.value || 0,
+    bStunting: +bStunting.value || 0,
+    bGizi: +bGizi.value || 0,
+    bPMT: +bPMT.value || 0,
 
-      /* TB */
-      tbPengobatan: +tbPengobatan.value || 0,
-      tbSelesai: +tbSelesai.value || 0,
+    /* TB */
+    tbPengobatan: +tbPengobatan.value || 0,
+    tbSelesai: +tbSelesai.value || 0,
 
-      /* DIAGNOSA */
-      dgHT: +dgHT.value || 0,
-      dgDM: +dgDM.value || 0,
-      dgODGJ: +dgODGJ.value || 0,
-      dgKanker: +dgKanker.value || 0,
+    /* DIAGNOSA */
+    dgHT: +dgHT.value || 0,
+    dgDM: +dgDM.value || 0,
+    dgODGJ: +dgODGJ.value || 0,
+    dgKanker: +dgKanker.value || 0,
 
-      /* PKPR */
-      pkprTotal: +pkprTotal.value || 0,
-      pkprLaki: +pkprLaki.value || 0,
-      pkprPerempuan: +pkprPerempuan.value || 0,
+    /* PKPR */
+    pkprTotal: +pkprTotal.value || 0,
+    pkprLaki: +pkprLaki.value || 0,
+    pkprPerempuan: +pkprPerempuan.value || 0,
 
-      /* DISABILITAS */
-      disabilitas: +disabilitas.value || 0,
+    /* DISABILITAS */
+    disabilitas: +disabilitas.value || 0,
 
-      /* LANSIA */
-      lMandiri: +lMandiri.value || 0,
-      lBSedang: +lBSedang.value || 0,
-      lBRingan: +lBRingan.value || 0,
-      lC: +lC.value || 0,
+    /* LANSIA */
+    lMandiri: +lMandiri.value || 0,
+    lBSedang: +lBSedang.value || 0,
+    lBRingan: +lBRingan.value || 0,
+    lC: +lC.value || 0,
 
-      /* META */
-      updatedAt: serverTimestamp()
-    },
-    { merge:true }
-  );
-
+    updatedAt: serverTimestamp()
+  },
+  { merge:true }
+);
   alert("✅ Data kesehatan berhasil disimpan");
   location.reload(); // reset form
 };
