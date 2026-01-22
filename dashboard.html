@@ -132,6 +132,19 @@ cursor:pointer
   font-size:13px;
   color:#6c757d;
 }
+.btn-link{
+  display:inline-block;
+  margin-left:8px;
+  padding:8px 14px;
+  background:#495057;
+  color:#fff;
+  border-radius:6px;
+  text-decoration:none;
+  font-size:14px;
+}
+.btn-link:hover{
+  opacity:.9;
+}
 </style>
 </head>
 
@@ -148,14 +161,22 @@ cursor:pointer
 
 <!-- ================= FILTER ================= -->
 <div class="row">
-<div class="white">
-<b>Filter Data</b><br><br>
-<select id="rwInput">
-<option value="">SEMUA RW</option>
-</select>
-<input type="month" id="bulanInput">
-<button id="btnTampil">Tampilkan</button>
-</div>
+  <div class="white">
+    <b>Filter Data</b><br><br>
+
+    <select id="rwInput">
+      <option value="">SEMUA RW</option>
+    </select>
+
+    <input type="month" id="bulanInput">
+    <button id="btnTampil">Tampilkan</button>
+
+    <a href="https://docs.google.com/spreadsheets/d/1VMUNadG8a4rbQ7MghHqnnbPePljCb9IYFVSGHHk5-d8/edit?usp=sharing"
+       class="btn-link"
+       target="_blank">
+      ➕ Database
+    </a>
+  </div>
 </div>
 
 <!-- ================= DATA WILAYAH ================= -->
