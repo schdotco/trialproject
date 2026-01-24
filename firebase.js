@@ -5,13 +5,13 @@ import { getDatabase } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-
 
 // 🔐 Firebase Configuration
 export const firebaseConfig = {
-  apiKey: "AIzaSyBk57WWCAV9PbUQBb_bj7mPtl09oNz7WnA",
-  authDomain: "schesakra.firebaseapp.com",
-  databaseURL: "https://schesakra-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "schesakra",
-  storageBucket: "schesakra.appspot.com",
-  messagingSenderId: "672537227977",
-  appId: "1:672537227977:web:88b24f905c86eba7c05318"
+  apiKey: "AIzaSyCBCkTIUvI4kXbkb7fj_Wj_F_Kbl6nQkjc",
+  authDomain: "dashboardciklam.firebaseapp.com",
+  projectId: "dashboardciklam",
+  storageBucket: "dashboardciklam.firebasestorage.app",
+  messagingSenderId: "1025674860242",
+  appId: "1:1025674860242:web:32856521a7f64b92db7f0b",
+  measurementId: "G-PBDYZM1RHE"
 };
 
 // 🚀 Init Firebase
