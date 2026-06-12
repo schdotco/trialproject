@@ -436,7 +436,7 @@ function createUI(){
     if(document.getElementById('auto-ckg-ui')) return;
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
     box.innerHTML = `
-        <div id="drag-handle">SKRINING MANDIRI AI</div>
+        <div id="drag-handle">SKRINING MANDIRI CIPADUNG</div>
         <div id="bot-status">INISIALISASI...</div>
         <input id="nik-bot" placeholder="Masukkan NIK">
         <div id="btn-wrap">
