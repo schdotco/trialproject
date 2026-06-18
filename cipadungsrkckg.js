@@ -136,7 +136,7 @@ async function cariData(nikInput) {
             return {
                 nik: target,
                 perkawinan: rows[i][26] || 'Belum Menikah',
-                merokok: (rows[i][71] || '').trim(),
+                merokok: (rows[i][73] || '').trim(),
             };
         }
     }
