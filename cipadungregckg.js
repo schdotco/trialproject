@@ -7,8 +7,8 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 /* ================= MODE CKG UMUM ================= */
 
 const SHEETS = [{
-    id: "Id Spreadsheet",
-    gids: ["Sheet"],
+    id: "1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg",
+    gids: ["1800827053"],
     colNama: 5,
     colTgl: 8,
     colWA: 20,
