@@ -5,11 +5,30 @@
 /* =========================================================
    CONFIG SPREADSHEET
 ========================================================= */
-const SHEET_ID = 'id spreadsheet';
-const GID = 'sheet';
+const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
+const GID = '0';
 
 const sleep = ms => new Promise(r => setTimeout(r,ms));
 function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
+
+/* =========================================================
+   HELPER MAPPING JAWABAN MEROKOK
+========================================================= */
+function jawabanMerokok(v){
+
+    const text =
+        String(v || '')
+        .toLowerCase()
+        .trim();
+
+    return (
+        text.includes('ya') ||
+        text.includes('rokok') ||
+        text.includes('perokok')
+    )
+        ? 'ya'
+        : 'tidak';
+}
 
 /* =========================================================
    SESSION & DYNAMIC TRACKER
@@ -116,7 +135,8 @@ async function cariData(nikInput) {
 
             return {
                 nik: target,
-                perkawinan: rows[i][26] || 'Belum Menikah'
+                perkawinan: rows[i][26] || 'Belum Menikah',
+                merokok: (rows[i][71] || '').trim(),
             };
         }
     }
@@ -162,6 +182,16 @@ const aliases = {
         'serviks',
         'pap smear',
         'iva'
+    ],
+
+        'gejala kanker paru': [
+        'batuk dalam jangka waktu yang lama',
+        'batuk berdarah',
+        'sesak napas',
+        'nyeri dada',
+        'leher bengkak',
+        'benjolan pada leher',
+        'tidak sembuh-sembuh'
     ]
 };
 
@@ -178,6 +208,10 @@ const questionNode = allElements.find(el => {
         
         if (!questionNode) {
             console.warn('Soal tidak ditemukan:', soalText);
+                console.log(
+        [...document.querySelectorAll('.sd-question')]
+            .map(q => q.innerText)
+    );
             return false;
         }
         
@@ -205,8 +239,15 @@ const questionNode = allElements.find(el => {
 
         const targetItem = items.find(el => {
             const txt = (el.innerText || '').toLowerCase().trim();
-            return txt === jawabanText.toLowerCase() ||
-                   txt.includes(jawabanText.toLowerCase());
+            const target = jawabanText.toLowerCase().trim();
+
+            // 1. Logika Pencegahan: Jika mencari 'menikah' tapi teksnya 'belum menikah', tolak!
+            if (target === 'menikah' && txt === 'belum menikah') {
+                return false;
+            }
+
+            // 2. Pencocokan: Kembalikan true jika sama persis ATAU mengandung kata tersebut
+            return txt === target || txt.includes(target);
         });
 
         if (targetItem) {
@@ -513,136 +554,119 @@ async function isiTetanusCatin() {
    CORE LOGIC SKRINING MANDIRI (REVISI STATUS PERKAWINAN)
 ========================================================= */
 async function handleSkriningMandiri(data) {
-    updateStatus('Mengisi form...');
-    await sleep(500);
+    // Deteksi teks apa saja yang ada di halaman ini
+    const pageText = document.body.innerText.toLowerCase();
 
+    // 1. STATUS PERKAWINAN (Hanya jalan jika ada kata 'perkawinan' di layar)
+    if (pageText.includes('status perkawinan')) {
+        updateStatus('Status di Sheet: ' + data.perkawinan); 
+        await sleep(1000); 
 
-    // 1. STATUS PERKAWINAN (SMART MAPPER)
-    if (data.perkawinan) {
-        let p = data.perkawinan.toLowerCase();
-        let target = 'menikah'; // Default sesuaikan dengan hasil Console
+        if (data.perkawinan && data.perkawinan !== 'Data Kosong') {
+            let p = data.perkawinan.toLowerCase();
+            let target = 'Menikah'; 
 
-        if (p.includes('belum')) target = 'belum menikah';
-        else if (p.includes('cerai hidup')) target = 'cerai hidup';
-        else if (p.includes('cerai mati')) target = 'cerai mati';
-
-        await fillRadioSurveyJS('status perkawinan', target);
+            // PERBAIKAN: Gunakan huruf kecil karena p sudah di-toLowerCase()
+            if (p.includes('belum')) target = 'Belum Menikah';
+            else if (p.includes('cerai')) target = 'Cerai'; // Sesuaikan label web jika beda
+            
+            updateStatus('Mengisi: ' + target);
+            await fillRadioSurveyJS('status perkawinan', target);
+            await sleep(1000);
+        } else {
+            updateStatus('Data Perkawinan Kosong!');
+            await sleep(1000);
+        }
     }
     
     // FAKTOR RISIKO TB
-    const tbFilled =
-        await fillRadioSurveyJS('faktor risiko tb', 'tidak batuk') ||
+    if (pageText.includes('faktor risiko tb') || pageText.includes('tuberkulosis')) {
+        await fillRadioSurveyJS('faktor risiko tb', 'tidak batuk');
         await fillRadioSurveyJS('faktor risiko tb', 'tidak');
-    
-    console.log('[TB RESULT]', tbFilled);
-
+    }
     
     // 2. DISABILITAS
-    await fillRadioSurveyJS('disabilitas', 'non disabilitas');
+    if (pageText.includes('disabilitas')) {
+        await fillRadioSurveyJS('disabilitas', 'non disabilitas');
+    }
 
-    await isiKesehatanJiwa();
+    // KESEHATAN JIWA
+    if (pageText.includes('2 minggu terakhir') || pageText.includes('kesehatan jiwa')) {
+        await isiKesehatanJiwa();
+    }
 
-    // 3. KANKER LEHER RAHIM (LOGIKA KONDISIONAL)
-    // Jika menikah atau cerai, jawab YA. Selain itu TIDAK.
-    let p = (data.perkawinan || '').toLowerCase();
-    let isYes = p.includes('menikah') || p.includes('cerai') || (p.includes('kawin') && !p.includes('belum'));
+    // 3. KANKER LEHER RAHIM
+    if (pageText.includes('kanker leher rahim')) {
+        let p = (data.perkawinan || '').toLowerCase();
+        let isYes = p.includes('menikah') || p.includes('cerai') || (p.includes('kawin') && !p.includes('belum'));
+        await fillRadioSurveyJS('kanker leher rahim', isYes ? 'ya' : 'tidak');
+    }
 
-    console.log("[DEBUG] Perkawinan:", p, "-> Kanker Leher Rahim:", isYes ? "YA" : "TIDAK");
-    await fillRadioSurveyJS('kanker leher rahim', isYes ? 'ya' : 'tidak');
+    // 4. MEROKOK & KANKER
+    if (pageText.includes('merokok') || pageText.includes('kanker paru')) {
+        const statusMerokok = jawabanMerokok(data.merokok);
+        await fillRadioSurveyJS('merokok dalam setahun terakhir', statusMerokok);
+        await fillRadioSurveyJS('riwayat merokok dalam 15 tahun terakhir', statusMerokok);
+        await fillRadioSurveyJS('menghirup asap rokok', 'tidak');
+        await fillRadioSurveyJS('kanker paru pada keluarga', 'tidak');
+        await fillRadioSurveyJS('batuk dalam jangka waktu yang lama', 'tidak');
+        await fillRadioSurveyJS('riwayat penyakit tbc atau ppok', 'tidak');
+        await fillRadioSurveyJS('gejala kanker paru', 'tidak');
+    }
 
-    // 5. SAPU BERSIH (Isi semua radio yang kosong menjadi 'Tidak'/'Normal')
+    // 5. SAPU BERSIH (Isi radio yang KOSONG menjadi default)
     const questions = document.querySelectorAll('.sd-question, .sv-question, .sd-element, [data-name]');
     questions.forEach(q => {
-        // PENTING: Tambahkan 'kanker leher rahim' di daftar pengecualian di bawah ini!
+        let isAnswered = false;
+        q.querySelectorAll('input[type="radio"]').forEach(radio => {
+            if (radio.checked) isAnswered = true;
+        });
+
+        if (isAnswered) return;
+
         let qText = (q.innerText||'').toLowerCase();
-        if (
-    qText.match(
-        /perkawinan|disabilitas|kesehatan jiwa|aktivitas fisik|kanker leher rahim/
-    )
-) return;
+        if (qText.match(/aktivitas fisik/)) return; 
 
         q.querySelectorAll('label').forEach(l => {
             let txt = (l.innerText||'').toLowerCase().trim();
             if (txt === 'tidak' || txt === 'normal' || txt === 'tidak ada') {
                 let i = l.querySelector('input[type="radio"]');
-                if (i && !i.checked) { i.click(); i.checked = true; }
+                if (i && !i.checked) { 
+                    i.click(); 
+                    i.checked = true; 
+                    i.dispatchEvent(new Event('input', { bubbles:true }));
+                    i.dispatchEvent(new Event('change', { bubbles:true }));
+                }
             }
         });
     });
 
-// 6. AKTIVITAS FISIK (SEMUA JAWABAN = TIDAK)
+    // 6. AKTIVITAS FISIK
+    if (pageText.includes('aktivitas fisik')) {
+        updateStatus('Mengisi Aktivitas Fisik...');
+        const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
+        for (let i = 0; i < dropdowns.length; i++) {
+            const currentDropdown = dropdowns[i];
+            if (!currentDropdown) continue;
+            currentDropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            currentDropdown.click();
+            await sleep(1200);
 
-updateStatus('Mengisi Aktivitas Fisik...');
+            const opsiTidak = [...document.querySelectorAll('li.sv-list__item, li.sd-list__item')]
+                .filter(li => li.innerText.trim().toLowerCase() === 'tidak');
 
-const dropdowns = [
-    ...document.querySelectorAll('.sd-dropdown, .sv-dropdown')
-];
-
-console.log('[AKTIVITAS] Dropdown ditemukan:', dropdowns.length);
-
-for (let i = 0; i < dropdowns.length; i++) {
-
-    const currentDropdown =
-        [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')][i];
-
-    if (!currentDropdown) continue;
-
-    currentDropdown.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-    });
-
-    currentDropdown.click();
-
-    await sleep(1200);
-
-    const opsiTidak = [
-        ...document.querySelectorAll(
-            'li.sv-list__item, li.sd-list__item'
-        )
-    ].filter(li =>
-        li.innerText.trim().toLowerCase() === 'tidak'
-    );
-
-    console.log(
-        '[AKTIVITAS] Opsi Tidak ditemukan:',
-        opsiTidak.length
-    );
-
-    if (opsiTidak[i]) {
-
-        opsiTidak[i].click();
-
-        opsiTidak[i].dispatchEvent(
-            new MouseEvent('click', {
-                bubbles: true,
-                cancelable: true
-            })
-        );
-
-        console.log(
-            `[AKTIVITAS] Dropdown ${i + 1} berhasil diisi`
-        );
-
-        await sleep(500);
-
-    } else {
-
-        console.warn(
-            `[AKTIVITAS] Dropdown ${i + 1} gagal menemukan opsi Tidak`
-        );
-
-        break;
+            if (opsiTidak[i]) {
+                opsiTidak[i].click();
+                opsiTidak[i].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                await sleep(500);
+            } else {
+                break;
+            }
+        }
     }
-}
-
-console.log(
-    '[AKTIVITAS SELESAI]',
-    document.querySelectorAll('.sd-dropdown,.sv-dropdown').length
-);
 
     // 7. NAVIGASI (Cari tombol Lanjut atau Kirim)
-    await sleep(2000);
+    await sleep(1500); // Waktu jeda dipersingkat karena bot sudah tahu apa yang harus diklik
     const btnNext = document.querySelector('.sd-navigation__next-btn, .sd-navigation__complete-btn') ||
                     [...document.querySelectorAll('button')].find(b => (b.innerText||'').toLowerCase().match(/lanjut|kirim/));
 
