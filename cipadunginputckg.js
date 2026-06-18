@@ -4,8 +4,8 @@
 /* =========================================================
    CONFIG
 ========================================================= */
-const SHEET_ID = 'id spreadsheet';
-const GID = 'sheet';
+const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
+const GID = '0';
 
 const TARGETS = [
     { id: 'gizi', txt: 'gizi (bb' },
@@ -17,7 +17,6 @@ const TARGETS = [
     { id: 'telinga_mata', txt: 'telinga dan mata' },
     { id: 'karies', txt: 'karies' },
     { id: 'periodontal', txt: 'periodontal' },
-    { id: 'mata', txt: 'mata' }
 ];
 
 const sleep = ms => new Promise(r => setTimeout(r,ms));
@@ -90,7 +89,7 @@ async function cariData(nikInput){
                     tb: cells[41] || '165',
                     lp: cells[43] || '80',
                     gula: cells[58] || '110',
-                    mata: cells[70] || 'Tidak',
+                    mata: cells[73] || 'Tidak',
                 };
             }
         }
@@ -115,16 +114,27 @@ function triggerClick(el){
     el.click();
 }
 
-function forceInject(element, value){
-    if(!element) return;
-    value = String(value);
-    element.scrollIntoView({ behavior:'smooth', block:'center' });
-    element.focus();
-    const setter = Object.getOwnPropertyDescriptor(element.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, 'value').set;
-    if(setter) setter.call(element, value); else element.value = value;
-    if (element._valueTracker) element._valueTracker.setValue('');
+function forceInject(element, value) {
+    if (!element) return;
+    
+    // 1. Dapatkan "native setter" untuk input agar framework tidak curiga
+    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    
+    // 2. Terapkan nilai menggunakan setter asli
+    nativeSetter.call(element, value);
+    
+    // 3. (PENTING untuk React/SurveyJS) Hapus tracker jika ada
+    if (element._valueTracker) {
+        element._valueTracker.setValue('');
+    }
+    
+    // 4. Kirim event agar framework melakukan validasi dan update state
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
+    
+    // 5. Trigger BLUR (Seringkali validasi berjalan saat kursor keluar dari kolom)
+    element.dispatchEvent(new Event('blur', { bubbles: true }));
+    
     element.blur();
 }
 
@@ -154,14 +164,26 @@ async function selectDropdownSurveyJS(optionText) {
 async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
     let clicked = 0;
     const items = [...document.querySelectorAll('label, .ant-radio-wrapper, .sd-item, .sv-item')];
+    
     for (const el of items) {
         if (clicked >= limit) break;
         const txt = (el.innerText || '').trim().toLowerCase();
         const target = text.toLowerCase();
         const isMatch = exact ? (txt === target) : txt.includes(target);
+        
         if (isMatch) {
             const radio = el.querySelector('input[type="radio"]');
-            if (radio && !radio.checked) {
+            
+            // CEK TUMPANG TINDIH: Cari tahu apakah soal ini sudah dijawab
+            const questionContainer = el.closest('.sd-question, .sv-question, [role="radiogroup"]');
+            let isQuestionAnswered = false;
+            if (questionContainer) {
+                const allRadiosInQuestion = questionContainer.querySelectorAll('input[type="radio"]');
+                isQuestionAnswered = Array.from(allRadiosInQuestion).some(r => r.checked);
+            }
+
+            // Hanya klik jika soal belum dijawab sama sekali
+            if (radio && !isQuestionAnswered) {
                 radio.click();
                 radio.dispatchEvent(new Event('change', { bubbles: true }));
                 radio.dispatchEvent(new Event('input', { bubbles: true }));
@@ -279,24 +301,25 @@ async function klikKirim() {
     updateStatus('Validasi form...');
     await sleep(2000);
     let check = isFormValid();
-    if (!check.valid) {
+   while (!check.valid) {
         updateStatus('Mengisi soal kosong...');
         const labels = check.container.querySelectorAll('label');
         for (let l of labels) {
-            if (l.innerText.toLowerCase().includes('normal') || l.innerText.toLowerCase().includes('tidak')) {
+            let labelText = l.innerText.toLowerCase();
+            if (labelText.includes('normal') || labelText.includes('tidak')) {
                 const input = l.querySelector('input[type="radio"]');
-                if (input) {
+                if (input && !input.checked) {
                     input.click();
                     input.dispatchEvent(new Event('change', { bubbles: true }));
                     await sleep(800);
+                    break; // Keluar dari loop label jika sudah mengklik satu jawaban
                 }
             }
         }
         await sleep(1000);
-        check = isFormValid();
-    }
-    if (!check.valid) { updateStatus('GAGAL: Ada data belum lengkap!'); return false; }
-    const btn = document.querySelector('.sd-navigation__complete-btn') ||
+        check = isFormValid(); // Cek ulang, jika masih ada soal kosong lain, loop berjalan lagi
+   }
+   const btn = document.querySelector('.sd-navigation__complete-btn') ||
                 [...document.querySelectorAll('button')].find(b => (b.innerText||'').toLowerCase().includes('kirim'));
     if (btn) {
         updateStatus('Mengirim data...');
@@ -436,7 +459,7 @@ function createUI(){
     if(document.getElementById('auto-ckg-ui')) return;
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
     box.innerHTML = `
-        <div id="drag-handle">INPUT DATA CIPADUNG</div>
+        <div id="drag-handle">INPUT CKG CIPADUNG</div>
         <div id="bot-status">INISIALISASI...</div>
         <input id="nik-bot" placeholder="Masukkan NIK">
         <div id="btn-wrap">
