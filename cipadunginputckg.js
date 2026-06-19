@@ -79,7 +79,7 @@ async function cariData(nikInput){
 
         for(const r of cachedSheetData){
             const cells = r.c.map(x => x ? String(x.v || '') : '');
-            if(normalizeNIK(cells[0] || cells[1] || cells[2]) === target || cells.find(col => normalizeNIK(col) === target)){
+            if(normalizeNIK(cells[0] || cells[11] || cells[2]) === target || cells.find(col => normalizeNIK(col) === target)){
                 return {
                     nik: target,
                     nama: cells[7] || '',
