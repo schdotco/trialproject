@@ -554,7 +554,7 @@ if (textToFindPernikahan !== "") {
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
-    showLoading("⚡ MENCARI WILAYAH PADASUKA... ⚡");
+    showLoading("⚡ MENCARI WILAYAH CIPADUNG... ⚡");
     await setAlamatDomisiliVue();
 
     // WAJIB: Berikan jeda krusial setelah API wilayah selesai
@@ -780,7 +780,7 @@ document.getElementById("infoAI").innerHTML = `
         • JK: <b style="color:#00ff88;">${data.jk || '-'}</b><br>
         • Status: <b style="color:#00ff88;">${data.Martial || '-'}</b><br>
         • Pekerjaan: <b style="color:#00ff88;">${data.pekerjaan || '-'}</b><br>
-        • Kelurahan: <b style="color:#00ff88;">Padasuka (HARDCODE)</b><br>
+        • Kelurahan: <b style="color:#00ff88;">cIPADUNG</b><br>
         • Alamat: <div style="color:#00ff88; margin-top:3px; background:#111; padding:6px; border-radius:5px; border:1px solid #333; word-break:break-word; max-height:65px; overflow:auto;">${data.alamat || '-'}</div>
     </div>
     <div style="margin-top:8px; font-size:11px; color:#aaa; text-align:center;">
