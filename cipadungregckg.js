@@ -323,7 +323,7 @@ async function fillAndValidate(placeholderKeyword, valueText, isSearchable = fal
 /* ================= ENGINE ALAMAT WILAYAH VUE (BARU) ================= */
 async function setAlamatDomisiliVue() {
     console.log("[BOT] Menyetel Alamat Domisili Otomatis...");
-    const steps = ["Jawa Barat", "Kota Bandung", "Cibeunying Kidul", "Padasuka"];
+    const steps = ["Jawa Barat", "Kota Bandung", "Cibiru", "Cipadung"];
 
     const allElements = Array.from(document.querySelectorAll('div, span'));
     const trigger = allElements.find(el => (el.innerText || "").toLowerCase().trim() === "pilih alamat domisili" && el.children.length === 0);
