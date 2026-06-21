@@ -749,13 +749,6 @@ async function mainLoop(data){
     while (BOT_RUNNING && location.hostname.includes('sehatindonesiaku')) {
         const nextItem = getNextTarget();
 
-        for (let i = 0; i < 3; i++) {
-            nextItem = getNextTarget();
-            if (nextItem) break; 
-            console.log("Tombol belum muncul, mencoba lagi dalam 2 detik...");
-            await sleep(2000);
-        }
-
         if(!nextItem){
             BOT_RUNNING = false;
         
