@@ -745,25 +745,33 @@ function getNextTarget(){
     return null;
 }
 
-async function mainLoop(data){
+async function mainLoop(data) {
+    updateStatus('MENCARI ANTRIAN...');
     while (BOT_RUNNING && location.hostname.includes('sehatindonesiaku')) {
-        const nextItem = getNextTarget();
+        let nextItem = null;
 
-        if(!nextItem){
+        // --- RE-TRY LOGIC ---
+        for (let i = 0; i < 3; i++) {
+            nextItem = getNextTarget(); // Sekarang aman karena let
+            if (nextItem) break; 
+            
+            console.log("Tombol belum muncul, mencoba lagi (percobaan " + (i+1) + ")...");
+            await sleep(2000);
+        }
+
+        if (!nextItem) {
             BOT_RUNNING = false;
-        
             clearBOT();
             clearCompleted();
-        
             updateStatus('SELESAI SEMUA TARGET.\nSilakan ganti NIK untuk pasien baru.');
+            alert('Semua antrian pemeriksaan selesai!');
             break;
         }
 
         updateStatus('MEMBUKA TARGET:\n' + nextItem.title.toUpperCase());
-        addCompleted(nextItem.id); // Tandai sudah diklik
-        await sleep(2000);
+        addCompleted(nextItem.id); 
         nextItem.btn.click();
-        await sleep(4000);
+        await sleep(5000); 
     }
 }
 
