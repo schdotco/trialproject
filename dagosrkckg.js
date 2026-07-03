@@ -135,8 +135,8 @@ async function cariData(nikInput) {
 
             return {
                 nik: target,
-                perkawinan: rows[i][26] || 'Belum Menikah',
-                merokok: (rows[i][73] || '').trim(),
+                perkawinan: rows[i][33] || 'Belum Menikah',
+                merokok: (rows[i][85] || '').trim(),
             };
         }
     }
@@ -860,15 +860,36 @@ setTimeout(async ()=>{
     if(isFormPage) {
         await autoContinueForm();
     } else if (isMainPage) {
+        
+        // 1. Cek apakah ada data pasien yang belum selesai dikerjakan
         const data = loadBOT();
         if(data){
             BOT_RUNNING = true;
             updateStatus('MELANJUTKAN OTOMATIS...\nMencari Form Berikutnya');
+            
+            // Langsung eksekusi tugas utama tanpa harus menunggu download CSV
             await sleep(3000);
             await mainLoop(data);
         } else {
-            updateStatus('IDLE\nMasukkan NIK lalu klik START');
+            // Tampilan default agar pop-up langsung aktif tanpa nge-freeze
+            updateStatus('Menyiapkan Data\nMasukkan NIK lalu Tunggu sampai Database siap sebelum klik START');
         }
+
+        // --- 2. FITUR PRE-LOAD BACKGROUND SEJATI ---
+        if (!cachedSheetData) {
+            // Kita TIDAK memakai 'await' di sini.
+            // Script akan men-download diam-diam di balik layar (paralel).
+            cariData('000').then(() => {
+                // Begitu download selesai, cek apakah bot sedang jalan.
+                // Jika sedang santai (tidak ada pasien diproses), update statusnya.
+                if (!BOT_RUNNING) {
+                    updateStatus('Database Siap !\nklik START');
+                }
+            }).catch(err => {
+                console.error("Gagal mendownload background data:", err);
+            });
+        }
+        // ---------------------------------------------------
     }
 }, 1500);
 
