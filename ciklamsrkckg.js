@@ -124,12 +124,12 @@ async function cariData(nikInput) {
 
     const rows = cachedSheetData;
 
-    console.log("HEADER:", rows[0]);
-    console.log("ROW PERTAMA:", rows[1]);
+    if (!rows || rows.length < 2) return null;
 
     for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
 
-        const nikSheet = normalizeNIK(rows[i][3]);
+        const nikSheet = normalizeNIK(row[3]);
 
         if (nikSheet === target) {
 
