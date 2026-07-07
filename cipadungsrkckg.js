@@ -3,6 +3,15 @@
     const request = GM_xmlhttpRequest;
 
 /* =========================================================
+   CONFIG SPREADSHEET
+========================================================= */
+const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
+const GIDS = ['0'];
+
+const sleep = ms => new Promise(r => setTimeout(r,ms));
+function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
+
+/* =========================================================
    HELPER MAPPING JAWABAN MEROKOK
 ========================================================= */
 function jawabanMerokok(v){
@@ -516,40 +525,65 @@ async function isiSemuaRadioTidak() {
 }
 
 async function isiKesehatanJiwa(data) {
-    if (!data) return; // Pengaman jika data kosong
-    
+    // 1. Fallback keamanan agar script tidak crash jika data lama masih tersimpan
     const j1 = data.jiwa1 || '';
     const j2 = data.jiwa2 || '';
     const j3 = data.jiwa3 || '';
     const j4 = data.jiwa4 || '';
 
-    const semuaPertanyaan = [...document.querySelectorAll('.sd-question, .sd-element')];
+    const semuaPertanyaan = [
+        ...document.querySelectorAll('.sd-question, .sd-element')
+    ];
 
     for (const q of semuaPertanyaan) {
         const text = (q.innerText || '').toLowerCase();
         let jawabanSheet = '';
 
-        if (text.includes('bersemangat')) jawabanSheet = j1;
-        else if (text.includes('murung') || text.includes('putus asa')) jawabanSheet = j2;
-        else if (text.includes('gugup') || text.includes('cemas')) jawabanSheet = j3;
-        else if (text.includes('khawatir') || text.includes('mengendalikan')) jawabanSheet = j4;
+        // 2. Deteksi Soal
+        if (text.includes('bersemangat')) {
+            jawabanSheet = j1;
+        } 
+        else if (text.includes('murung') || text.includes('putus asa')) {
+            jawabanSheet = j2;
+        } 
+        else if (text.includes('gugup') || text.includes('cemas')) {
+            jawabanSheet = j3;
+        } 
+        else if (text.includes('khawatir') || text.includes('mengendalikan')) {
+            jawabanSheet = j4;
+        }
 
+        // 3. Eksekusi Pencarian Jawaban
         if (jawabanSheet.trim() !== '') {
             let kataKunci = '';
             const teksJawaban = jawabanSheet.toLowerCase();
+            
+            // Konversi teks dari Spreadsheet menjadi 4 kata kunci paten
             if (teksJawaban.includes('tidak')) kataKunci = 'tidak';
             else if (teksJawaban.includes('kurang')) kataKunci = 'kurang';
             else if (teksJawaban.includes('lebih')) kataKunci = 'lebih';
             else if (teksJawaban.includes('hampir')) kataKunci = 'hampir';
 
+            // Jika kata kunci berhasil didapatkan, cari radio button-nya
             if (kataKunci !== '') {
-                const pilihan = [...q.querySelectorAll('.sd-item, .sv-item')];
-                const targetPilihan = pilihan.find(el => (el.innerText || '').toLowerCase().includes(kataKunci));
+                const pilihan = [
+                    ...q.querySelectorAll('.sd-item, .sv-item')
+                ];
+
+                // Cari opsi di web yang mengandung kata kunci paten tersebut
+                const targetPilihan = pilihan.find(el =>
+                    (el.innerText || '').toLowerCase().includes(kataKunci)
+                );
+
                 if (targetPilihan) {
-                    const radio = targetPilihan.querySelector('.sd-radio__decorator') || targetPilihan.querySelector('.sd-item__decorator') || targetPilihan.querySelector('input[type="radio"]');
+                    const radio =
+                        targetPilihan.querySelector('.sd-radio__decorator') ||
+                        targetPilihan.querySelector('.sd-item__decorator') ||
+                        targetPilihan.querySelector('input[type="radio"]');
+
                     if (radio) {
                         radio.click();
-                        await sleep(400);
+                        await sleep(400); // Jeda klik
                     }
                 }
             }
@@ -633,7 +667,7 @@ async function handleSkriningMandiri(data) {
 
     // KESEHATAN JIWA
     if (pageText.includes('2 minggu terakhir') || pageText.includes('kesehatan jiwa')) {
-        await isiKesehatanJiwa(data); 
+        await isiKesehatanJiwa(data); // <-- Tambahkan parameter 'data' di dalam kurung ini
     }
 
     // 3. KANKER LEHER RAHIM
