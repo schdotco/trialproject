@@ -474,11 +474,9 @@ async function autoContinueForm(){
         currentId = 'skilas_dep'; updateStatus('MENGISI TAHAP: DEPRESI');
         let d1 = (data.skilasDep1 || 'tidak').toLowerCase();
         let d2 = (data.skilasDep2 || 'tidak').toLowerCase();
-        let charD1 = d1.startsWith('y') ? 'y' : 't';
-        let charD2 = d2.startsWith('y') ? 'y' : 't';
         
-        await selectDropdownContext('merasa sedih, tertekan', d1, charD1);
-        await selectDropdownContext('sedikit minat atau kesenangan', d2, charD2);
+        await selectDropdownContext('merasa sedih, tertekan', d1);
+        await selectDropdownContext('sedikit minat atau kesenangan', d2);
     }
 
     if(currentId) addCompleted(currentId);
