@@ -3,15 +3,6 @@
     const request = GM_xmlhttpRequest;
 
 /* =========================================================
-   CONFIG SPREADSHEET
-========================================================= */
-const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
-const GID = '0';
-
-const sleep = ms => new Promise(r => setTimeout(r,ms));
-function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
-
-/* =========================================================
    HELPER MAPPING JAWABAN MEROKOK
 ========================================================= */
 function jawabanMerokok(v){
@@ -49,6 +40,9 @@ function clearCompleted() { GM_deleteValue('AUTO_SKRINING_COMPLETED'); }
    DATA MATCHER (ANTI ERROR / FORMAT AMAN)
 ========================================================= */
 function parseCSV(text) {
+    // PROTEKSI: Jika teks kosong atau gagal load, kembalikan array kosong
+    if (!text) return [];
+
     const rows = [];
     let row = [];
     let current = "";
@@ -87,60 +81,90 @@ function parseCSV(text) {
 
     return rows;
 }
-    
+
 let cachedSheetData = null;
 
 async function cariData(nikInput) {
-
     const target = normalizeNIK(nikInput);
 
     if (!cachedSheetData) {
+        cachedSheetData = [];
 
-        console.log('[CACHE MISS] Download spreadsheet');
+        for (const gid of GIDS) {
+            console.log('Download sheet gid:', gid);
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+            let csv = "";
 
-        const csv = await new Promise(resolve => {
-            request({
-                method: "GET",
-                url: `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`,
-                timeout: 10000,
+            // Fallback cerdas: Coba pakai GM_xmlhttpRequest, jika gagal/tidak di-grant, pakai fetch
+            if (typeof request === 'function') {
+                csv = await new Promise(resolve => {
+                    request({
+                        method: "GET",
+                        url: url,
+                        timeout: 30000,
+                        onload: r => resolve(r.responseText || ""),
+                        onerror: () => resolve("")
+                    });
+                });
+            } else {
+                try {
+                    const res = await fetch(url);
+                    if (res.ok) csv = await res.text();
+                } catch (e) {
+                    console.warn(`Fetch gagal untuk GID: ${gid}`, e);
+                }
+            }
 
-                onload: r => resolve(r.responseText || ""),
-                onerror: () => resolve("")
-            });
-        });
+            // PROTEKSI: Lewati proses parsing jika download gagal/kosong
+            if (!csv) {
+                console.warn(`[WARNING] Data CSV kosong pada GID: ${gid}`);
+                continue;
+            }
 
-        cachedSheetData = parseCSV(csv);
+            const rows = parseCSV(csv);
+
+            if (rows && rows.length > 1) {
+                if (cachedSheetData.length === 0) {
+                    cachedSheetData = cachedSheetData.concat(rows);
+                } else {
+                    cachedSheetData = cachedSheetData.concat(rows.slice(1));
+                }
+            }
+        }
 
         console.log(
             '[CACHE READY]',
             cachedSheetData.length,
-            'baris'
+            'baris dari',
+            GIDS.length,
+            'sheet'
         );
     } else {
-
         console.log('[CACHE HIT] Pakai data RAM');
-
     }
 
     const rows = cachedSheetData;
 
-    console.log("HEADER:", rows[0]);
-    console.log("ROW PERTAMA:", rows[1]);
+    // PROTEKSI: Pastikan array rows valid dan punya data selain header
+    if (!rows || rows.length < 2) return null;
 
     for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
 
-        const nikSheet = normalizeNIK(rows[i][11]);
+        // PROTEKSI: Jika ada baris "sampah" atau kolom tidak cukup panjang
+        if (!row || row.length < 12) continue;
+
+        const nikSheet = normalizeNIK(row[11]);
 
         if (nikSheet === target) {
-
             return {
                 nik: target,
-                perkawinan: rows[i][26] || 'Belum Menikah',
-                merokok: (rows[i][73] || '').trim(),
-                jiwa1: (rows[i][74] || '').trim(), 
-                jiwa2: (rows[i][75] || '').trim(), 
-                jiwa3: (rows[i][76] || '').trim(), 
-                jiwa4: (rows[i][77] || '').trim()
+                perkawinan: row[26] || 'Belum Menikah',
+                merokok: (row[73] || '').trim(),
+                jiwa1: (row[74] || '').trim(), // Kolom BU
+                jiwa2: (row[75] || '').trim(), // Kolom BV
+                jiwa3: (row[76] || '').trim(), // Kolom BW
+                jiwa4: (row[77] || '').trim()  // Kolom BX
             };
         }
     }
@@ -151,6 +175,20 @@ async function cariData(nikInput) {
 /* =========================================================
    DOM INTERACTOR (SURVEYJS SAFE)
 ========================================================= */
+// FUNGSI BARU: forceInject (Untuk menyuntik angka ke dalam kotak)
+function forceInject(element, value) {
+    if (!element) return;
+    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    nativeSetter.call(element, value);
+    if (element._valueTracker) {
+        element._valueTracker.setValue('');
+    }
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    element.dispatchEvent(new Event('blur', { bubbles: true }));
+    element.blur();
+}
+
 async function fillRadioSurveyJS(soalText, jawabanText) {
     try {
 
@@ -596,7 +634,7 @@ async function handleSkriningMandiri(data) {
 
             // PERBAIKAN: Gunakan huruf kecil karena p sudah di-toLowerCase()
             if (p.includes('belum')) target = 'Belum Menikah';
-            else if (p.includes('cerai')) target = 'Cerai'; // Sesuaikan label web jika beda
+            else if (p.includes('cerai')) target = 'Cerai Hidup'; // Sesuaikan label web jika beda
             
             updateStatus('Mengisi: ' + target);
             await fillRadioSurveyJS('status perkawinan', target);
@@ -619,7 +657,6 @@ async function handleSkriningMandiri(data) {
     }
 
     // KESEHATAN JIWA
-    async function isiKesehatanJiwa(data) {
     if (pageText.includes('2 minggu terakhir') || pageText.includes('kesehatan jiwa')) {
         await isiKesehatanJiwa(data); // <-- Tambahkan parameter 'data' di dalam kurung ini
     }
@@ -631,37 +668,98 @@ async function handleSkriningMandiri(data) {
         await fillRadioSurveyJS('kanker leher rahim', isYes ? 'ya' : 'tidak');
     }
 
-    // 4. MEROKOK & KANKER
+// 4. MEROKOK & KANKER
     if (pageText.includes('merokok') || pageText.includes('kanker paru')) {
-        const statusMerokok = jawabanMerokok(data.merokok);
-        await fillRadioSurveyJS('merokok dalam setahun terakhir', statusMerokok);
-        await fillRadioSurveyJS('riwayat merokok dalam 15 tahun terakhir', statusMerokok);
-        await fillRadioSurveyJS('menghirup asap rokok', 'tidak');
-        await fillRadioSurveyJS('kanker paru pada keluarga', 'tidak');
-        await fillRadioSurveyJS('batuk dalam jangka waktu yang lama', 'tidak');
-        await fillRadioSurveyJS('riwayat penyakit tbc atau ppok', 'tidak');
-        await fillRadioSurveyJS('gejala kanker paru', 'tidak');
+        const statusMerokok = jawabanMerokok(data.merokok); // Akan bernilai 'ya' atau 'tidak'
+        
+        const semuaPertanyaan = [...document.querySelectorAll('.sd-question, .sd-element')];
+        
+        for (const q of semuaPertanyaan) {
+            const text = (q.innerText || '').toLowerCase();
+            let targetJawaban = '';
+
+            // -- Kanker Paru 1 & Perilaku Merokok 1 --
+            if (text.includes('setahun terakhir')) {
+                targetJawaban = statusMerokok;
+            } 
+            // -- Kanker Paru 2 --
+            else if (text.includes('15 tahun terakhir')) {
+                targetJawaban = statusMerokok;
+            } 
+            // -- Kanker Paru 3 & Perilaku Merokok 5 --
+            else if (text.includes('menghirup asap rokok') || text.includes('terpapar asap rokok')) {
+                targetJawaban = statusMerokok;
+            } 
+            // -- Perilaku Merokok 2 --
+            else if (text.includes('jenis rokok apa yang dikonsumsi')) {
+                targetJawaban = 'konvensional';
+            }
+            // -- Sisa Kanker Paru (Default: Tidak) --
+            else if (text.includes('kanker paru pada keluarga') || 
+                     text.includes('batuk dalam jangka waktu') || 
+                     text.includes('tbc atau ppok')) {
+                targetJawaban = 'tidak';
+            }
+
+            // Eksekusi Klik Target
+            if (targetJawaban !== '') {
+                const pilihan = [...q.querySelectorAll('.sd-item, .sv-item')];
+                const targetPilihan = pilihan.find(el => 
+                    (el.innerText || '').toLowerCase().includes(targetJawaban)
+                );
+                
+                if (targetPilihan) {
+                    const radio = targetPilihan.querySelector('.sd-radio__decorator') ||
+                                  targetPilihan.querySelector('.sd-item__decorator') ||
+                                  targetPilihan.querySelector('input[type="radio"]');
+
+                    if (radio) {
+                        radio.click();
+                        
+                        // Pengaman ganda agar tidak di-overwrite oleh fitur Sapu Bersih
+                        const inputAsli = targetPilihan.querySelector('input[type="radio"]');
+                        if (inputAsli) {
+                            inputAsli.checked = true;
+                            inputAsli.dispatchEvent(new Event('input', { bubbles:true }));
+                            inputAsli.dispatchEvent(new Event('change', { bubbles:true }));
+                        }
+                        
+                        await sleep(300); 
+                    }
+                }
+            }
+        }
     }
 
-    // 5. SAPU BERSIH (Isi radio yang KOSONG menjadi default)
+// 7. SAPU BERSIH (Isi radio yang KOSONG menjadi default)
     const questions = document.querySelectorAll('.sd-question, .sv-question, .sd-element, [data-name]');
     questions.forEach(q => {
         let isAnswered = false;
-        q.querySelectorAll('input[type="radio"]').forEach(radio => {
+        const radios = q.querySelectorAll('input[type="radio"]');
+        
+        // Jika soal ini tidak punya pilihan radio button, lewati
+        if (radios.length === 0) return;
+
+        radios.forEach(radio => {
             if (radio.checked) isAnswered = true;
         });
 
         if (isAnswered) return;
 
         let qText = (q.innerText||'').toLowerCase();
-        if (qText.match(/aktivitas fisik/)) return; 
+        
+        // PERBAIKAN: Persempit kata kunci skip agar tidak salah melewati soal jantung/PJK
+        if (qText.includes('berapa hari anda aktif secara fisik') || qText.includes('jumlah hari aktif')) return; 
 
         q.querySelectorAll('label').forEach(l => {
             let txt = (l.innerText||'').toLowerCase().trim();
             if (txt === 'tidak' || txt === 'normal' || txt === 'tidak ada') {
                 let i = l.querySelector('input[type="radio"]');
                 if (i && !i.checked) { 
-                    i.click(); 
+                    // PERBAIKAN: Klik bagian bulatan decorator agar SurveyJS merespons dengan benar
+                    const decorator = l.querySelector('.sd-radio__decorator, .sd-item__decorator') || l;
+                    decorator.click(); 
+                    
                     i.checked = true; 
                     i.dispatchEvent(new Event('input', { bubbles:true }));
                     i.dispatchEvent(new Event('change', { bubbles:true }));
@@ -670,9 +768,21 @@ async function handleSkriningMandiri(data) {
         });
     });
 
-    // 6. AKTIVITAS FISIK
+// 8. AKTIVITAS FISIK
     if (pageText.includes('aktivitas fisik')) {
         updateStatus('Mengisi Aktivitas Fisik...');
+        
+        // --- TAMBAHAN BARU: Jika soal berupa isian manual (angka) ---
+        const inputAngka = [...document.querySelectorAll('input[type="number"]')];
+        if (inputAngka.length > 0) {
+            // Jika ketemu kotak angka, suntikkan angka 3 (rentang normal)
+            if (inputAngka[0]) forceInject(inputAngka[0], '3');
+            await sleep(500);
+            if (inputAngka[1]) forceInject(inputAngka[1], '3');
+            await sleep(500);
+        }
+
+        // --- SCRIPT ASLI: Jika soal berupa Dropdown ---
         const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
         for (let i = 0; i < dropdowns.length; i++) {
             const currentDropdown = dropdowns[i];
@@ -706,7 +816,7 @@ async function handleSkriningMandiri(data) {
 }
 
 /* =========================================================
-   FORM LOOP ROUTER
+   FORM LOOP ROUTER (FIXED)
 ========================================================= */
 let BOT_RUNNING = false;
 
@@ -719,32 +829,33 @@ async function autoContinueForm(){
     await sleep(3000);
 
     while (BOT_RUNNING && location.host.includes("form.kemkes.go.id")) {
-    
         try {
-    
-            if (
-                document.body.innerText
-                    .toLowerCase()
-                    .includes('riwayat imunisasi tetanus')
-            ) {
-    
-                await isiTetanusCatin();
-    
-            } else {
-    
-                await handleSkriningMandiri(data);
-    
+            // DEFENSIVE CHECK: Tunggu sampai kerangka soal SurveyJS benar-benar muncul di layar
+            const formReady = document.querySelector('.sd-question, .sv-question, .sd-element');
+            
+            if (!formReady) {
+                updateStatus('Menunggu form dimuat...');
+                await sleep(1500);
+                continue; // Jangan lanjut ke bawah, putar ulang loop sampai form muncul
             }
-    
+
+            // Setelah form dipastikan muncul, baru kita baca teks halamannya
+            const pageText = document.body.innerText.toLowerCase();
+
+            if (pageText.includes('riwayat imunisasi tetanus')) {
+                await isiTetanusCatin();
+            } else {
+                await handleSkriningMandiri(data);
+            }
+
         } catch(e) {
             console.error("Error bypass:", e);
             updateStatus("Melewati error, mencoba ulang...");
         }
-    
+
         await sleep(2000);
     }
 }
-
 /* =========================================================
    DASHBOARD TRACKER (FITUR UTAMA CKG)
 ========================================================= */
@@ -776,10 +887,15 @@ function getNextTarget(){
 
 async function mainLoop(data) {
     updateStatus('MENCARI ANTRIAN...');
+
+    // Pastikan loop hanya jalan jika BOT_RUNNING = true
     while (BOT_RUNNING && location.hostname.includes('sehatindonesiaku')) {
+        
+        // GUNAKAN 'let' supaya nilainya bisa diupdate di dalam loop
         let nextItem = null;
 
         // --- RE-TRY LOGIC ---
+        // Mencoba mencari tombol hingga 3 kali
         for (let i = 0; i < 3; i++) {
             nextItem = getNextTarget(); // Sekarang aman karena let
             if (nextItem) break; 
@@ -788,6 +904,7 @@ async function mainLoop(data) {
             await sleep(2000);
         }
 
+        // Jika setelah 3 kali tetap tidak ketemu
         if (!nextItem) {
             BOT_RUNNING = false;
             clearBOT();
@@ -799,7 +916,11 @@ async function mainLoop(data) {
 
         updateStatus('MEMBUKA TARGET:\n' + nextItem.title.toUpperCase());
         addCompleted(nextItem.id); 
+        
+        // Klik tombol
         nextItem.btn.click();
+        
+        // Tunggu form muncul
         await sleep(5000); 
     }
 }
