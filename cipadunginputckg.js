@@ -95,7 +95,7 @@ async function cariData(nikInput){
                     tb: cells[41] || '165',
                     lp: cells[43] || '80',
                     gula: cells[58] || '110',
-                    mata: cells[73] || 'Tidak',|
+                    mata: cells[73] || 'Tidak',
                     skilasKog1: (cells[78] || 'Ya').trim(),
                     skilasKog2: (cells[79] || 'Benar semua').trim(),
                     skilasKog3: (cells[80] || 'Ya').trim(),
