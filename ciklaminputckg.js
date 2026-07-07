@@ -459,8 +459,8 @@ function createUI(){
     if(document.getElementById('auto-ckg-ui')) return;
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
     box.innerHTML = `
-        <div id="drag-handle">INPUT CKG CIKUTRA LAMA</div>
-        <div id="bot-status">Menyiapkan Database, Jangan Klik Start!...</div>
+        <div id="drag-handle">INPUT CKG Cikutra Lama</div>
+        <div id="bot-status">Menyiapkan Database, Jangan Klik Start !...</div>
         <input id="nik-bot" placeholder="Masukkan NIK">
         <div id="btn-wrap">
             <button id="run-bot">START</button><button id="stop-bot">BATAL</button>
@@ -522,7 +522,7 @@ function createUI(){
     };
     document.getElementById('stop-bot').onclick = stopBOT;
 }
-
+   
 /* =========================================================
    INIT / AUTO RESUME OBSERVER
 ========================================================= */
