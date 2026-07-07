@@ -207,34 +207,26 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
 }
 
 async function selectSurveyJSDropdown(soalText, optionText) {
-    // 1. Cari kontainer soal
-    const questions = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
+    // 1. Cari kontainer soal berdasarkan teks
+    const questions = [...document.querySelectorAll('.sd-question, .sv-question')];
     const targetQ = questions.find(q => (q.innerText || '').toLowerCase().includes(soalText.toLowerCase()));
     
-    if (!targetQ) {
-        console.warn('Soal tidak ditemukan:', soalText);
-        return false;
-    }
+    if (!targetQ) return false;
 
     // 2. Cari dropdown di dalam soal tersebut
     const dropdown = targetQ.querySelector('.sd-dropdown');
-    if (!dropdown) {
-        console.warn('Dropdown tidak ditemukan');
-        return false;
-    }
+    if (!dropdown) return false;
 
     // 3. Klik untuk membuka
     dropdown.click();
-    await sleep(1000); // Wajib tunggu animasi popup muncul
+    await sleep(1000); 
 
-    // 4. AMBIL LIST BERDASARKAN ID (Sangat Penting!)
-    // Menggunakan aria-controls agar list yang diambil adalah milik dropdown ini
+    // 4. AMBIL LIST BERDASARKAN ID (Ini kuncinya agar tidak tertukar)
     const listId = dropdown.getAttribute('aria-controls');
     const listElement = document.getElementById(listId);
     
     if (!listElement) {
-        console.warn('List tidak ditemukan');
-        dropdown.click(); // Tutup kembali
+        dropdown.click(); // Tutup jika gagal
         return false;
     }
 
@@ -247,11 +239,9 @@ async function selectSurveyJSDropdown(soalText, optionText) {
     if (targetOpt) {
         targetOpt.click();
         await sleep(500);
-        console.log('[AI] Berhasil memilih:', optionText);
         return true;
     } else {
-        console.warn('Opsi tidak ditemukan:', optionText);
-        dropdown.click(); // Tutup kembali jika salah
+        dropdown.click(); // Tutup kembali jika tidak ketemu
         return false;
     }
 }
@@ -522,8 +512,8 @@ async function autoContinueForm(){
     }
     else if (title.includes('gejala depresi') || title.includes('emosional')) {
         currentId = 'skilas_dep'; updateStatus('MENGISI TAHAP: DEPRESI');
-        let d1 = (data.skilasDep1 || 'tidak').toLowerCase();
-        let d2 = (data.skilasDep2 || 'tidak').toLowerCase();
+        let d1 = (data.skilasDep1 || 'tidak').trim();
+        let d2 = (data.skilasDep2 || 'tidak').trim();
         
         await selectDropdownContext('merasa sedih, tertekan', d1);
         await sleep(500);
