@@ -452,20 +452,38 @@ async function mainLoopCKG(data){
    UI MODERN & DRAGGABLE
 ========================================================= */
 let BOT_RUNNING = false;
-function updateStatus(text){ const el = document.getElementById('bot-status'); if(el) el.innerText = text; }
-function stopBOT(){ BOT_RUNNING = false; clearBOT(); clearCompleted(); updateStatus('BOT DIHENTIKAN. DATA DIRESET.'); }
+
+// 1. Tambahkan variabel global untuk menyimpan teks status terakhir
+let currentStatusText = 'Menyiapkan Database, Jangan Klik Start !...'; 
+
+// 2. Update fungsi ini agar selalu memperbarui memori currentStatusText
+function updateStatus(text){ 
+    currentStatusText = text; // Simpan ke memori
+    const el = document.getElementById('bot-status'); 
+    if(el) el.innerText = text; 
+}
+
+function stopBOT(){ 
+    BOT_RUNNING = false; 
+    clearBOT(); 
+    clearCompleted(); 
+    updateStatus('BOT DIHENTIKAN. DATA DIRESET.'); 
+}
 
 function createUI(){
     if(document.getElementById('auto-ckg-ui')) return;
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
+    
+    // 3. Ubah baris <div id="bot-status"> agar memanggil variabel currentStatusText
     box.innerHTML = `
         <div id="drag-handle">INPUT CKG Cikutra Lama</div>
-        <div id="bot-status">Menyiapkan Database, Jangan Klik Start !...</div>
+        <div id="bot-status">${currentStatusText}</div> 
         <input id="nik-bot" placeholder="Masukkan NIK">
         <div id="btn-wrap">
             <button id="run-bot">START</button><button id="stop-bot">BATAL</button>
         </div>
     `;
+    
     const style = document.createElement('style');
     style.innerHTML = `
         #auto-ckg-ui {
