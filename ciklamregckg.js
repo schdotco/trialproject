@@ -7,15 +7,15 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 /* ================= MODE CKG UMUM ================= */
 
 const SHEETS = [{
-    id: "1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg",
-    gids: ["1800827053"],
-    colNama: 5,
-    colTgl: 8,
-    colWA: 23,
+    id: "1aavWN9ScsvRBY1iZj9gY1GQ0AFgBieCe",
+    gids: ["1054280612"],
+    colNama: 4,
+    colTgl: 5,
+    colWA: 10,
     colJK: 6,
-    colPekerjaan: 12,
+    colPekerjaan: 14,
     colKelurahan: 20,
-    colAlamat: 17,
+    colAlamat: 9,
     colMartial: 13,
     waStatis: true
 }];
