@@ -176,32 +176,44 @@ async function selectDropdownSurveyJS(optionText) {
     return success;
 }
 
-async function selectDropdownContext(soalText, optionText, typeChar = 't') {
+async function selectDropdownContext(soalText, optionText) {
+    // 1. Cari kontainer soal berdasarkan teks
     const questions = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
     const targetQ = questions.find(q => (q.innerText || '').toLowerCase().includes(soalText.toLowerCase()));
     if (!targetQ) return false;
 
-    const dropdown = targetQ.querySelector('.sd-dropdown, .sv-dropdown');
+    // 2. Cari dropdown di dalam soal tersebut
+    const dropdown = targetQ.querySelector('.sd-dropdown');
     if (!dropdown) return false;
 
-    triggerClick(dropdown);
-    await sleep(1000);
+    // 3. Klik untuk membuka
+    dropdown.click();
+    await sleep(1000); // Wajib tunggu animasi
 
-    const searchInput = document.querySelector('input[type="text"][role="combobox"], input[aria-expanded="true"]');
-    if (searchInput && typeChar) { 
-        forceInject(searchInput, typeChar); 
-        await sleep(500); 
+    // 4. KUNCI: Cari daftar pilihan BERDASARKAN ID (aria-controls)
+    const listId = dropdown.getAttribute('aria-controls');
+    const listElement = document.getElementById(listId);
+    
+    if (!listElement) {
+        console.warn('Daftar pilihan tidak ditemukan untuk:', soalText);
+        dropdown.click(); // Tutup kembali
+        return false;
     }
 
-    const opts = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
-    const targetOpt = opts.find(el => (el.innerText || '').toLowerCase().includes(optionText.toLowerCase()));
-    
+    // 5. Cari opsi HANYA di dalam listElement tersebut
+    const options = [...listElement.querySelectorAll('.sv-list__item-body')];
+    const targetOpt = options.find(el => 
+        (el.innerText || '').trim().toLowerCase() === optionText.toLowerCase()
+    );
+
     if (targetOpt) {
-        triggerClick(targetOpt);
+        targetOpt.click();
         await sleep(500);
+        console.log('[AI] Berhasil memilih:', optionText);
         return true;
     } else {
-        triggerClick(dropdown); // Tutup kembali jika tidak ada
+        console.warn('Opsi tidak ditemukan di list:', optionText);
+        dropdown.click(); // Tutup kembali jika gagal
         return false;
     }
 }
@@ -511,10 +523,14 @@ async function autoContinueForm(){
         await isiRadioSurveyJS('ukuran lingkar lengan atas', data.skilasMal3);
     }
     else if (title.includes('gejala depresi') || title.includes('emosional')) {
-        currentId = 'skilas_dep'; updateStatus('MENGISI TAHAP: DEPRESI');
+        currentId = 'skilas_dep'; 
+        updateStatus('MENGISI TAHAP: DEPRESI');
+        
+        // Ambil data (pastikan isinya "Ya" atau "Tidak" sesuai yang ada di website)
         let d1 = (data.skilasDep1 || 'tidak').trim();
         let d2 = (data.skilasDep2 || 'tidak').trim();
         
+        // Panggil fungsi yang sudah diperbaiki
         await selectDropdownContext('merasa sedih, tertekan', d1);
         await sleep(500);
         await selectDropdownContext('sedikit minat atau kesenangan', d2);
