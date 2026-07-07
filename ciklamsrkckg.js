@@ -478,11 +478,15 @@ async function isiSemuaRadioTidak() {
 }
 
 async function isiKesehatanJiwa(data) {
-    // 1. Fallback keamanan agar script tidak crash jika data lama masih tersimpan
-    const j1 = data.jiwa1 || 'Tidak sama sekali';
-    const j2 = data.jiwa2 || 'Tidak sama sekali';
-    const j3 = data.jiwa3 || 'Tidak sama sekali';
-    const j4 = data.jiwa4 || 'Tidak sama sekali';
+    // 1. Fallback keamanan agar script tidak crash jika data (objek utamanya) undefined
+    // Jika data undefined/null, kita jadikan objek kosong {} agar tidak error saat dibaca
+    const safeData = data || {}; 
+
+    // Gunakan Optional Chaining (?.) sebagai pengaman ganda
+    const j1 = safeData?.jiwa1 || 'Tidak sama sekali';
+    const j2 = safeData?.jiwa2 || 'Tidak sama sekali';
+    const j3 = safeData?.jiwa3 || 'Tidak sama sekali';
+    const j4 = safeData?.jiwa4 || 'Tidak sama sekali';
 
     const semuaPertanyaan = [
         ...document.querySelectorAll('.sd-question, .sd-element')
