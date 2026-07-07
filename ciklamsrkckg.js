@@ -479,10 +479,10 @@ async function isiSemuaRadioTidak() {
 
 async function isiKesehatanJiwa(data) {
     // 1. Fallback keamanan agar script tidak crash jika data lama masih tersimpan
-    const j1 = data.jiwa1 || '';
-    const j2 = data.jiwa2 || '';
-    const j3 = data.jiwa3 || '';
-    const j4 = data.jiwa4 || '';
+    const j1 = data.jiwa1 || 'Tidak sama sekali';
+    const j2 = data.jiwa2 || 'Tidak sama sekali';
+    const j3 = data.jiwa3 || 'Tidak sama sekali';
+    const j4 = data.jiwa4 || 'Tidak sama sekali';
 
     const semuaPertanyaan = [
         ...document.querySelectorAll('.sd-question, .sd-element')
