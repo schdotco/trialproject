@@ -4,8 +4,8 @@
 /* =========================================================
    CONFIG
 ========================================================= */
-const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
-const GID = '0';
+const SHEET_ID = '1aavWN9ScsvRBY1iZj9gY1GQ0AFgBieCe';
+const GID = '1054280612';
 
 const TARGETS = [
     { id: 'gizi', txt: 'gizi (bb' },
@@ -82,14 +82,14 @@ async function cariData(nikInput){
             if(normalizeNIK(cells[0] || cells[11] || cells[2]) === target || cells.find(col => normalizeNIK(col) === target)){
                 return {
                     nik: target,
-                    nama: cells[7] || '',
-                    sistole: cells[37] || '120',
-                    diastole: cells[38] || '80',
-                    bb: cells[40] || '60',
-                    tb: cells[41] || '165',
-                    lp: cells[43] || '80',
-                    gula: cells[58] || '110',
-                    mata: cells[73] || 'Tidak',
+                    nama: cells[4] || '',
+                    sistole: cells[29] || '120',
+                    diastole: cells[30] || '80',
+                    bb: cells[32] || '60',
+                    tb: cells[31] || '165',
+                    lp: cells[33] || '80',
+                    gula: cells[34] || '110',
+                    mata: cells[44] || 'Tidak',
                 };
             }
         }
