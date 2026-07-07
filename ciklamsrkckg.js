@@ -137,10 +137,10 @@ async function cariData(nikInput) {
                 nik: target,
                 perkawinan: rows[i][13] || 'Belum Menikah',
                 merokok: (rows[i][21] || '').trim(),
-                jiwa1: (row[74] || '').trim(), // Kolom BW
-                jiwa2: (row[75] || '').trim(), // Kolom BX
-                jiwa3: (row[76] || '').trim(), // Kolom BY
-                jiwa4: (row[77] || '').trim()  // Kolom BZ
+                jiwa1: (row[74] || '').trim() || 'Tidak sama sekali',
+                jiwa2: (row[75] || '').trim() || 'Tidak sama sekali',
+                jiwa3: (row[76] || '').trim() || 'Tidak sama sekali',
+                jiwa4: (row[77] || '').trim() || 'Tidak sama sekali'
             };
         }
     }
