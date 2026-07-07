@@ -206,6 +206,56 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
     }
 }
 
+async function selectSurveyJSDropdown(soalText, optionText) {
+    // 1. Cari kontainer soal
+    const questions = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
+    const targetQ = questions.find(q => (q.innerText || '').toLowerCase().includes(soalText.toLowerCase()));
+    
+    if (!targetQ) {
+        console.warn('Soal tidak ditemukan:', soalText);
+        return false;
+    }
+
+    // 2. Cari dropdown di dalam soal tersebut
+    const dropdown = targetQ.querySelector('.sd-dropdown');
+    if (!dropdown) {
+        console.warn('Dropdown tidak ditemukan');
+        return false;
+    }
+
+    // 3. Klik untuk membuka
+    dropdown.click();
+    await sleep(1000); // Wajib tunggu animasi popup muncul
+
+    // 4. AMBIL LIST BERDASARKAN ID (Sangat Penting!)
+    // Menggunakan aria-controls agar list yang diambil adalah milik dropdown ini
+    const listId = dropdown.getAttribute('aria-controls');
+    const listElement = document.getElementById(listId);
+    
+    if (!listElement) {
+        console.warn('List tidak ditemukan');
+        dropdown.click(); // Tutup kembali
+        return false;
+    }
+
+    // 5. Cari opsi berdasarkan teks di dalam list yang sudah tepat
+    const options = [...listElement.querySelectorAll('.sv-list__item-body')];
+    const targetOpt = options.find(el => 
+        (el.innerText || '').trim().toLowerCase() === optionText.toLowerCase()
+    );
+
+    if (targetOpt) {
+        targetOpt.click();
+        await sleep(500);
+        console.log('[AI] Berhasil memilih:', optionText);
+        return true;
+    } else {
+        console.warn('Opsi tidak ditemukan:', optionText);
+        dropdown.click(); // Tutup kembali jika salah
+        return false;
+    }
+}
+
 async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
     let clicked = 0;
     const items = [...document.querySelectorAll('label, .ant-radio-wrapper, .sd-item, .sv-item')];
@@ -476,6 +526,7 @@ async function autoContinueForm(){
         let d2 = (data.skilasDep2 || 'tidak').toLowerCase();
         
         await selectDropdownContext('merasa sedih, tertekan', d1);
+        await sleep(500);
         await selectDropdownContext('sedikit minat atau kesenangan', d2);
     }
 
