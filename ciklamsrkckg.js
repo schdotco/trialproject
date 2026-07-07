@@ -129,7 +129,7 @@ async function cariData(nikInput) {
 
     for (let i = 1; i < rows.length; i++) {
 
-        const nikSheet = normalizeNIK(rows[i][11]);
+        const nikSheet = normalizeNIK(rows[i][3]);
 
         if (nikSheet === target) {
 
