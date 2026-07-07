@@ -17,6 +17,12 @@ const TARGETS = [
     { id: 'telinga_mata', txt: 'telinga dan mata' },
     { id: 'karies', txt: 'karies' },
     { id: 'periodontal', txt: 'periodontal' },
+    { id: 'skilas_kog', txt: 'penurunan kognitif' },
+    { id: 'skilas_mob', txt: 'mobilisasi' },
+    { id: 'skilas_mob_alt', txt: 'tingkat kemandirian' },
+    { id: 'skilas_mal', txt: 'malnutrisi' },
+    { id: 'skilas_dep', txt: 'depresi' },
+    { id: 'skilas_dep_alt', txt: 'emosional' }
 ];
 
 const sleep = ms => new Promise(r => setTimeout(r,ms));
@@ -89,7 +95,16 @@ async function cariData(nikInput){
                     tb: cells[41] || '165',
                     lp: cells[43] || '80',
                     gula: cells[58] || '110',
-                    mata: cells[73] || 'Tidak',
+                    mata: cells[73] || 'Tidak',|
+                    skilasKog1: (cells[78] || 'Ya').trim(),
+                    skilasKog2: (cells[79] || 'Benar semua').trim(),
+                    skilasKog3: (cells[80] || 'Ya').trim(),
+                    skilasMob:  (cells[81] || 'Ya').trim(),
+                    skilasMal1: (cells[82] || 'Tidak').trim(),
+                    skilasMal2: (cells[83] || 'Tidak').trim(),
+                    skilasMal3: (cells[84] || 'Tidak').trim(),
+                    skilasDep1: (cells[88] || 'Tidak').trim(),
+                    skilasDep2: (cells[89] || 'Tidak').trim()
                 };
             }
         }
@@ -159,6 +174,36 @@ async function selectDropdownSurveyJS(optionText) {
         } else triggerClick(dropdownTrigger); 
     }
     return success;
+}
+
+async function selectDropdownContext(soalText, optionText, typeChar = 't') {
+    const questions = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
+    const targetQ = questions.find(q => (q.innerText || '').toLowerCase().includes(soalText.toLowerCase()));
+    if (!targetQ) return false;
+
+    const dropdown = targetQ.querySelector('.sd-dropdown, .sv-dropdown');
+    if (!dropdown) return false;
+
+    triggerClick(dropdown);
+    await sleep(1000);
+
+    const searchInput = document.querySelector('input[type="text"][role="combobox"], input[aria-expanded="true"]');
+    if (searchInput && typeChar) { 
+        forceInject(searchInput, typeChar); 
+        await sleep(500); 
+    }
+
+    const opts = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
+    const targetOpt = opts.find(el => (el.innerText || '').toLowerCase().includes(optionText.toLowerCase()));
+    
+    if (targetOpt) {
+        triggerClick(targetOpt);
+        await sleep(500);
+        return true;
+    } else {
+        triggerClick(dropdown); // Tutup kembali jika tidak ada
+        return false;
+    }
 }
 
 async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
@@ -407,6 +452,33 @@ async function autoContinueForm(){
         currentId = 'periodontal'; updateStatus('MENGISI TAHAP: PERIODONTAL');
         await pilihSemuaRadioLimit('tidak', 2, true);
         await selectDropdownSurveyJS('tidak', 2);
+    }
+   else if (title.includes('penurunan kognitif')) {
+        currentId = 'skilas_kog'; updateStatus('MENGISI TAHAP: PENURUNAN KOGNITIF');
+        await isiRadioSurveyJS('mengingat tiga kata: bunga', data.skilasKog1);
+        let opsiKog2 = (data.skilasKog2 || '').toLowerCase().includes('ya') ? 'benar semua' : 'salah';
+        await isiRadioSurveyJS('tanggal berapakah hari ini', opsiKog2);
+        await isiRadioSurveyJS('mengingat tiga kata sebelumnya', data.skilasKog3);
+    }
+    else if (title.includes('mobilisasi') || title.includes('tingkat kemandirian')) {
+        currentId = 'skilas_mob'; updateStatus('MENGISI TAHAP: MOBILISASI');
+        await isiRadioSurveyJS('berdiri dari kursi lima kali', data.skilasMob);
+    }
+    else if (title.includes('malnutrisi')) {
+        currentId = 'skilas_mal'; updateStatus('MENGISI TAHAP: MALNUTRISI');
+        await isiRadioSurveyJS('berat badan anda berkurang', data.skilasMal1);
+        await isiRadioSurveyJS('hilang nafsu makan', data.skilasMal2);
+        await isiRadioSurveyJS('ukuran lingkar lengan atas', data.skilasMal3);
+    }
+    else if (title.includes('gejala depresi') || title.includes('emosional')) {
+        currentId = 'skilas_dep'; updateStatus('MENGISI TAHAP: DEPRESI');
+        let d1 = (data.skilasDep1 || 'tidak').toLowerCase();
+        let d2 = (data.skilasDep2 || 'tidak').toLowerCase();
+        let charD1 = d1.startsWith('y') ? 'y' : 't';
+        let charD2 = d2.startsWith('y') ? 'y' : 't';
+        
+        await selectDropdownContext('merasa sedih, tertekan', d1, charD1);
+        await selectDropdownContext('sedikit minat atau kesenangan', d2, charD2);
     }
 
     if(currentId) addCompleted(currentId);
