@@ -619,8 +619,9 @@ async function handleSkriningMandiri(data) {
     }
 
     // KESEHATAN JIWA
+    async function isiKesehatanJiwa(data) {
     if (pageText.includes('2 minggu terakhir') || pageText.includes('kesehatan jiwa')) {
-        await isiKesehatanJiwa();
+        await isiKesehatanJiwa(data); // <-- Tambahkan parameter 'data' di dalam kurung ini
     }
 
     // 3. KANKER LEHER RAHIM
