@@ -433,124 +433,58 @@ if (textToFindPernikahan !== "") {
 }
 
 /* ================= 2. PEKERJAAN ================= */
-    console.log("[BOT] Memproses Pekerjaan...");
-    let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
-    let jobAsli = jobTarget;
+console.log("[BOT] Memproses Pekerjaan...");
+let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
-// --- NORMALISASI / MAPPING DATA PEKERJAAN ---
-    // (Sumber: Dropdown Internal -> Target: Portal CKG)
-    const jobUpper = jobTarget.toUpperCase();
+if (jobTarget) {
+    // 1. Cari Trigger/Kotak Dropdown Pekerjaan
+    const triggers = Array.from(document.querySelectorAll('div, span'));
+    const triggerPekerjaan = triggers.find(el => 
+        (el.innerText || "").toLowerCase().trim() === "pilih pekerjaan" || 
+        ((el.innerText || "").toLowerCase().trim().includes("pekerjaan") && el.className.includes('cursor-pointer'))
+    );
 
-    // 1. Singkatan Belum Bekerja
-    if (jobUpper.includes("BLM.") || jobUpper.includes("TIDAK BEKERJA")) {
-        jobTarget = "Belum/Tidak Bekerja";
-    }
-    // 2. Singkatan Ibu Rumah Tangga
-    else if (jobUpper.includes("IBU R.TANGGA") || jobUpper.includes("IBU R")) {
-        jobTarget = "Ibu Rumah Tangga";
-    }
-    // 3. Pegawai Negeri / PNS
-    else if (jobUpper.includes("PEG. NEGERI") || jobUpper.includes("PNS")) {
-        jobTarget = "ASN (Kantor Pemerintah)";
-    }
-    // 4. Karyawan Swasta
-    else if (jobUpper.includes("KARYAWAN SWASTA")) {
-        jobTarget = "Pegawai Swasta";
-    }
-    // 5. Wiraswasta
-    else if (jobUpper.includes("WIRASWASTA")) {
-        jobTarget = "Wirausaha/Pekerja Mandiri";
-    }
-    // 6. Buruh
-    else if (jobUpper === "BURUH") {
-        jobTarget = "Pekerja Pabrik / Buruh";
-    }
-    // 7. Nelayan & Petani
-    else if (jobUpper.includes("NELAYAN")) {
-        jobTarget = "Nelayan / Perikanan";
-    }
-    else if (jobUpper.includes("PETANI")) {
-        jobTarget = "Petani / Pekebun";
-    }
-    // 8. TNI/POLRI (Di CKG dipisah, kita atur default ke TNI)
-    else if (jobUpper.includes("TNI/POLRI") || jobUpper.includes("TNI")) {
-        jobTarget = "TNI";
-    }
-    // 9. Purnawirawan (Pensiunan militer/polisi) diarahkan ke Pensiunan
-    else if (jobUpper.includes("PURNAWIRAWAN")) {
-        jobTarget = "Pensiunan";
-    }
-    // 10. Lain-lain & Profesional
-    else if (jobUpper.includes("LAIN-LAIN") || jobUpper === "PROFESIONAL") {
-        jobTarget = "Lainnya";
-    }
+    if (triggerPekerjaan) {
+        triggerPekerjaan.click();
+        await wait(1200); // Tunggu modal terbuka
 
-    // Tampilkan log jika data berhasil diterjemahkan
-    if (jobTarget !== jobAsli) {
-        console.log(`[BOT] Mapping Pekerjaan: "${jobAsli}" diterjemahkan menjadi -> "${jobTarget}"`);
-    }
-    // ----------------------------------
-    
-    if (jobTarget) {
-        // 1. Cari Trigger/Kotak Dropdown Pekerjaan
-        const triggers = Array.from(document.querySelectorAll('div, span'));
-        const triggerPekerjaan = triggers.find(el => 
-            (el.innerText || "").toLowerCase().trim() === "pilih pekerjaan" ||
-            ((el.innerText || "").toLowerCase().trim().includes("pekerjaan") && el.className.includes('cursor-pointer'))
-        );
-
-        if (triggerPekerjaan) {
-            triggerPekerjaan.click();
-            await wait(1200); // Tunggu modal terbuka penuh
-
-            // 2. Aturan Pencarian: Jika >= 3 kata (suku kata), ambil kata pertama
-            const splitKata = jobTarget.split(/\s+/); // Pisahkan berdasarkan spasi
-            let kataPencarian = jobTarget;
-            
-            if (splitKata.length >= 3) {
-                kataPencarian = splitKata[0]; // Misal: "Ibu Rumah Tangga" menjadi "Ibu"
-                console.log(`[BOT] Job >= 3 kata. Disingkat menjadi: "${kataPencarian}" agar list mengecil.`);
-            }
-
-            // Injeksi teks ke kolom search di dalam modal
-            const searchInput = document.querySelector('.modal-content input[placeholder*="Cari"], input[placeholder*="Cari"]');
-            if (searchInput) {
-                console.log(`[BOT] Mengetik pencarian: ${kataPencarian}`);
-                forceInject(searchInput, kataPencarian);
-                await wait(1500); // Wajib tunggu Vue selesai memfilter list
-            }
-
-            // 3. Looping Pencarian Tombol Asli (Polling Fix)
-            let optionFound = false;
-            for (let i = 0; i < 20; i++) {
-                // Selector persis seperti test manual Anda yang berhasil
-                const btn = [...document.querySelectorAll('.modal-content button')].find(x => 
-                    (x.innerText || "").trim().toLowerCase() === jobTarget.toLowerCase()
-                );
-
-                if (btn) {
-                    console.log(`[DEBUG] DITEMUKAN & DIKLIK: ${btn.innerText}`);
-                    btn.click(); // Klik native sesuai temuan Anda
-                    optionFound = true;
-                    await wait(1200); // Tunggu modal menutup
-                    break;
-                }
-                await wait(400); // Ulangi pencarian tiap 400ms jika tombol belum dirender
-            }
-
-            // 4. Mencegah UI Nyangkut/Error (UI Ga Kebuka)
-            if (!optionFound) {
-                console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan di list.`);
-                document.body.click(); // Paksa klik area luar agar modal tertutup & tidak error menyangkut
-                await wait(800);
-            }
-        } else {
-            console.log("[BOT] ❌ Kotak 'Pekerjaan' tidak ditemukan.");
+        // 2. Injeksi teks pencarian (karena database sudah 1:1, kita ketik full)
+        const searchInput = document.querySelector('.modal-content input[placeholder*="Cari"]');
+        if (searchInput) {
+            console.log(`[BOT] Mencari: ${jobTarget}`);
+            forceInject(searchInput, jobTarget);
+            await wait(1500); // Tunggu filter Vue bekerja
         }
-    }
 
-    // WAJIB: Jeda sebelum lanjut ke DOMISILI
-    await wait(1500);
+        // 3. Cari tombol yang teksnya SAMA PERSIS
+        let optionFound = false;
+        for (let i = 0; i < 20; i++) {
+            // Mencari button yang teksnya benar-benar sama dengan jobTarget
+            const btn = [...document.querySelectorAll('.modal-content button')].find(x => 
+                (x.innerText || "").trim() === jobTarget
+            );
+
+            if (btn) {
+                console.log(`[BOT] Ditemukan: ${btn.innerText}. Klik!`);
+                btn.click();
+                optionFound = true;
+                await wait(1000);
+                break;
+            }
+            await wait(400); 
+        }
+
+        // 4. Fallback jika tidak ketemu
+        if (!optionFound) {
+            console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan di list.`);
+            document.body.click(); // Klik luar untuk tutup modal
+            await wait(800);
+        }
+    } else {
+        console.log("[BOT] ❌ Kotak 'Pekerjaan' tidak ditemukan.");
+    }
+}
+await wait(1500);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
