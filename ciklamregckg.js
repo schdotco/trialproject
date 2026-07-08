@@ -437,59 +437,59 @@ console.log("[BOT] Memproses Pekerjaan...");
 let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
 if (jobTarget) {
-    // 1. Cari tombol/div pemicu "Pilih pekerjaan"
-    const triggers = [...document.querySelectorAll('div')];
-    const triggerPekerjaan = triggers.find(el => {
+    // 1. Cari pemicu "Pilih pekerjaan"
+    const allElements = Array.from(document.querySelectorAll('div, span'));
+    const triggerPekerjaan = allElements.find(el => {
         const txt = (el.innerText || "").trim().toLowerCase();
         return txt === "pilih pekerjaan" || txt === jobTarget.toLowerCase();
     });
 
     if (triggerPekerjaan) {
-        triggerPekerjaan.click();
+        // GUNAKAN ultraClick: Meniru mouse asli agar klik pasti masuk
+        await ultraClick(triggerPekerjaan.closest('.cursor-pointer') || triggerPekerjaan);
         await wait(1200); // Tunggu modal terbuka
 
-        // 2. Cari kotak pencarian berdasarkan placeholder persis
-        const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
+        // 2. Ketik di kotak pencarian
+        const searchInput = document.querySelector('input[placeholder*="Cari pekerjaan" i]') || document.querySelector('.modal-content input');
         if (searchInput) {
             console.log(`[BOT] Mengetik pencarian: ${jobTarget}`);
             forceInject(searchInput, jobTarget);
-            await wait(1500); // Wajib tunggu Vue.js memfilter list tombol di bawahnya
+            await wait(1000); // Beri waktu Vue.js mulai menyaring
         } else {
             console.log("[BOT] ⚠️ Kotak pencarian pekerjaan tidak ditemukan.");
         }
 
-        // 3. Ambil hasil pencarian dan klik
+        // 3. LOOPING PENCARIAN (Sangat Krusial!)
+        // Kita paksa bot mencari 15 kali (setiap 0.4 detik) sampai tombol dirender oleh Vue
         let optionFound = false;
-        const buttons = [...document.querySelectorAll('.modal-content button')];
         
-        const targetBtn = buttons.find(b => {
-            const btnText = (b.innerText || "").replace("", "").trim().toLowerCase();
-            const dicari = jobTarget.toLowerCase();
-            return btnText === dicari || btnText.includes(dicari);
-        });
+        for (let i = 0; i < 15; i++) {
+            const buttons = Array.from(document.querySelectorAll('.modal-content button'));
+            
+            const targetBtn = buttons.find(b => {
+                // textContent lebih aman dari innerText karena mengabaikan komentar HTML/Vue ()
+                const btnText = (b.textContent || "").replace(//g, "").trim().toLowerCase();
+                const dicari = jobTarget.toLowerCase();
+                return btnText === dicari || btnText.includes(dicari);
+            });
 
-        if (targetBtn) {
-            console.log(`[BOT] Ditemukan opsi: "${targetBtn.innerText.replace("", "").trim()}". Menggulir dan Klik!`);
+            if (targetBtn) {
+                console.log(`[BOT] Ditemukan opsi: "${targetBtn.innerText.trim()}". Eksekusi klik!`);
+                // GUNAKAN ultraClick agar klik & scroll otomatis ter-handle sempurna!
+                await ultraClick(targetBtn); 
+                optionFound = true;
+                await wait(1000); 
+                break; // Hentikan looping pencarian karena sudah diklik
+            }
             
-            // --- SCROLL KE ELEMEN ---
-            targetBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            await wait(500); // Beri waktu animasi scroll selesai
-            
-            // --- KLIK PAKSA (FORCE CLICK) ---
-            // Menggunakan kombinasi klik native dan event mouse agar Vue bereaksi
-            targetBtn.click();
-            targetBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
-            targetBtn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
-            
-            optionFound = true;
-            await wait(1000); 
-        } 
-        
-        // 4. Jika gagal
+            await wait(400); // Jika belum ketemu, tunggu 0.4 detik lalu cari lagi
+        }
+
+        // 4. Jika sudah dicari 15 kali dan tetap tidak ketemu
         if (!optionFound) {
             console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan.`);
             const closeBtn = document.querySelector('.modal-content header button');
-            if (closeBtn) closeBtn.click();
+            if (closeBtn) await ultraClick(closeBtn);
             else document.body.click(); 
             
             await wait(800);
