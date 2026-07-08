@@ -437,53 +437,63 @@ console.log("[BOT] Memproses Pekerjaan...");
 let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
 if (jobTarget) {
-    // 1. Cari Trigger/Kotak Dropdown Pekerjaan
-    const triggers = Array.from(document.querySelectorAll('div, span'));
+    // 1. Cari tombol/div pemicu "Pilih pekerjaan"
+    const triggers = [...document.querySelectorAll('div, span')];
     const triggerPekerjaan = triggers.find(el => 
-        (el.innerText || "").toLowerCase().trim() === "pilih pekerjaan" || 
-        ((el.innerText || "").toLowerCase().trim().includes("pekerjaan") && el.className.includes('cursor-pointer'))
+        (el.innerText || "").trim() === "Pilih pekerjaan" ||
+        (el.innerText || "").trim() === jobTarget // Berjaga-jaga jika form sudah terisi sebelumnya
     );
 
     if (triggerPekerjaan) {
         triggerPekerjaan.click();
-        await wait(1200); // Tunggu modal terbuka
+        await wait(1200); // Tunggu animasi modal slide-down terbuka
 
-        // 2. Injeksi teks pencarian (karena database sudah 1:1, kita ketik full)
-        const searchInput = document.querySelector('.modal-content input[placeholder*="Cari"]');
+        // 2. Cari kotak pencarian berdasarkan placeholder persis di HTML Anda
+        const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
         if (searchInput) {
-            console.log(`[BOT] Mencari: ${jobTarget}`);
+            console.log(`[BOT] Mengetik pencarian: ${jobTarget}`);
             forceInject(searchInput, jobTarget);
-            await wait(1500); // Tunggu filter Vue bekerja
+            await wait(1500); // Wajib tunggu Vue.js memfilter list tombol di bawahnya
+        } else {
+            console.log("[BOT] ⚠️ Kotak pencarian pekerjaan tidak ditemukan.");
         }
 
-        // 3. Cari tombol yang teksnya SAMA PERSIS
+        // 3. Ambil hasil pencarian dan klik
         let optionFound = false;
-        for (let i = 0; i < 20; i++) {
-            // Mencari button yang teksnya benar-benar sama dengan jobTarget
-            const btn = [...document.querySelectorAll('.modal-content button')].find(x => 
-                (x.innerText || "").trim() === jobTarget
-            );
+        
+        // Ambil semua tag <button> yang ada di dalam modal
+        const buttons = [...document.querySelectorAll('.modal-content button')];
+        
+        // Cari tombol yang teksnya sama persis dengan jobTarget
+        const targetBtn = buttons.find(b => {
+            // Hapus teks (komentar Vue) yang mungkin ikut terbaca di innerText
+            const btnText = (b.innerText || "").replace("", "").trim();
+            return btnText === jobTarget;
+        });
 
-            if (btn) {
-                console.log(`[BOT] Ditemukan: ${btn.innerText}. Klik!`);
-                btn.click();
-                optionFound = true;
-                await wait(1000);
-                break;
-            }
-            await wait(400); 
-        }
-
-        // 4. Fallback jika tidak ketemu
+        if (targetBtn) {
+            console.log(`[BOT] Ditemukan opsi: "${targetBtn.innerText.trim()}". Klik!`);
+            targetBtn.click();
+            optionFound = true;
+            await wait(1000); // Tunggu modal menutup setelah diklik
+        } 
+        
+        // 4. Jika gagal/tidak ketemu, kita harus tutup modal agar proses bot tidak nyangkut
         if (!optionFound) {
-            console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan di list.`);
-            document.body.click(); // Klik luar untuk tutup modal
+            console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan.`);
+            // Klik tombol X (Close) di sudut kanan atas modal (berdasarkan HTML Anda)
+            const closeBtn = document.querySelector('.modal-content header button');
+            if (closeBtn) closeBtn.click();
+            else document.body.click(); // Fallback klik area luar
+            
             await wait(800);
         }
     } else {
-        console.log("[BOT] ❌ Kotak 'Pekerjaan' tidak ditemukan.");
+        console.log("[BOT] ❌ Tombol pemicu 'Pilih pekerjaan' tidak ditemukan.");
     }
 }
+
+// Jeda sebelum lanjut ke field berikutnya
 await wait(1500);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
