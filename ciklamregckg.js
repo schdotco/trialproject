@@ -440,51 +440,52 @@ if (jobTarget) {
     // 1. Cari tombol/div pemicu "Pilih pekerjaan"
     const triggers = [...document.querySelectorAll('div, span')];
     const triggerPekerjaan = triggers.find(el => 
-        (el.innerText || "").trim() === "Pilih pekerjaan" ||
-        (el.innerText || "").trim() === jobTarget // Berjaga-jaga jika form sudah terisi sebelumnya
+        (el.innerText || "").trim().toLowerCase() === "pilih pekerjaan" ||
+        (el.innerText || "").trim().toLowerCase() === jobTarget.toLowerCase()
     );
 
     if (triggerPekerjaan) {
         triggerPekerjaan.click();
-        await wait(1200); // Tunggu animasi modal slide-down terbuka
+        await wait(1200); // Tunggu animasi modal terbuka
 
-        // 2. Cari kotak pencarian berdasarkan placeholder persis di HTML Anda
-        const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
+        // 2. Cari kotak pencarian (Lebih Fleksibel)
+        // Mencari input apapun di dalam modal yang memiliki placeholder mengandung kata "Cari"
+        const searchInput = document.querySelector('.modal-content input[placeholder*="Cari" i]') || document.querySelector('.modal-content input');
+        
         if (searchInput) {
             console.log(`[BOT] Mengetik pencarian: ${jobTarget}`);
             forceInject(searchInput, jobTarget);
-            await wait(1500); // Wajib tunggu Vue.js memfilter list tombol di bawahnya
+            await wait(1500); // Tunggu filter Vue.js bekerja
         } else {
             console.log("[BOT] ⚠️ Kotak pencarian pekerjaan tidak ditemukan.");
         }
 
         // 3. Ambil hasil pencarian dan klik
         let optionFound = false;
-        
-        // Ambil semua tag <button> yang ada di dalam modal
         const buttons = [...document.querySelectorAll('.modal-content button')];
         
-        // Cari tombol yang teksnya sama persis dengan jobTarget
         const targetBtn = buttons.find(b => {
-            // Hapus teks (komentar Vue) yang mungkin ikut terbaca di innerText
-            const btnText = (b.innerText || "").replace("", "").trim();
-            return btnText === jobTarget;
+            const btnText = (b.innerText || "").replace("", "").trim().toLowerCase();
+            const dicari = jobTarget.toLowerCase();
+            
+            // Logika baru: Coba cari yang sama persis dulu. 
+            // Kalau tidak ada, cari yang mengandung kata tersebut (contoh: "buruh" ada di dalam "pekerja pabrik / buruh")
+            return btnText === dicari || btnText.includes(dicari);
         });
 
         if (targetBtn) {
             console.log(`[BOT] Ditemukan opsi: "${targetBtn.innerText.trim()}". Klik!`);
             targetBtn.click();
             optionFound = true;
-            await wait(1000); // Tunggu modal menutup setelah diklik
+            await wait(1000); 
         } 
         
-        // 4. Jika gagal/tidak ketemu, kita harus tutup modal agar proses bot tidak nyangkut
+        // 4. Jika gagal/tidak ketemu
         if (!optionFound) {
             console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan.`);
-            // Klik tombol X (Close) di sudut kanan atas modal (berdasarkan HTML Anda)
             const closeBtn = document.querySelector('.modal-content header button');
             if (closeBtn) closeBtn.click();
-            else document.body.click(); // Fallback klik area luar
+            else document.body.click(); 
             
             await wait(800);
         }
@@ -493,7 +494,6 @@ if (jobTarget) {
     }
 }
 
-// Jeda sebelum lanjut ke field berikutnya
 await wait(1500);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
