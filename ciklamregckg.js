@@ -432,74 +432,65 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN ================= */
-console.log("[BOT] Memproses Pekerjaan...");
-let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
+/* ================= 2. PEKERJAAN (YANG SUDAH DIPERBAIKI SINTAKSNYA) ================= */
+    console.log("[BOT] Memproses Pekerjaan...");
+    let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
-if (jobTarget) {
-    // 1. Cari pemicu "Pilih pekerjaan"
-    const allElements = Array.from(document.querySelectorAll('div, span'));
-    const triggerPekerjaan = allElements.find(el => {
-        const txt = (el.innerText || "").trim().toLowerCase();
-        return txt === "pilih pekerjaan" || txt === jobTarget.toLowerCase();
-    });
+    if (jobTarget) {
+        const allElements = Array.from(document.querySelectorAll('div, span'));
+        const triggerPekerjaan = allElements.find(el => {
+            const txt = (el.innerText || "").trim().toLowerCase();
+            return txt === "pilih pekerjaan" || txt === jobTarget.toLowerCase();
+        });
 
-    if (triggerPekerjaan) {
-        // GUNAKAN ultraClick: Meniru mouse asli agar klik pasti masuk
-        await ultraClick(triggerPekerjaan.closest('.cursor-pointer') || triggerPekerjaan);
-        await wait(1200); // Tunggu modal terbuka
+        if (triggerPekerjaan) {
+            await ultraClick(triggerPekerjaan.closest('.cursor-pointer') || triggerPekerjaan);
+            await wait(1200); 
 
-        // 2. Ketik di kotak pencarian
-        const searchInput = document.querySelector('input[placeholder*="Cari pekerjaan" i]') || document.querySelector('.modal-content input');
-        if (searchInput) {
-            console.log(`[BOT] Mengetik pencarian: ${jobTarget}`);
-            forceInject(searchInput, jobTarget);
-            await wait(1000); // Beri waktu Vue.js mulai menyaring
-        } else {
-            console.log("[BOT] ⚠️ Kotak pencarian pekerjaan tidak ditemukan.");
-        }
-
-        // 3. LOOPING PENCARIAN (Sangat Krusial!)
-        // Kita paksa bot mencari 15 kali (setiap 0.4 detik) sampai tombol dirender oleh Vue
-        let optionFound = false;
-        
-        for (let i = 0; i < 15; i++) {
-            const buttons = Array.from(document.querySelectorAll('.modal-content button'));
-            
-            const targetBtn = buttons.find(b => {
-                // textContent lebih aman dari innerText karena mengabaikan komentar HTML/Vue ()
-                const btnText = (b.textContent || "").replace(//g, "").trim().toLowerCase();
-                const dicari = jobTarget.toLowerCase();
-                return btnText === dicari || btnText.includes(dicari);
-            });
-
-            if (targetBtn) {
-                console.log(`[BOT] Ditemukan opsi: "${targetBtn.innerText.trim()}". Eksekusi klik!`);
-                // GUNAKAN ultraClick agar klik & scroll otomatis ter-handle sempurna!
-                await ultraClick(targetBtn); 
-                optionFound = true;
+            const searchInput = document.querySelector('input[placeholder*="Cari pekerjaan" i]') || document.querySelector('.modal-content input');
+            if (searchInput) {
+                console.log(`[BOT] Mengetik pencarian: ${jobTarget}`);
+                forceInject(searchInput, jobTarget);
                 await wait(1000); 
-                break; // Hentikan looping pencarian karena sudah diklik
             }
-            
-            await wait(400); // Jika belum ketemu, tunggu 0.4 detik lalu cari lagi
-        }
 
-        // 4. Jika sudah dicari 15 kali dan tetap tidak ketemu
-        if (!optionFound) {
-            console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan.`);
-            const closeBtn = document.querySelector('.modal-content header button');
-            if (closeBtn) await ultraClick(closeBtn);
-            else document.body.click(); 
+            let optionFound = false;
             
-            await wait(800);
+            for (let i = 0; i < 15; i++) {
+                const buttons = Array.from(document.querySelectorAll('.modal-content button'));
+                
+                const targetBtn = buttons.find(b => {
+                    // PENGGUNAAN STRING REPLACE YANG AMAN (TIDAK AKAN MENJADI KOMENTAR)
+                    const rawText = b.textContent || b.innerText || "";
+                    const bersih = rawText.replace("<" + "!" + "--" + "--" + ">", "");
+                    const btnText = bersih.trim().toLowerCase();
+                    const dicari = jobTarget.toLowerCase();
+                    return btnText === dicari || btnText.includes(dicari);
+                });
+
+                if (targetBtn) {
+                    console.log(`[BOT] Ditemukan opsi: "${targetBtn.innerText.trim()}". Eksekusi klik!`);
+                    await ultraClick(targetBtn); 
+                    optionFound = true;
+                    await wait(1000); 
+                    break;
+                }
+                await wait(400); 
+            }
+
+            if (!optionFound) {
+                console.log(`[BOT] ❌ GAGAL: Opsi "${jobTarget}" tidak ditemukan.`);
+                const closeBtn = document.querySelector('.modal-content header button');
+                if (closeBtn) await ultraClick(closeBtn);
+                else document.body.click(); 
+                
+                await wait(800);
+            }
+        } else {
+            console.log("[BOT] ❌ Tombol pemicu 'Pilih pekerjaan' tidak ditemukan.");
         }
-    } else {
-        console.log("[BOT] ❌ Tombol pemicu 'Pilih pekerjaan' tidak ditemukan.");
     }
-}
-
-await wait(1500);
+    await wait(1500);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
