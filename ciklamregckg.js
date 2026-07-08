@@ -432,56 +432,50 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN ================= */
-console.log("[BOT] Memproses Pekerjaan...");
-let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
+/* ================= 2. PEKERJAAN (SUDAH DIATASI FILTER CHATNYA) ================= */
+    console.log("[BOT] Memproses Pekerjaan...");
+    let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
-if (jobTarget) {
-    // 1. Cari pemicu "Pilih pekerjaan"
-    const allDivs = Array.from(document.querySelectorAll('div'));
-    const triggerPekerjaan = allDivs.find(el => el.innerText.trim() === "Pilih pekerjaan");
+    if (jobTarget) {
+        const allDivs = Array.from(document.querySelectorAll('div'));
+        const triggerPekerjaan = allDivs.find(el => el.innerText.trim() === "Pilih pekerjaan");
 
-    if (triggerPekerjaan) {
-        // Klik pemicu
-        await ultraClick(triggerPekerjaan);
-        await wait(1500); // Tunggu modal animasi terbuka
+        if (triggerPekerjaan) {
+            await ultraClick(triggerPekerjaan);
+            await wait(1500);
 
-        // 2. Isi Pencarian (Input Cari pekerjaan)
-        const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
-        if (searchInput) {
-            forceInject(searchInput, jobTarget);
-            await wait(1500); // Tunggu Vue memfilter list
-        }
+            const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
+            if (searchInput) {
+                forceInject(searchInput, jobTarget);
+                await wait(1500); 
+            }
 
-        // 3. Klik tombol pilihan
-        let found = false;
-        // Cari tombol di dalam modal-content
-        const modalButtons = Array.from(document.querySelectorAll('.modal-content button'));
-        
-        for (let btn of modalButtons) {
-            // Membersihkan teks dari komentar Vue agar pencocokan akurat
-            let btnText = btn.innerText.replace(//g, "").trim();
+            let found = false;
+            const modalButtons = Array.from(document.querySelectorAll('.modal-content button'));
             
-            // Cek apakah teks tombol sama dengan database
-            if (btnText.toLowerCase() === jobTarget.toLowerCase()) {
-                console.log(`[BOT] Menemukan: ${btnText}. Mengklik...`);
-                await ultraClick(btn);
-                found = true;
-                await wait(1000);
-                break;
+            // INI BAGIAN YANG SAYA PECAH AGAR CHAT TIDAK MENGHAPUSNYA
+            const komentarVue = "<" + "!" + "-" + "-" + "-" + "-" + ">"; 
+
+            for (let btn of modalButtons) {
+                // Menggunakan split.join sebagai pengganti replace agar tidak crash
+                let btnText = (btn.innerText || "").split(komentarVue).join("").trim();
+                
+                if (btnText.toLowerCase() === jobTarget.toLowerCase()) {
+                    console.log(`[BOT] Menemukan: ${btnText}. Mengklik...`);
+                    await ultraClick(btn);
+                    found = true;
+                    await wait(1000);
+                    break;
+                }
+            }
+
+            if (!found) {
+                console.log(`[BOT] ⚠️ Opsi "${jobTarget}" tidak ditemukan di list.`);
+                document.body.click();
             }
         }
-
-        if (!found) {
-            console.log(`[BOT] ⚠️ Opsi "${jobTarget}" tidak ditemukan di list.`);
-            // Jika tidak ditemukan, klik luar untuk menutup modal agar tidak menyangkut
-            document.body.click();
-        }
-    } else {
-        console.log("[BOT] ❌ Tombol 'Pilih pekerjaan' tidak ditemukan.");
     }
-}
-await wait(1000);
+    await wait(1000);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
