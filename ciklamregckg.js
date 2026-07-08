@@ -435,54 +435,38 @@ if (textToFindPernikahan !== "") {
 /* ================= FUNGSI UNIFIKASI ================= */
 async function pilihOpsiDiModal(triggerKeyword, targetValue, useSearch = false) {
     console.log(`[BOT] Memproses: ${triggerKeyword} -> Target: ${targetValue}`);
-
-    // 1. Klik pemicu modal
     const triggers = Array.from(document.querySelectorAll('div, span'));
     const trigger = triggers.find(el => (el.innerText || "").trim().toLowerCase().includes(triggerKeyword.toLowerCase()));
     
-    if (!trigger) {
-        console.log(`[BOT] ❌ Trigger "${triggerKeyword}" tidak ditemukan`);
-        return false;
-    }
-    
+    if (!trigger) return false;
     await ultraClick(trigger.closest('.cursor-pointer') || trigger);
-    await wait(1500); // Tunggu modal terbuka
+    await wait(1500);
 
-    // 2. Jika perlu cari (Search Input)
     if (useSearch) {
         const searchInput = document.querySelector('.modal-content input[type="text"]');
         if (searchInput) {
             forceInject(searchInput, targetValue);
-            await wait(1500); // Tunggu API filter bekerja
+            await wait(1500);
         }
     }
 
-    // 3. Polling / Looping cari tombol (LOGIKA DOMISILI)
     let optionFound = false;
     for (let i = 0; i < 20; i++) {
-        // Cari semua tombol di dalam modal
         const buttons = Array.from(document.querySelectorAll('.modal-content button'));
-        
-        // Cari tombol yang teksnya cocok
         const targetBtn = buttons.find(b => {
-            const btnText = (b.innerText || "").replace(//g, "").trim().toLowerCase();
+            const btnText = (b.innerText || "").trim().toLowerCase();
             return btnText === targetValue.toLowerCase() || btnText.includes(targetValue.toLowerCase());
         });
 
         if (targetBtn) {
-            console.log(`[BOT] ✅ Ditemukan: "${targetBtn.innerText.trim()}". Mengklik...`);
             await ultraClick(targetBtn);
             optionFound = true;
             await wait(1000);
             break;
         }
-        await wait(500); // Tunggu render tombol
+        await wait(500);
     }
-
-    if (!optionFound) {
-        console.log(`[BOT] ❌ GAGAL: Opsi "${targetValue}" tidak ditemukan.`);
-        document.body.click(); // Tutup modal
-    }
+    if (!optionFound) document.body.click();
     return optionFound;
 }
 
