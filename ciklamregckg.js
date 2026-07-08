@@ -432,36 +432,37 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN (SUDAH DIATASI FILTER CHATNYA) ================= */
+/* ================= 2. PEKERJAAN (SIMPLE & EXACT MATCH) ================= */
     console.log("[BOT] Memproses Pekerjaan...");
     let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
     if (jobTarget) {
         const allDivs = Array.from(document.querySelectorAll('div'));
-        const triggerPekerjaan = allDivs.find(el => el.innerText.trim() === "Pilih pekerjaan");
+        const triggerPekerjaan = allDivs.find(el => (el.innerText || "").trim() === "Pilih pekerjaan");
 
         if (triggerPekerjaan) {
+            // Klik untuk membuka modal pekerjaan
             await ultraClick(triggerPekerjaan);
             await wait(1500);
 
+            // Ketik nama pekerjaan di kolom pencarian agar daftarnya tersaring
             const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
             if (searchInput) {
                 forceInject(searchInput, jobTarget);
-                await wait(1500); 
+                await wait(1500); // Tunggu hasil saringan muncul
             }
 
             let found = false;
+            // Ambil semua tombol pekerjaan di dalam modal
             const modalButtons = Array.from(document.querySelectorAll('.modal-content button'));
             
-            // INI BAGIAN YANG SAYA PECAH AGAR CHAT TIDAK MENGHAPUSNYA
-            const komentarVue = "<" + "!" + "-" + "-" + "-" + "-" + ">"; 
-
             for (let btn of modalButtons) {
-                // Menggunakan split.join sebagai pengganti replace agar tidak crash
-                let btnText = (btn.innerText || "").split(komentarVue).join("").trim();
+                // Ambil teks tombol apa adanya
+                let btnText = (btn.innerText || "").trim();
                 
+                // Cek apakah teks tombol SAMA PERSIS dengan data excel Anda (tanpa mempedulikan huruf besar/kecil)
                 if (btnText.toLowerCase() === jobTarget.toLowerCase()) {
-                    console.log(`[BOT] Menemukan: ${btnText}. Mengklik...`);
+                    console.log(`[BOT] ✅ Menemukan opsi pekerjaan: "${btnText}". Mengklik...`);
                     await ultraClick(btn);
                     found = true;
                     await wait(1000);
@@ -470,9 +471,12 @@ if (textToFindPernikahan !== "") {
             }
 
             if (!found) {
-                console.log(`[BOT] ⚠️ Opsi "${jobTarget}" tidak ditemukan di list.`);
+                console.log(`[BOT] ⚠️ Opsi pekerjaan "${jobTarget}" tidak ditemukan di daftar web.`);
+                // Klik di luar modal untuk menutupnya agar tidak nyangkut
                 document.body.click();
             }
+        } else {
+            console.log("[BOT] ❌ Tombol 'Pilih pekerjaan' tidak ditemukan di layar.");
         }
     }
     await wait(1000);
