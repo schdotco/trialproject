@@ -432,51 +432,56 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN (SIMPLE & EXACT MATCH) ================= */
+/* ================= 2. PEKERJAAN (PERSISI SESUAI HTML MODAL) ================= */
     console.log("[BOT] Memproses Pekerjaan...");
     let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
     if (jobTarget) {
+        // Cari pemicu berdasarkan teks di dalam div dropdown utama
         const allDivs = Array.from(document.querySelectorAll('div'));
         const triggerPekerjaan = allDivs.find(el => (el.innerText || "").trim() === "Pilih pekerjaan");
 
         if (triggerPekerjaan) {
-            // Klik untuk membuka modal pekerjaan
+            // Klik kotak utama untuk memunculkan modal pekerjaan
             await ultraClick(triggerPekerjaan);
             await wait(1500);
 
-            // Ketik nama pekerjaan di kolom pencarian agar daftarnya tersaring
+            // Menyuntikkan kata kunci ke input "Cari pekerjaan"
             const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
             if (searchInput) {
                 forceInject(searchInput, jobTarget);
-                await wait(1500); // Tunggu hasil saringan muncul
+                await wait(1500); // Tunggu filter Vue memproses list
             }
 
             let found = false;
-            // Ambil semua tombol pekerjaan di dalam modal
-            const modalButtons = Array.from(document.querySelectorAll('.modal-content button'));
             
-            for (let btn of modalButtons) {
-                // Ambil teks tombol apa adanya
-                let btnText = (btn.innerText || "").trim();
-                
-                // Cek apakah teks tombol SAMA PERSIS dengan data excel Anda (tanpa mempedulikan huruf besar/kecil)
-                if (btnText.toLowerCase() === jobTarget.toLowerCase()) {
-                    console.log(`[BOT] ✅ Menemukan opsi pekerjaan: "${btnText}". Mengklik...`);
-                    await ultraClick(btn);
+            // Cari elemen div di dalam list modal yang teks utamanya cocok
+            const optionDivs = Array.from(document.querySelectorAll('.modal-content div.flex.items-center.justify-between'));
+            
+            const targetDiv = optionDivs.find(el => {
+                // Gunakan textContent untuk membaca text mentah asli di dalam elemen
+                let text = (el.textContent || "").trim();
+                return text.toLowerCase() === jobTarget.toLowerCase();
+            });
+
+            if (targetDiv) {
+                // Temukan elemen tombol penampung terdekatnya
+                const parentButton = targetDiv.closest('button');
+                if (parentButton) {
+                    console.log(`[BOT] ✅ Opsi ditemukan: "${jobTarget}". Mengklik tombol...`);
+                    await ultraClick(parentButton);
                     found = true;
                     await wait(1000);
-                    break;
                 }
             }
 
             if (!found) {
-                console.log(`[BOT] ⚠️ Opsi pekerjaan "${jobTarget}" tidak ditemukan di daftar web.`);
-                // Klik di luar modal untuk menutupnya agar tidak nyangkut
+                console.log(`[BOT] ⚠️ Opsi pekerjaan "${jobTarget}" tidak ditemukan pada daftar.`);
+                // Klik area luar/body untuk menutup modal agar alur tidak macet
                 document.body.click();
             }
         } else {
-            console.log("[BOT] ❌ Tombol 'Pilih pekerjaan' tidak ditemukan di layar.");
+            console.log("[BOT] ❌ Tombol pemicu 'Pilih pekerjaan' tidak ditemukan.");
         }
     }
     await wait(1000);
