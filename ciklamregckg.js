@@ -432,49 +432,54 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= FUNGSI UNIFIKASI ================= */
-async function pilihOpsiDiModal(triggerKeyword, targetValue, useSearch = false) {
-    console.log(`[BOT] Memproses: ${triggerKeyword} -> Target: ${targetValue}`);
-    const triggers = Array.from(document.querySelectorAll('div, span'));
-    const trigger = triggers.find(el => (el.innerText || "").trim().toLowerCase().includes(triggerKeyword.toLowerCase()));
-    
-    if (!trigger) return false;
-    await ultraClick(trigger.closest('.cursor-pointer') || trigger);
-    await wait(1500);
-
-    if (useSearch) {
-        const searchInput = document.querySelector('.modal-content input[type="text"]');
-        if (searchInput) {
-            forceInject(searchInput, targetValue);
-            await wait(1500);
-        }
-    }
-
-    let optionFound = false;
-    for (let i = 0; i < 20; i++) {
-        const buttons = Array.from(document.querySelectorAll('.modal-content button'));
-        const targetBtn = buttons.find(b => {
-            const btnText = (b.innerText || "").trim().toLowerCase();
-            return btnText === targetValue.toLowerCase() || btnText.includes(targetValue.toLowerCase());
-        });
-
-        if (targetBtn) {
-            await ultraClick(targetBtn);
-            optionFound = true;
-            await wait(1000);
-            break;
-        }
-        await wait(500);
-    }
-    if (!optionFound) document.body.click();
-    return optionFound;
-}
-
-/* ================= 2. PEKERJAAN (PENGGUNAAN) ================= */
+/* ================= 2. PEKERJAAN ================= */
+console.log("[BOT] Memproses Pekerjaan...");
 let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
+
 if (jobTarget) {
-    // Parameter: Keyword Pemicu, Nilai yang dicari, Pakai pencarian (true/false)
-    await pilihOpsiDiModal("Pilih pekerjaan", jobTarget, true);
+    // 1. Cari pemicu "Pilih pekerjaan"
+    const allDivs = Array.from(document.querySelectorAll('div'));
+    const triggerPekerjaan = allDivs.find(el => el.innerText.trim() === "Pilih pekerjaan");
+
+    if (triggerPekerjaan) {
+        // Klik pemicu
+        await ultraClick(triggerPekerjaan);
+        await wait(1500); // Tunggu modal animasi terbuka
+
+        // 2. Isi Pencarian (Input Cari pekerjaan)
+        const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
+        if (searchInput) {
+            forceInject(searchInput, jobTarget);
+            await wait(1500); // Tunggu Vue memfilter list
+        }
+
+        // 3. Klik tombol pilihan
+        let found = false;
+        // Cari tombol di dalam modal-content
+        const modalButtons = Array.from(document.querySelectorAll('.modal-content button'));
+        
+        for (let btn of modalButtons) {
+            // Membersihkan teks dari komentar Vue agar pencocokan akurat
+            let btnText = btn.innerText.replace(//g, "").trim();
+            
+            // Cek apakah teks tombol sama dengan database
+            if (btnText.toLowerCase() === jobTarget.toLowerCase()) {
+                console.log(`[BOT] Menemukan: ${btnText}. Mengklik...`);
+                await ultraClick(btn);
+                found = true;
+                await wait(1000);
+                break;
+            }
+        }
+
+        if (!found) {
+            console.log(`[BOT] ⚠️ Opsi "${jobTarget}" tidak ditemukan di list.`);
+            // Jika tidak ditemukan, klik luar untuk menutup modal agar tidak menyangkut
+            document.body.click();
+        }
+    } else {
+        console.log("[BOT] ❌ Tombol 'Pilih pekerjaan' tidak ditemukan.");
+    }
 }
 await wait(1000);
 
