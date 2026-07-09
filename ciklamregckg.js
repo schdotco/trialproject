@@ -432,12 +432,12 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN (SUPER SAFE SEARCH & CLICK) ================= */
+/* ================= 2. PEKERJAAN (METODE CARI & SCROLL LANGSUNG) ================= */
     console.log("[BOT] Memproses Pekerjaan...");
     let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
     if (jobTarget) {
-        // 1. Cari pemicu dropdown Pekerjaan
+        // 1. Temukan dan klik "Pilih pekerjaan" untuk membuka modal
         const allElements = Array.from(document.querySelectorAll('div, span'));
         const triggerDiv = allElements.find(el => {
             const txt = (el.textContent || "").toLowerCase().trim();
@@ -445,53 +445,39 @@ if (textToFindPernikahan !== "") {
         });
 
         if (triggerDiv) {
-            console.log("[BOT] Kotak Pekerjaan ditemukan. Membuka modal...");
-            
-            // Klik area kotak
+            console.log("[BOT] Menemukan kotak Pekerjaan, membuka modal...");
             const clickableArea = triggerDiv.closest('.relative') || triggerDiv.closest('.cursor-pointer') || triggerDiv;
             clickableArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
             await wait(500);
             await ultraClick(clickableArea);
-            await wait(1500); // Tunggu modal benar-benar terbuka
-
-            // 2. TEMBAK KE KOLOM PENCARIAN
-            // Menggunakan selector spesifik sesuai HTML yang Anda berikan
-            const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
             
-            if (searchInput) {
-                console.log(`[BOT] Mengetik "${jobTarget}" ke kolom pencarian...`);
-                
-                // Fokuskan dulu sebelum menyuntikkan teks (Penting untuk Vue)
-                searchInput.focus(); 
-                forceInject(searchInput, jobTarget);
-                
-                // Beri pancingan event keyboard buatan agar fitur filter Vue menyala
-                searchInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
-                
-                // JEDA PENTING: Tunggu 1.5 detik agar list memproses saringan teks
-                await wait(1500); 
-            } else {
-                console.log("[BOT] ⚠️ Kolom pencarian 'Cari pekerjaan' tidak ditemukan di modal.");
-            }
+            // Tunggu modal muncul sepenuhnya (animasi slide-down)
+            await wait(1500); 
 
-            // 3. CARI DAN KLIK HASIL PENCARIAN
+            // 2. Langsung cari opsi pekerjaan di dalam list tanpa perlu mengetik
             let found = false;
             
-            // Ambil opsi yang tersisa/tampil di dalam modal
+            // Ambil semua div yang berisi nama pekerjaan di dalam modal
             const optionDivs = Array.from(document.querySelectorAll('.modal-content div.flex.items-center.justify-between'));
             
             for (let el of optionDivs) {
                 let text = (el.textContent || "").trim().toLowerCase();
                 
-                // Pencocokan: Bisa sama persis ATAU mengandung kata dari Excel
+                // Jika teks sama atau mengandung teks target
                 if (text === jobTarget.toLowerCase() || text.includes(jobTarget.toLowerCase())) {
                     const parentBtn = el.closest('button');
                     if (parentBtn) {
-                        console.log(`[BOT] ✅ Menemukan hasil pekerjaan: "${el.textContent.trim()}". Mengklik...`);
+                        console.log(`[BOT] ✅ Pekerjaan cocok: "${el.textContent.trim()}". Scroll & Klik...`);
+                        
+                        // Scroll opsi tersebut ke tengah modal agar bisa diklik
+                        parentBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        await wait(500); // Tunggu scroll selesai
+                        
+                        // Klik tombolnya
                         await ultraClick(parentBtn);
                         found = true;
                         
-                        // Jeda agar modal punya waktu untuk tertutup animasi slide-down nya
+                        // Jeda agar modal tertutup
                         await wait(2000); 
                         break; 
                     }
@@ -499,17 +485,17 @@ if (textToFindPernikahan !== "") {
             }
 
             if (!found) {
-                console.log(`[BOT] ⚠️ Pekerjaan "${jobTarget}" tidak ada di pilihan / gagal difilter.`);
-                // Klik paksa area luar form untuk menutup modal agar script tidak mandek
+                console.log(`[BOT] ⚠️ Pekerjaan "${jobTarget}" tidak ditemukan di list.`);
+                // Tutup modal dengan mengklik di luar area
                 document.body.click(); 
                 await wait(2000);
             }
         } else {
-            console.log("[BOT] ❌ Teks pemicu 'Pilih pekerjaan' tidak ditemukan.");
+            console.log("[BOT] ❌ Teks 'Pilih pekerjaan' tidak ditemukan di layar.");
         }
     }
     
-    // Jeda pengaman (Race Condition) sebelum maju ke fungsi DOMISILI
+    // Jeda pengaman sebelum masuk ke fungsi Domisili
     await wait(3000);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
