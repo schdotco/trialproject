@@ -432,52 +432,75 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN (METODE CARI & SCROLL LANGSUNG) ================= */
+/* ================= 2. PEKERJAAN (FIXED: ANTI GHOST ELEMENT + SEARCH) ================= */
     console.log("[BOT] Memproses Pekerjaan...");
     let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
     if (jobTarget) {
-        // 1. Temukan dan klik "Pilih pekerjaan" untuk membuka modal
+        // 1. CARI KOTAK PEMICU (HANYA YANG TERLIHAT DI LAYAR)
         const allElements = Array.from(document.querySelectorAll('div, span'));
         const triggerDiv = allElements.find(el => {
-            const txt = (el.textContent || "").toLowerCase().trim();
-            return txt === "pilih pekerjaan" && el.children.length === 0;
+            // WAJIB pakai innerText agar elemen tersembunyi (hidden) diabaikan
+            const txt = (el.innerText || "").toLowerCase().trim(); 
+            // Ambil ukuran elemen untuk memastikan ia tampil di layar
+            const rect = el.getBoundingClientRect();
+            
+            // Syarat: Teks persis, tidak punya anak elemen, dan lebarnya > 0 (bukan elemen gaib)
+            return txt === "pilih pekerjaan" && el.children.length === 0 && rect.width > 0;
         });
 
         if (triggerDiv) {
-            console.log("[BOT] Menemukan kotak Pekerjaan, membuka modal...");
-            const clickableArea = triggerDiv.closest('.relative') || triggerDiv.closest('.cursor-pointer') || triggerDiv;
+            console.log("[BOT] Kotak Pekerjaan VALID ditemukan! Membuka modal...");
+            
+            // Naik ke pembungkus terdekat yang punya event klik
+            const clickableArea = triggerDiv.closest('.cursor-pointer') || triggerDiv;
+            
+            // Posisikan tepat di tengah layar agar klik tidak meleset
             clickableArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            await wait(500);
+            await wait(800);
+            
+            // Eksekusi klik
             await ultraClick(clickableArea);
             
-            // Tunggu modal muncul sepenuhnya (animasi slide-down)
+            // WAJIB JEDA: Tunggu modal animasi slide-down muncul sepenuhnya
             await wait(1500); 
 
-            // 2. Langsung cari opsi pekerjaan di dalam list tanpa perlu mengetik
+            // 2. TEMBAK KE KOLOM PENCARIAN (AGAR TERSORTIR)
+            const searchInput = document.querySelector('input[placeholder="Cari pekerjaan"]');
+            if (searchInput) {
+                console.log(`[BOT] Mengetik "${jobTarget}" untuk menyortir...`);
+                searchInput.focus(); 
+                forceInject(searchInput, jobTarget);
+                
+                // Trigger event keyboard agar Vue bereaksi dan memfilter list
+                searchInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+                
+                // Jeda agar Vue memproses filter menjadi 1 pilihan
+                await wait(1500); 
+            } else {
+                console.log("[BOT] ⚠️ Kolom 'Cari pekerjaan' tidak muncul. (Fallback klik ulang)");
+                clickableArea.click();
+                await wait(1500);
+            }
+
+            // 3. AMBIL DAN KLIK HASIL YANG SUDAH TERSORTIR
             let found = false;
-            
-            // Ambil semua div yang berisi nama pekerjaan di dalam modal
             const optionDivs = Array.from(document.querySelectorAll('.modal-content div.flex.items-center.justify-between'));
             
             for (let el of optionDivs) {
-                let text = (el.textContent || "").trim().toLowerCase();
+                let text = (el.innerText || "").trim().toLowerCase();
                 
-                // Jika teks sama atau mengandung teks target
                 if (text === jobTarget.toLowerCase() || text.includes(jobTarget.toLowerCase())) {
                     const parentBtn = el.closest('button');
                     if (parentBtn) {
-                        console.log(`[BOT] ✅ Pekerjaan cocok: "${el.textContent.trim()}". Scroll & Klik...`);
-                        
-                        // Scroll opsi tersebut ke tengah modal agar bisa diklik
+                        console.log(`[BOT] ✅ Pekerjaan ditemukan: "${text}". Mengeklik...`);
                         parentBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        await wait(500); // Tunggu scroll selesai
+                        await wait(500);
                         
-                        // Klik tombolnya
                         await ultraClick(parentBtn);
                         found = true;
                         
-                        // Jeda agar modal tertutup
+                        // Jeda agar modal punya waktu untuk tertutup
                         await wait(2000); 
                         break; 
                     }
@@ -485,18 +508,18 @@ if (textToFindPernikahan !== "") {
             }
 
             if (!found) {
-                console.log(`[BOT] ⚠️ Pekerjaan "${jobTarget}" tidak ditemukan di list.`);
-                // Tutup modal dengan mengklik di luar area
+                console.log(`[BOT] ⚠️ Pekerjaan "${jobTarget}" tidak ada di pilihan.`);
+                // Tutup modal agar script tidak terjebak
                 document.body.click(); 
                 await wait(2000);
             }
         } else {
-            console.log("[BOT] ❌ Teks 'Pilih pekerjaan' tidak ditemukan di layar.");
+            console.log("[BOT] ❌ Kotak 'Pilih pekerjaan' yang aktif tidak ditemukan.");
         }
     }
     
-    // Jeda pengaman sebelum masuk ke fungsi Domisili
-    await wait(3000);
+    // Jeda pengaman sebelum masuk ke fungsi Domisili (Race condition)
+    await wait(2500);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
