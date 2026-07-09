@@ -320,43 +320,49 @@ async function fillAndValidate(placeholderKeyword, valueText, isSearchable = fal
     return false;
 }
 
-/* ================= ENGINE ALAMAT WILAYAH VUE (BARU) ================= */
+/* ================= ENGINE ALAMAT WILAYAH VUE (BARU & ANTI-BENTROK) ================= */
 async function setAlamatDomisiliVue() {
-    console.log("[BOT] Menyetel Alamat Domisili Otomatis...");
-    const steps = ["Jawa Barat", "Kota Bandung", "Coblong", "Sekeloa"];
+    console.log("[BOT] Menyetel Alamat Domisili Otomatis...");
+    const steps = ["Jawa Barat", "Kota Bandung", "Coblong", "Sekeloa"];
 
-    const allElements = Array.from(document.querySelectorAll('div, span'));
-    const trigger = allElements.find(el => (el.innerText || "").toLowerCase().trim() === "pilih alamat domisili" && el.children.length === 0);
+    const allElements = Array.from(document.querySelectorAll('div, span'));
+    const trigger = allElements.find(el => (el.innerText || "").toLowerCase().trim() === "pilih alamat domisili" && el.children.length === 0);
 
-    if (!trigger) return false;
-    await ultraClick(trigger.closest('.cursor-pointer') || trigger);
-    await wait(1000);
+    if (!trigger) return false;
+    await ultraClick(trigger.closest('.cursor-pointer') || trigger);
+    await wait(1500); // Jeda ekstra untuk memastikan modal terbuka
 
-    // Loop berurutan (Provinsi -> Kota -> Kecamatan -> Kelurahan)
-    for (const step of steps) {
-        console.log("[BOT] Memilih wilayah:", step);
-        let searchInput = Array.from(document.querySelectorAll('input')).find(el => (el.placeholder || "").toLowerCase().includes("cari"));
-        if (searchInput) {
-            forceInject(searchInput, step);
-            await wait(1500); // Tunggu filter Kemenkes
-        }
+    // Loop berurutan (Provinsi -> Kota -> Kecamatan -> Kelurahan)
+    for (const step of steps) {
+        console.log("[BOT] Memilih wilayah:", step);
+        
+        // LAPIS KEAMANAN: Cari input yang ada kata "cari" TAPI BUKAN "pekerjaan"
+        let searchInput = Array.from(document.querySelectorAll('input')).find(el => {
+            const p = (el.placeholder || "").toLowerCase();
+            return p.includes("cari") && !p.includes("pekerjaan"); 
+        });
 
-        let clicked = false;
-        for (let i = 0; i < 15; i++) {
-            const options = Array.from(document.querySelectorAll('div.flex.items-center.justify-between')).filter(el => (el.innerText || "").trim().toLowerCase() === step.toLowerCase());
-            if (options.length > 0) {
-                await ultraClick(options[options.length - 1]);
-                clicked = true;
-                await wait(1000);
-                break;
-            }
-            await wait(400);
-        }
-        if(!clicked) {
-            console.log("[BOT] Gagal di wilayah:", step);
-            break;
-        }
-    }
+        if (searchInput) {
+            forceInject(searchInput, step);
+            await wait(1500); // Tunggu filter Kemenkes
+        }
+
+        let clicked = false;
+        for (let i = 0; i < 15; i++) {
+            const options = Array.from(document.querySelectorAll('div.flex.items-center.justify-between')).filter(el => (el.innerText || "").trim().toLowerCase() === step.toLowerCase());
+            if (options.length > 0) {
+                await ultraClick(options[options.length - 1]);
+                clicked = true;
+                await wait(1000);
+                break;
+            }
+            await wait(400);
+        }
+        if(!clicked) {
+            console.log("[BOT] Gagal di wilayah:", step);
+            break;
+        }
+    }
 }
 
 /* ================= EKSEKUSI HALAMAN 2 (VUE VERSION) ================= */
@@ -432,7 +438,7 @@ if (textToFindPernikahan !== "") {
     }
 }
 
-/* ================= 2. PEKERJAAN (FIXED: ANTI GHOST ELEMENT + SEARCH) ================= */
+/* ================= 2. PEKERJAAN (PENUTUPAN AGRESIF) ================= */
     console.log("[BOT] Memproses Pekerjaan...");
     let jobTarget = (data.pekerjaan || data.Pekerjaan || "").trim();
 
@@ -440,29 +446,17 @@ if (textToFindPernikahan !== "") {
         // 1. CARI KOTAK PEMICU (HANYA YANG TERLIHAT DI LAYAR)
         const allElements = Array.from(document.querySelectorAll('div, span'));
         const triggerDiv = allElements.find(el => {
-            // WAJIB pakai innerText agar elemen tersembunyi (hidden) diabaikan
             const txt = (el.innerText || "").toLowerCase().trim(); 
-            // Ambil ukuran elemen untuk memastikan ia tampil di layar
             const rect = el.getBoundingClientRect();
-            
-            // Syarat: Teks persis, tidak punya anak elemen, dan lebarnya > 0 (bukan elemen gaib)
             return txt === "pilih pekerjaan" && el.children.length === 0 && rect.width > 0;
         });
 
         if (triggerDiv) {
             console.log("[BOT] Kotak Pekerjaan VALID ditemukan! Membuka modal...");
-            
-            // Naik ke pembungkus terdekat yang punya event klik
             const clickableArea = triggerDiv.closest('.cursor-pointer') || triggerDiv;
-            
-            // Posisikan tepat di tengah layar agar klik tidak meleset
             clickableArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
             await wait(800);
-            
-            // Eksekusi klik
             await ultraClick(clickableArea);
-            
-            // WAJIB JEDA: Tunggu modal animasi slide-down muncul sepenuhnya
             await wait(1500); 
 
             // 2. TEMBAK KE KOLOM PENCARIAN (AGAR TERSORTIR)
@@ -471,11 +465,7 @@ if (textToFindPernikahan !== "") {
                 console.log(`[BOT] Mengetik "${jobTarget}" untuk menyortir...`);
                 searchInput.focus(); 
                 forceInject(searchInput, jobTarget);
-                
-                // Trigger event keyboard agar Vue bereaksi dan memfilter list
                 searchInput.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
-                
-                // Jeda agar Vue memproses filter menjadi 1 pilihan
                 await wait(1500); 
             } else {
                 console.log("[BOT] ⚠️ Kolom 'Cari pekerjaan' tidak muncul. (Fallback klik ulang)");
@@ -489,7 +479,6 @@ if (textToFindPernikahan !== "") {
             
             for (let el of optionDivs) {
                 let text = (el.innerText || "").trim().toLowerCase();
-                
                 if (text === jobTarget.toLowerCase() || text.includes(jobTarget.toLowerCase())) {
                     const parentBtn = el.closest('button');
                     if (parentBtn) {
@@ -499,9 +488,7 @@ if (textToFindPernikahan !== "") {
                         
                         await ultraClick(parentBtn);
                         found = true;
-                        
-                        // Jeda agar modal punya waktu untuk tertutup
-                        await wait(2000); 
+                        await wait(1000); 
                         break; 
                     }
                 }
@@ -509,17 +496,32 @@ if (textToFindPernikahan !== "") {
 
             if (!found) {
                 console.log(`[BOT] ⚠️ Pekerjaan "${jobTarget}" tidak ada di pilihan.`);
-                // Tutup modal agar script tidak terjebak
-                document.body.click(); 
-                await wait(2000);
             }
+
+            // 4. PENUTUPAN MODAL AGRESIF (ACTIVE WAIT)
+            console.log("[BOT] Memastikan modal pekerjaan mati & tertutup...");
+            let cekModal = 0;
+            // Looping akan menahan script selama input 'Cari pekerjaan' masih terdeteksi di layar
+            while(document.querySelector('input[placeholder="Cari pekerjaan"]') && cekModal < 8) {
+                // Coba cari tombol X (Close) pada modal lalu klik
+                const closeBtn = document.querySelector('.modal-content header button');
+                if (closeBtn) {
+                    await ultraClick(closeBtn);
+                } else {
+                    document.body.click(); // Klik di area kosong sebagai cadangan
+                }
+                await wait(500);
+                cekModal++;
+            }
+            console.log("[BOT] Modal pekerjaan berhasil diamankan.");
+            
         } else {
             console.log("[BOT] ❌ Kotak 'Pilih pekerjaan' yang aktif tidak ditemukan.");
         }
     }
     
-    // Jeda pengaman sebelum masuk ke fungsi Domisili (Race condition)
-    await wait(2500);
+    // Jeda final sebelum Domisili
+    await wait(1500);
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
