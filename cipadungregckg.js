@@ -180,43 +180,120 @@ function parseCSV(text){
     return rows;
 }
 
-async function cariData(nikInput){
-    const target = normalizeNIK(nikInput);
-    for(const source of SHEETS){
-        for(const gid of source.gids){
-            const csv = await new Promise(resolve => {
-                request({
-                    method: "GET", url: `https://docs.google.com/spreadsheets/d/${source.id}/export?format=csv&gid=${gid}`,
-                    timeout: 10000, onload: r => resolve(r.responseText || ""), onerror: () => resolve("")
-                });
-            });
+let cachedSheetDataList = null;
 
-            if(!csv || csv.trim()==="") continue;
-            const rows = parseCSV(csv);
-            let waD2 = (source.waStatis && rows[1]) ? normalizeNIK(rows[1][3]) : "";
+async function cariData(nikInput) {
+    const target = normalizeNIK(nikInput);
 
-            for(let i=1;i<rows.length;i++){
-                const row = rows[i];
-                if(row.find(col => normalizeNIK(col) === target)){
-                    return {
-                        nik: target,
-                        nama: (row[source.colNama] || "").trim(),
-                        tgl: (row[source.colTgl] || "").trim(),
-                        hp: waD2 || (row[source.colWA] || "").replace(/\D/g,''),
-                        jk: (row[source.colJK] || "").trim(),
-                        alamat: (row[source.colAlamat] || "").trim(),
-                        pekerjaan: (row[source.colPekerjaan] || "").trim(),
-                        kelurahan: (row[source.colKelurahan] || "").trim(),
-                        sekolah: (row[source.colSekolah] || "").trim(),
-                        disabilitas: (row[source.colDisabilitas] || "").trim(),
-                        Martial: (row[source.colMartial] || "").trim(),
-                        kelas: (row[source.colKelas] || "").trim()
-                    };
-                }
-            }
-        }
-    }
-    return null;
+    // --- 1. PROSES PENYIAPAN CACHE ---
+    if (!cachedSheetDataList) {
+        let savedCache = null;
+        let cacheTime = 0;
+        const EXPIRATION_TIME = 4 * 60 * 60 * 1000; // Cache bertahan 4 jam (dalam milidetik)
+        const now = Date.now();
+
+        // Coba muat data dari penyimpanan lokal
+        try {
+            // Menggunakan nama key yang berbeda agar tidak bentrok dengan script sebelumnya
+            const rawCache = GM_getValue('CKG_MULTISHEET_CACHE');
+            cacheTime = parseInt(GM_getValue('CKG_MULTISHEET_CACHE_TIME') || '0');
+            if (rawCache) savedCache = JSON.parse(rawCache);
+        } catch (e) {
+            try {
+                const rawCache = sessionStorage.getItem('CKG_MULTISHEET_CACHE');
+                cacheTime = parseInt(sessionStorage.getItem('CKG_MULTISHEET_CACHE_TIME') || '0');
+                if (rawCache) savedCache = JSON.parse(rawCache);
+            } catch (err) {}
+        }
+
+        // Jika cache valid dan belum kadaluarsa
+        if (savedCache && savedCache.length > 0 && (now - cacheTime < EXPIRATION_TIME)) {
+            console.log('[CACHE READY] Memuat data Multi-Sheet dari penyimpanan lokal (Instan)...');
+            cachedSheetDataList = savedCache;
+        } 
+        // Jika tidak ada cache, lakukan proses unduh (download)
+        else {
+            if (typeof updateStatus === 'function') updateStatus("MENGUNDUH DATA SPREADSHEET...");
+            console.log('[DOWNLOAD] Memulai unduhan Multi-Sheet...');
+            cachedSheetDataList = [];
+
+            for (let s = 0; s < SHEETS.length; s++) {
+                const source = SHEETS[s];
+                for (const gid of source.gids) {
+                    console.log(`Download Sheet: ${source.id} | GID: ${gid}`);
+                    const csv = await new Promise(resolve => {
+                        request({
+                            method: "GET", 
+                            url: `https://docs.google.com/spreadsheets/d/${source.id}/export?format=csv&gid=${gid}`,
+                            timeout: 10000, 
+                            onload: r => resolve(r.responseText || ""), 
+                            onerror: () => resolve("")
+                        });
+                    });
+
+                    if (!csv || csv.trim() === "") continue;
+                    const rows = parseCSV(csv);
+                    
+                    // KUNCI: Simpan baris beserta Index Sumber-nya (s)
+                    // Agar saat dibaca ulang, bot tahu ini milik settingan kolom yang mana
+                    cachedSheetDataList.push({
+                        sheetIndex: s,
+                        rows: rows
+                    });
+                }
+            }
+
+            console.log('[DOWNLOAD SELESAI] Data Multi-Sheet berhasil disimpan.');
+
+            // Simpan hasil unduhan ke penyimpanan browser
+            try {
+                GM_setValue('CKG_MULTISHEET_CACHE', JSON.stringify(cachedSheetDataList));
+                GM_setValue('CKG_MULTISHEET_CACHE_TIME', now.toString());
+            } catch (e) {
+                try {
+                    sessionStorage.setItem('CKG_MULTISHEET_CACHE', JSON.stringify(cachedSheetDataList));
+                    sessionStorage.setItem('CKG_MULTISHEET_CACHE_TIME', now.toString());
+                } catch (err) {
+                    console.warn("Storage penuh, data hanya disimpan di RAM sementara.");
+                }
+            }
+        }
+    }
+
+    // --- 2. PROSES PENCARIAN NIK ---
+    for (const cacheItem of cachedSheetDataList) {
+        // Panggil kembali settingan konfigurasi kolom asli berdasarkan Index-nya
+        const source = SHEETS[cacheItem.sheetIndex]; 
+        const rows = cacheItem.rows;
+
+        // Logika waD2 persis seperti buatan Bapak
+        let waD2 = (source.waStatis && rows[1]) ? normalizeNIK(rows[1][3]) : "";
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            
+            // Defensif: pastikan row adalah array sebelum menjalankan fungsi .find()
+            if (Array.isArray(row) && row.find(col => normalizeNIK(col) === target)) {
+                return {
+                    nik: target,
+                    nama: (row[source.colNama] || "").trim(),
+                    tgl: (row[source.colTgl] || "").trim(),
+                    hp: waD2 || (row[source.colWA] || "").replace(/\D/g,''),
+                    jk: (row[source.colJK] || "").trim(),
+                    alamat: (row[source.colAlamat] || "").trim(),
+                    pekerjaan: (row[source.colPekerjaan] || "").trim(),
+                    kelurahan: (row[source.colKelurahan] || "").trim(),
+                    sekolah: (row[source.colSekolah] || "").trim(),
+                    disabilitas: (row[source.colDisabilitas] || "").trim(),
+                    Martial: (row[source.colMartial] || "").trim(),
+                    kelas: (row[source.colKelas] || "").trim()
+                };
+            }
+        }
+    }
+
+    // Jika pencarian selesai dan NIK tidak ditemukan
+    return null;
 }
 
 /* ================= ENGINE VUE DROPDOWN (REVISI KHUSUS) ================= */
