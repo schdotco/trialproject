@@ -714,7 +714,7 @@ async function handleSkriningMandiri(data) {
     });
 
     // 6. AKTIVITAS FISIK
-    if (pageText.includes('aktivitas fisik')) {
+        if (pageText.includes('aktivitas fisik')) {
         updateStatus('Mengisi Aktivitas Fisik...');
 
         // 1. Jawab "Ya" khusus untuk aktivitas fisik rumah tangga/domestik
@@ -727,7 +727,7 @@ async function handleSkriningMandiri(data) {
         const allQuestions = [...document.querySelectorAll('.sd-question, .sv-question')];
         
         // 3. Cari dan isi angka 4 untuk pertanyaan "Berapa hari"
-        const qHari = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('Berapa hari dalam satu minggu Anda melakukan aktivitas tersebut?'));
+        const qHari = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('berapa hari dalam satu minggu anda melakukan aktivitas tersebut?'));
         if (qHari) {
             const inputHari = qHari.querySelector('input[type="number"]');
             if (inputHari) {
@@ -737,7 +737,7 @@ async function handleSkriningMandiri(data) {
         }
 
         // 4. Cari dan isi angka 30 untuk pertanyaan "Berapa menit"
-        const qMenit = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('Dalam satu hari berapa menit waktu yang digunakan untuk melakukan aktivitas tersebut?'));
+        const qMenit = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('dalam satu hari berapa menit waktu yang digunakan untuk melakukan aktivitas tersebut?'));
         if (qMenit) {
             const inputMenit = qMenit.querySelector('input[type="number"]');
             if (inputMenit) {
