@@ -625,6 +625,24 @@ async function isiTetanusCatin() {
 /* =========================================================
    CORE LOGIC SKRINING MANDIRI (REVISI STATUS PERKAWINAN)
 ========================================================= */
+    // === FUNGSI INJECT ANGKA (Untuk kolom hari & menit aktivitas fisik) ===
+function forceInject(element, value) {
+    if (!element) return;
+    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    if (nativeSetter) {
+        nativeSetter.call(element, value);
+    } else {
+        element.value = value;
+    }
+    if (element._valueTracker) {
+        element._valueTracker.setValue('');
+    }
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    element.dispatchEvent(new Event('blur', { bubbles: true }));
+    element.blur();
+}
+// =====================================================================
 async function handleSkriningMandiri(data) {
     // Deteksi teks apa saja yang ada di halaman ini
     const pageText = document.body.innerText.toLowerCase();
@@ -714,7 +732,7 @@ async function handleSkriningMandiri(data) {
     });
 
     // 6. AKTIVITAS FISIK
-if (pageText.includes('aktivitas fisik')) {
+    if (pageText.includes('aktivitas fisik')) {
         updateStatus('Mengisi Aktivitas Fisik...');
 
         // === FUNGSI BANTUAN KHUSUS (ANTI-SALAH KLIK DROPDOWN SURVEYJS) ===
