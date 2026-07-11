@@ -714,27 +714,66 @@ async function handleSkriningMandiri(data) {
     });
 
     // 6. AKTIVITAS FISIK
-    if (pageText.includes('aktivitas fisik')) {
+if (pageText.includes('aktivitas fisik')) {
         updateStatus('Mengisi Aktivitas Fisik...');
+
+        // 1. Jawab "Ya" khusus untuk aktivitas fisik rumah tangga/domestik
+        await selectDropdownContext('aktivitas fisik sedang pada kegiatan rumah tangga/domestik seperti membersihkan rumah/lingkungan (menyapu, menata perabotan), mencuci baju manual, memasak, mengasuh anak, atau mengangkat beban dengan berat < 20 kg?', 'ya');
+        
+        // Wajib tunggu sejenak agar animasi SurveyJS memunculkan kotak angka
+        await sleep(1500); 
+
+        // 2. Ambil semua pertanyaan yang ada di layar
+        const allQuestions = [...document.querySelectorAll('.sd-question, .sv-question')];
+        
+        // 3. Cari dan isi angka 4 untuk pertanyaan "Berapa hari"
+        const qHari = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('Berapa hari dalam satu minggu Anda melakukan aktivitas tersebut?'));
+        if (qHari) {
+            const inputHari = qHari.querySelector('input[type="number"]');
+            if (inputHari) {
+                forceInject(inputHari, '4');
+                await sleep(500);
+            }
+        }
+
+        // 4. Cari dan isi angka 30 untuk pertanyaan "Berapa menit"
+        const qMenit = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('Dalam satu hari berapa menit waktu yang digunakan untuk melakukan aktivitas tersebut?'));
+        if (qMenit) {
+            const inputMenit = qMenit.querySelector('input[type="number"]');
+            if (inputMenit) {
+                forceInject(inputMenit, '30');
+                await sleep(500);
+            }
+        }
+
+        // 5. Sapu bersih sisa dropdown lain dengan "Tidak" (Pekerjaan berat, Olahraga, dll)
         const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
         for (let i = 0; i < dropdowns.length; i++) {
             const currentDropdown = dropdowns[i];
             if (!currentDropdown) continue;
+            
+            // PENGAMAN: Jika dropdown ini sudah terisi "ya", jangan diubah jadi "tidak"!
+            const val = (currentDropdown.innerText || '').trim().toLowerCase();
+            if (val === 'ya') continue;
+
             currentDropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
             currentDropdown.click();
             await sleep(1200);
 
+            // Karena SurveyJS merender list di luar div utama, kita cari list yang aktif
             const opsiTidak = [...document.querySelectorAll('li.sv-list__item, li.sd-list__item')]
-                .filter(li => li.innerText.trim().toLowerCase() === 'tidak');
+                .find(li => (li.innerText || '').trim().toLowerCase() === 'tidak');
 
-            if (opsiTidak[i]) {
-                opsiTidak[i].click();
-                opsiTidak[i].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                await sleep(500);
+            if (opsiTidak) {
+                opsiTidak.click();
+                opsiTidak.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                await sleep(600);
             } else {
-                break;
+                // Tutup kembali dropdown jika opsi tidak ditemukan
+                currentDropdown.click();
             }
         }
+    }
     }
 
     // 7. NAVIGASI (Cari tombol Lanjut atau Kirim)
