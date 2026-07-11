@@ -8,6 +8,8 @@
 const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
 const GIDS = ['0'];
 
+let BOT_RUNNING = false;
+
 const sleep = ms => new Promise(r => setTimeout(r,ms));
 function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
 
@@ -33,17 +35,60 @@ function jawabanMerokok(v){
 /* =========================================================
    SESSION & DYNAMIC TRACKER
 ========================================================= */
-function saveBOT(data) { GM_setValue('AUTO_SKRINING_DATA', JSON.stringify(data)); }
-function loadBOT()     { const raw = GM_getValue('AUTO_SKRINING_DATA'); return raw ? JSON.parse(raw) : null; }
-function clearBOT() { GM_deleteValue('AUTO_SKRINING_DATA'); GM_deleteValue('CKG_MODE'); }
+const WAKTU_KEDALUWARSA = 60 * 60 * 1000; // 60 menit dalam milidetik
 
-function getCompleted() { return JSON.parse(GM_getValue('AUTO_SKRINING_COMPLETED') || '[]'); }
+function saveBOT(data) { 
+    const payload = {
+        waktuSimpan: Date.now(),
+        dataPasien: data
+    };
+    try { GM_setValue('AUTO_SKRINING_DATA', JSON.stringify(payload)); }
+    catch(e) { localStorage.setItem('AUTO_SKRINING_DATA', JSON.stringify(payload)); }
+}
+
+function loadBOT() { 
+    let raw;
+    try { raw = GM_getValue('AUTO_SKRINING_DATA'); }
+    catch(e) { raw = localStorage.getItem('AUTO_SKRINING_DATA'); }
+    
+    if (!raw) return null;
+
+    try {
+        const payload = JSON.parse(raw);
+        if (payload.waktuSimpan) {
+            const umurData = Date.now() - payload.waktuSimpan;
+            if (umurData > WAKTU_KEDALUWARSA) {
+                console.log("Sesi bot kedaluwarsa (lebih dari 60 menit), mereset data...");
+                clearBOT();
+                return null;
+            }
+            return payload.dataPasien;
+        }
+        return payload; // Fallback jika membaca format data lama
+    } catch(e) {
+        return null;
+    }
+}
+
+function clearBOT() { 
+    try { GM_deleteValue('AUTO_SKRINING_DATA'); GM_deleteValue('CKG_MODE'); }
+    catch(e) { localStorage.removeItem('AUTO_SKRINING_DATA'); localStorage.removeItem('CKG_MODE'); }
+}
+
+function getCompleted() { 
+    try { return JSON.parse(GM_getValue('AUTO_SKRINING_COMPLETED') || '[]'); }
+    catch(e) { return JSON.parse(localStorage.getItem('AUTO_SKRINING_COMPLETED') || '[]'); }
+}
 function addCompleted(id) {
     const arr = getCompleted();
     if(!arr.includes(id)) arr.push(id);
-    GM_setValue('AUTO_SKRINING_COMPLETED', JSON.stringify(arr));
+    try { GM_setValue('AUTO_SKRINING_COMPLETED', JSON.stringify(arr)); }
+    catch(e) { localStorage.setItem('AUTO_SKRINING_COMPLETED', JSON.stringify(arr)); }
 }
-function clearCompleted() { GM_deleteValue('AUTO_SKRINING_COMPLETED'); }
+function clearCompleted() { 
+    try { GM_deleteValue('AUTO_SKRINING_COMPLETED'); }
+    catch(e) { localStorage.removeItem('AUTO_SKRINING_COMPLETED'); }
+}
 
 /* =========================================================
    DATA MATCHER (ANTI ERROR / FORMAT AMAN)
@@ -827,7 +872,6 @@ async function handleSkriningMandiri(data) {
 /* =========================================================
    FORM LOOP ROUTER (FIXED)
 ========================================================= */
-let BOT_RUNNING = false;
 
 async function autoContinueForm(){
     const data = loadBOT();
