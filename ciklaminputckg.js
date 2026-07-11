@@ -364,8 +364,8 @@ async function autoContinueForm(){
         const inputTB = document.querySelector('input[placeholder*="tinggi badan" i]') || realInputs[1];
         const inputLP = realInputs.find(el => (el.placeholder || '').toLowerCase().includes('hasil pengukuran') && !(el.placeholder || '').toLowerCase().includes('tinggi badan')) || realInputs[2];
         
-        if(inputBB) forceInject(inputBB, data.bb); await sleep(800);
-        if(inputTB) forceInject(inputTB, data.tb); await sleep(800);
+        if(inputBB) forceInject(inputBB, data.bb); await sleep(1000);
+        if(inputTB) forceInject(inputTB, data.tb); await sleep(1000);
         if(inputLP) forceInject(inputLP, data.lp); await sleep(1000);
     }
     else if(title.includes('gula darah')){
