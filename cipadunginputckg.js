@@ -7,6 +7,8 @@
 const SHEET_ID = '1TQDkV_YLPQs2fwtRtmwOZz1Iv0w7CIc9ygkVQiCVoNg';
 const GID = '0';
 
+let BOT_RUNNING = false;
+
 const TARGETS = [
     { id: 'gizi', txt: 'gizi (bb' },
     { id: 'gula', txt: 'gula darah' },
@@ -33,19 +35,38 @@ function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
 ========================================================= */
 // Menggunakan try-catch agar jika GM_setValue diblokir oleh master script, 
 // ia akan otomatis menggunakan localStorage browser.
+const WAKTU_KEDALUWARSA = 60 * 60 * 1000; // 60 menit
+
 function saveBOT(data) { 
-    try { GM_setValue('AUTO_CKG_DATA', JSON.stringify(data)); } 
-    catch(e) { localStorage.setItem('AUTO_CKG_DATA', JSON.stringify(data)); }
+    const payload = { waktuSimpan: Date.now(), dataPasien: data };
+    try { GM_setValue('AUTO_CKG_DATA', JSON.stringify(payload)); } 
+    catch(e) { localStorage.setItem('AUTO_CKG_DATA', JSON.stringify(payload)); }
 }
+
 function loadBOT() { 
-    try { 
-        const raw = GM_getValue('AUTO_CKG_DATA'); 
-        return raw ? JSON.parse(raw) : null; 
-    } catch(e) { 
-        const raw = localStorage.getItem('AUTO_CKG_DATA'); 
-        return raw ? JSON.parse(raw) : null; 
+    let raw;
+    try { raw = GM_getValue('AUTO_CKG_DATA'); } 
+    catch(e) { raw = localStorage.getItem('AUTO_CKG_DATA'); }
+    
+    if (!raw) return null;
+
+    try {
+        const payload = JSON.parse(raw);
+        if (payload.waktuSimpan) {
+            const umurData = Date.now() - payload.waktuSimpan;
+            if (umurData > WAKTU_KEDALUWARSA) {
+                console.log("Sesi bot kedaluwarsa, mereset data...");
+                clearBOT();
+                return null;
+            }
+            return payload.dataPasien;
+        }
+        return payload; // Fallback jika membaca format data lama
+    } catch(e) {
+        return null;
     }
 }
+
 function clearBOT() { 
     try { GM_deleteValue('AUTO_CKG_DATA'); } 
     catch(e) { localStorage.removeItem('AUTO_CKG_DATA'); }
@@ -578,7 +599,6 @@ async function mainLoopCKG(data){
 /* =========================================================
    UI MODERN & DRAGGABLE
 ========================================================= */
-let BOT_RUNNING = false;
 function updateStatus(text){ const el = document.getElementById('bot-status'); if(el) el.innerText = text; }
 function stopBOT(){ BOT_RUNNING = false; clearBOT(); clearCompleted(); updateStatus('BOT DIHENTIKAN. DATA DIRESET.'); }
 
