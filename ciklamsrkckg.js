@@ -714,7 +714,7 @@ async function handleSkriningMandiri(data) {
     });
 
     // 6. AKTIVITAS FISIK
-if (pageText.includes('aktivitas fisik')) {
+    if (pageText.includes('aktivitas fisik')) {
         updateStatus('Mengisi Aktivitas Fisik...');
 
         // 1. Jawab "Ya" khusus untuk aktivitas fisik rumah tangga/domestik
@@ -773,7 +773,6 @@ if (pageText.includes('aktivitas fisik')) {
                 currentDropdown.click();
             }
         }
-    }
     }
 
     // 7. NAVIGASI (Cari tombol Lanjut atau Kirim)
@@ -962,11 +961,7 @@ function createUI(){
 /* =========================================================
    INIT / PINTU UTAMA
 ========================================================= */
-setInterval(() => {
-    if (document.body) {
-        createUI();
-    }
-}, 1000);
+setInterval(createUI, 1000);
 
 setTimeout(async ()=>{
     const isFormPage = location.hostname.includes('form.kemkes.go.id');
