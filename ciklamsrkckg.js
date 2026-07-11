@@ -33,9 +33,49 @@ function jawabanMerokok(v){
 /* =========================================================
    SESSION & DYNAMIC TRACKER
 ========================================================= */
-function saveBOT(data) { GM_setValue('AUTO_SKRINING_DATA', JSON.stringify(data)); }
-function loadBOT()     { const raw = GM_getValue('AUTO_SKRINING_DATA'); return raw ? JSON.parse(raw) : null; }
-function clearBOT() { GM_deleteValue('AUTO_SKRINING_DATA'); GM_deleteValue('CKG_MODE'); }
+const WAKTU_KEDALUWARSA = 60 * 60 * 1000; 
+
+function saveBOT(data) { 
+    // Bungkus data asli beserta waktu saat ini
+    const payload = {
+        waktuSimpan: Date.now(),
+        dataPasien: data
+    };
+    GM_setValue('AUTO_SKRINING_DATA', JSON.stringify(payload)); 
+}
+
+function loadBOT() { 
+    const raw = GM_getValue('AUTO_SKRINING_DATA'); 
+    if (!raw) return null;
+
+    try {
+        const payload = JSON.parse(raw);
+        
+        // Cek apakah ada data penanda waktu
+        if (payload.waktuSimpan) {
+            const umurData = Date.now() - payload.waktuSimpan;
+            
+            // Jika umur data melebihi batas yang ditentukan, hapus otomatis
+            if (umurData > WAKTU_KEDALUWARSA) {
+                console.log("Sesi kedaluwarsa, menghapus data otomatis...");
+                clearBOT(); 
+                return null;
+            }
+            // Jika belum kedaluwarsa, kembalikan data pasien aslinya
+            return payload.dataPasien;
+        }
+        
+        // Fallback seandainya masih ada sisa data format lama tanpa timestamp
+        return payload;
+    } catch(e) {
+        return null;
+    }
+}
+
+function clearBOT() { 
+    GM_deleteValue('AUTO_SKRINING_DATA'); 
+    GM_deleteValue('CKG_MODE'); 
+}
 
 function getCompleted() { return JSON.parse(GM_getValue('AUTO_SKRINING_COMPLETED') || '[]'); }
 function addCompleted(id) {
