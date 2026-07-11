@@ -27,19 +27,45 @@ function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
 ========================================================= */
 // Menggunakan try-catch agar jika GM_setValue diblokir oleh master script, 
 // ia akan otomatis menggunakan localStorage browser.
+const WAKTU_KEDALUWARSA = 60 * 60 * 1000;
+
 function saveBOT(data) { 
-    try { GM_setValue('AUTO_CKG_DATA', JSON.stringify(data)); } 
-    catch(e) { localStorage.setItem('AUTO_CKG_DATA', JSON.stringify(data)); }
+    // Bungkus data dengan waktu saat ini (timestamp)
+    const payload = {
+        waktuSimpan: Date.now(),
+        dataPasien: data
+    };
+    try { GM_setValue('AUTO_CKG_DATA', JSON.stringify(payload)); } 
+    catch(e) { localStorage.setItem('AUTO_CKG_DATA', JSON.stringify(payload)); }
 }
 function loadBOT() { 
-    try { 
-        const raw = GM_getValue('AUTO_CKG_DATA'); 
-        return raw ? JSON.parse(raw) : null; 
-    } catch(e) { 
-        const raw = localStorage.getItem('AUTO_CKG_DATA'); 
-        return raw ? JSON.parse(raw) : null; 
+    let raw;
+    try { raw = GM_getValue('AUTO_CKG_DATA'); } 
+    catch(e) { raw = localStorage.getItem('AUTO_CKG_DATA'); }
+    
+    if (!raw) return null;
+
+    try {
+        const payload = JSON.parse(raw);
+        
+        // Cek apakah data ini punya timestamp dan apakah sudah lewat batas waktu
+        if (payload.waktuSimpan) {
+            const umurData = Date.now() - payload.waktuSimpan;
+            if (umurData > WAKTU_KEDALUWARSA) {
+                console.log("Data sudah kedaluwarsa, menghapus dari memori...");
+                clearBOT();
+                return null;
+            }
+            return payload.dataPasien;
+        }
+        
+        // Fallback jika membaca format data lama yang belum pakai timestamp
+        return payload; 
+    } catch(e) {
+        return null;
     }
 }
+
 function clearBOT() { 
     try { GM_deleteValue('AUTO_CKG_DATA'); } 
     catch(e) { localStorage.removeItem('AUTO_CKG_DATA'); }
