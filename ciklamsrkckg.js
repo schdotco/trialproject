@@ -714,63 +714,97 @@ async function handleSkriningMandiri(data) {
     });
 
     // 6. AKTIVITAS FISIK
-        if (pageText.includes('aktivitas fisik')) {
+if (pageText.includes('aktivitas fisik')) {
         updateStatus('Mengisi Aktivitas Fisik...');
 
-        // 1. Jawab "Ya" khusus untuk aktivitas fisik rumah tangga/domestik
-        await selectDropdownContext('aktivitas fisik sedang pada kegiatan rumah tangga/domestik seperti membersihkan rumah/lingkungan (menyapu, menata perabotan), mencuci baju manual, memasak, mengasuh anak, atau mengangkat beban dengan berat < 20 kg?', 'ya');
-        
-        // Wajib tunggu sejenak agar animasi SurveyJS memunculkan kotak angka
-        await sleep(1500); 
+        // === FUNGSI BANTUAN KHUSUS (ANTI-SALAH KLIK DROPDOWN SURVEYJS) ===
+        async function pilihOpsiDropdown(qContainer, targetJawaban) {
+            if (!qContainer) return false;
+            const dropdown = qContainer.querySelector('.sd-dropdown, .sv-dropdown');
+            if (!dropdown) return false;
 
-        // 2. Ambil semua pertanyaan yang ada di layar
-        const allQuestions = [...document.querySelectorAll('.sd-question, .sv-question')];
-        
-        // 3. Cari dan isi angka 4 untuk pertanyaan "Berapa hari"
-        const qHari = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('berapa hari dalam satu minggu anda melakukan aktivitas tersebut?'));
-        if (qHari) {
-            const inputHari = qHari.querySelector('input[type="number"]');
-            if (inputHari) {
-                forceInject(inputHari, '4');
-                await sleep(500);
+            // Jika sudah terisi sesuai target, lewati
+            if ((dropdown.innerText || '').trim().toLowerCase() === targetJawaban) return true;
+
+            dropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            dropdown.click();
+            await sleep(1000); // Wajib tunggu animasi list terbuka
+
+            // KUNCI PERBAIKAN: Cari ID daftar opsi yang BENAR-BENAR milik dropdown ini
+            let listId = dropdown.getAttribute('aria-controls');
+            if (!listId) {
+                const inputDalam = dropdown.querySelector('[aria-controls]');
+                if (inputDalam) listId = inputDalam.getAttribute('aria-controls');
             }
+
+            if (listId) {
+                const listAktif = document.getElementById(listId);
+                if (listAktif) {
+                    const opsiList = [...listAktif.querySelectorAll('li')];
+                    const targetOpsi = opsiList.find(li => (li.innerText || '').trim().toLowerCase() === targetJawaban);
+                    
+                    if (targetOpsi) {
+                        targetOpsi.click();
+                        targetOpsi.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                        await sleep(800);
+                        return true;
+                    }
+                }
+            }
+            dropdown.click(); // Tutup jika gagal agar tidak menutupi soal lain
+            await sleep(500);
+            return false;
         }
 
-        // 4. Cari dan isi angka 30 untuk pertanyaan "Berapa menit"
-        const qMenit = allQuestions.find(q => (q.innerText || '').toLowerCase().includes('dalam satu hari berapa menit waktu yang digunakan untuk melakukan aktivitas tersebut?'));
-        if (qMenit) {
-            const inputMenit = qMenit.querySelector('input[type="number"]');
-            if (inputMenit) {
-                forceInject(inputMenit, '30');
-                await sleep(500);
-            }
-        }
+        const allQ = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
 
-        // 5. Sapu bersih sisa dropdown lain dengan "Tidak" (Pekerjaan berat, Olahraga, dll)
-        const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
-        for (let i = 0; i < dropdowns.length; i++) {
-            const currentDropdown = dropdowns[i];
-            if (!currentDropdown) continue;
+        // TAHAP 1: Jawab "Ya" untuk aktivitas rumah tangga/domestik
+        const qDomestik = allQ.find(q => {
+            const txt = (q.innerText || '').toLowerCase();
+            return txt.includes('rumah tangga/domestik') || txt.includes('menyapu');
+        });
+        
+        if (qDomestik) {
+            updateStatus('Pilih Ya: Domestik');
+            await pilihOpsiDropdown(qDomestik, 'ya');
             
-            // PENGAMAN: Jika dropdown ini sudah terisi "ya", jangan diubah jadi "tidak"!
-            const val = (currentDropdown.innerText || '').trim().toLowerCase();
-            if (val === 'ya') continue;
+            // PERBAIKAN RACE CONDITION: Tunggu kotak angka HARI/MENIT benar-benar muncul di layar
+            updateStatus('Menunggu kotak angka...');
+            for (let i = 0; i < 15; i++) { // Polling cek maksimal 7.5 detik
+                await sleep(500);
+                if (document.querySelector('input[type="number"]')) break;
+            }
+            await sleep(1000); // Beri nafas ekstra agar DOM stabil
+        }
 
-            currentDropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            currentDropdown.click();
-            await sleep(1200);
+        // TAHAP 2: Ambil ulang daftar soal karena kotak Hari & Menit baru saja muncul
+        const updatedQ = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
 
-            // Karena SurveyJS merender list di luar div utama, kita cari list yang aktif
-            const opsiTidak = [...document.querySelectorAll('li.sv-list__item, li.sd-list__item')]
-                .find(li => (li.innerText || '').trim().toLowerCase() === 'tidak');
+        const qHari = updatedQ.find(q => (q.innerText || '').toLowerCase().includes('berapa hari dalam satu minggu'));
+        if (qHari) {
+            updateStatus('Isi Hari (4)');
+            const inputHari = qHari.querySelector('input[type="number"]');
+            if (inputHari) { forceInject(inputHari, '4'); await sleep(500); }
+        }
 
-            if (opsiTidak) {
-                opsiTidak.click();
-                opsiTidak.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                await sleep(600);
-            } else {
-                // Tutup kembali dropdown jika opsi tidak ditemukan
-                currentDropdown.click();
+        const qMenit = updatedQ.find(q => (q.innerText || '').toLowerCase().includes('dalam satu hari berapa menit'));
+        if (qMenit) {
+            updateStatus('Isi Menit (30)');
+            const inputMenit = qMenit.querySelector('input[type="number"]');
+            if (inputMenit) { forceInject(inputMenit, '30'); await sleep(500); }
+        }
+
+        // TAHAP 3: Sapu bersih sisa dropdown lain secara presisi dengan "Tidak"
+        updateStatus('Sapu bersih sisa aktivitas fisik...');
+        for (const q of updatedQ) {
+            const txt = (q.innerText || '').toLowerCase();
+            
+            // Filter: Hanya targetkan soal aktivitas fisik/olahraga yang BUKAN domestik
+            if ((txt.includes('aktivitas fisik') || txt.includes('olahraga')) && !txt.includes('rumah tangga/domestik')) {
+                // Pastikan soal tersebut punya elemen dropdown di dalamnya
+                if (q.querySelector('.sd-dropdown, .sv-dropdown')) {
+                    await pilihOpsiDropdown(q, 'tidak');
+                }
             }
         }
     }
