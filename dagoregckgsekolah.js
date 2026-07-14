@@ -22,17 +22,17 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 /* ================= MODE CKG SEKOLAH ================= */
 
 const SHEETS = [{
-    id: "1HXWft2Z-ArjTogbTODhpW-5AxXac7omw8jgNQAZhoV4",
+    id: "190RQ3baMcSbiJCbtaXKtRYjEhHHJO7ZM8VyNuOu93Eg",
     gids: ["0"],
     colNama: 1,
-    colTgl: 2,
-    colWA: 8,
-    colJK: 3,
+    colTgl: 5,
+    colWA: 3,
+    colJK: 10,
     colPekerjaan: 12, // Diabaikan di CKG Sekolah
-    colSekolah: 4,   // Pastikan index kolom ini sesuai database Bapak
-    colKelas: 5,     // Pastikan index kolom ini sesuai database Bapak
-    colDisabilitas: 7, // Pastikan index kolom ini sesuai database Bapak
-    colAlamat: 6,
+    colSekolah: 7,   // Pastikan index kolom ini sesuai database Bapak
+    colKelas: 8,     // Pastikan index kolom ini sesuai database Bapak
+    colDisabilitas: 17, // Pastikan index kolom ini sesuai database Bapak
+    colAlamat: 11,
     colMartial: 13,
     waStatis: true
 }];
