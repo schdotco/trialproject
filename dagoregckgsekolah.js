@@ -734,9 +734,14 @@ function initUI(){
     });
 
     // === LOGIKA INPUT NIK NORMAL ===
-    document.getElementById("nikAI").addEventListener('input', async (e) => {
-        let val = e.target.value.replace(/\D/g, '');
-        if (val.length === 16 && !isProcessing) {
+    async function prosesNIK(val) {
+        if (val.length === 16) {
+            if (isProcessing) {
+                console.log("[BOT] Gagal: Bot sedang memproses data lain.");
+                document.getElementById("infoAI").innerHTML = `<b style="color:#ff3333;">Bot sedang sibuk! Klik "Bersihkan & Update" jika macet.</b>`;
+                return;
+            }
+            
             isProcessing = true;
             document.getElementById("infoAI").innerHTML = `<b style="color:#ffcc00;">Mencari NIK: ${val}...</b>`;
 
@@ -752,10 +757,28 @@ function initUI(){
                 hideLoading();
                 document.getElementById("infoAI").innerHTML = `<b style="color:#ff3333;">Terjadi Kendala. Coba lagi!</b>`;
             } finally {
-                e.target.value = "";
+                document.getElementById("nikAI").value = "";
                 isProcessing = false;
             }
+        } else {
+            console.log("[BOT] NIK belum 16 digit, saat ini: " + val.length);
         }
+    }
+
+    // Listener Input Biasa
+    document.getElementById("nikAI").addEventListener('input', async (e) => {
+        let val = e.target.value.replace(/\D/g, '');
+        prosesNIK(val);
+    });
+
+    // Listener Khusus Paste
+    document.getElementById("nikAI").addEventListener('paste', async (e) => {
+        // Beri waktu 50ms agar nilai input terisi sempurna sebelum dibaca
+        setTimeout(() => {
+            let val = e.target.value.replace(/\D/g, '');
+            console.log("[BOT] Paste terdeteksi, NIK: " + val);
+            prosesNIK(val);
+        }, 50);
     });
 }
 setTimeout(initUI, 1500);
