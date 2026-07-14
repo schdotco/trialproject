@@ -4,8 +4,8 @@
 /* =========================================================
    CONFIG - VERSI KHUSUS ANAK / REMAJA (FIXED TARGETS)
 ========================================================= */
-const SHEET_ID = '1-We9wNftLhF2Ttd0ukfKpuK2IhM_YTg-mAeScMeDQNI';
-const GIDS = ['1783755807', '1121908280'];
+const SHEET_ID = '';
+const GIDS = ['', ''];
 
 // TARGETS dioptimalkan agar ADAPTIF dan sangat presisi dengan nama menu di ASIK
 const TARGETS = [
@@ -617,8 +617,8 @@ function createUI(){
     if(document.getElementById('auto-ckg-ui')) return;
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
     box.innerHTML = `
-        <div id="drag-handle">INPUT CKG ANAK & REMAJA</div>
-        <div id="bot-status">Menyiapkan Database, Jangan Klik Start !...</div>
+        <div id="drag-handle">INPUT CKG ANAK & REMAJA || COMING SOON !! </div>
+        <div id="bot-status">Menyiapkan Database, Jangan Klik Start !... || COMING SOON !</div>
         <input id="nik-bot" placeholder="Masukkan NIK">
         <div id="btn-wrap">
             <button id="run-bot">START</button><button id="stop-bot">BATAL</button>
