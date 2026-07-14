@@ -325,67 +325,49 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
     return false;
 }
 
-async function isiKesehatanJiwa(data) {
-    const j1 = data.jiwa1 || '';
-    const j2 = data.jiwa2 || '';
-    const j3 = data.jiwa3 || '';
-    const j4 = data.jiwa4 || '';
+async function isiKesehatanJiwa() {
 
-    const semuaPertanyaan = [...document.querySelectorAll('.sd-question, .sd-element')];
+    const semuaPertanyaan = [
+        ...document.querySelectorAll('.sd-question, .sd-element')
+    ];
 
     for (const q of semuaPertanyaan) {
+
         const text = (q.innerText || '').toLowerCase();
-        let jawabanSheet = '';
 
-        // Deteksi soal
-        if (text.includes('bersemangat')) jawabanSheet = j1;
-        else if (text.includes('murung') || text.includes('putus asa')) jawabanSheet = j2;
-        else if (text.includes('gugup') || text.includes('cemas')) jawabanSheet = j3;
-        else if (text.includes('khawatir') || text.includes('mengendalikan')) jawabanSheet = j4;
+        if (
+            text.includes('2 minggu terakhir') ||
+            text.includes('kurang/tidak bersemangat') ||
+            text.includes('merasa murung') ||
+            text.includes('cemas') ||
+            text.includes('gelisah')
+        ) {
 
-        if (jawabanSheet.trim() !== '') {
-            let kataKunci = '';
-            const teksJawaban = jawabanSheet.toLowerCase();
-            
-            if (teksJawaban.includes('tidak')) kataKunci = 'tidak';
-            else if (teksJawaban.includes('kurang')) kataKunci = 'kurang';
-            else if (teksJawaban.includes('lebih')) kataKunci = 'lebih';
-            else if (teksJawaban.includes('hampir')) kataKunci = 'hampir';
+            const pilihan = [
+                ...q.querySelectorAll('.sd-item, .sv-item')
+            ];
 
-            if (kataKunci !== '') {
-                const pilihan = [...q.querySelectorAll('.sd-item, .sv-item')];
-                const targetPilihan = pilihan.find(el => (el.innerText || '').toLowerCase().includes(kataKunci));
+            const tidakSamaSekali = pilihan.find(el =>
+                (el.innerText || '')
+                    .toLowerCase()
+                    .includes('tidak sama sekali')
+            );
 
-                if (targetPilihan) {
-                    targetPilihan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (tidakSamaSekali) {
+
+                const radio =
+                    tidakSamaSekali.querySelector('.sd-radio__decorator') ||
+                    tidakSamaSekali.querySelector('.sd-item__decorator');
+
+                if (radio) {
+                    radio.click();
                     await sleep(300);
-
-                    // --- STRATEGI SUPER CLICKER ---
-                    // 1. Klik visual decorator
-                    const decorator = targetPilihan.querySelector('.sd-radio__decorator, .sd-item__decorator, .sv-item__decorator');
-                    if (decorator) decorator.click(); 
-
-                    // 2. Akses input radio yang asli
-                    const inputAsli = targetPilihan.querySelector('input[type="radio"]');
-                    if (inputAsli) {
-                        inputAsli.checked = true; // Paksa centang
-                        
-                        // 3. Tembakkan semua event agar Vue.js/SurveyJS terpicu
-                        ['click', 'input', 'change', 'mousedown', 'mouseup'].forEach(evt => {
-                            inputAsli.dispatchEvent(new Event(evt, { bubbles: true }));
-                        });
-                        
-                        // Opsional: Klik sekali lagi pada input aslinya
-                        inputAsli.click();
-                    }
-                    
-                    console.log(`[BOT] Sukses mengklik "${kataKunci}"`);
-                    await sleep(600); 
                 }
             }
         }
     }
 }
+
 
 async function isiTetanusCatin() {
     const judul = document.body.innerText.toLowerCase();
