@@ -337,6 +337,7 @@ async function isiKesehatanJiwa(data) {
         const text = (q.innerText || '').toLowerCase();
         let jawabanSheet = '';
 
+        // Deteksi soal
         if (text.includes('bersemangat')) jawabanSheet = j1;
         else if (text.includes('murung') || text.includes('putus asa')) jawabanSheet = j2;
         else if (text.includes('gugup') || text.includes('cemas')) jawabanSheet = j3;
@@ -352,25 +353,33 @@ async function isiKesehatanJiwa(data) {
             else if (teksJawaban.includes('hampir')) kataKunci = 'hampir';
 
             if (kataKunci !== '') {
-                const pilihan = [...q.querySelectorAll('.sd-item, .sv-item, label')];
+                const pilihan = [...q.querySelectorAll('.sd-item, .sv-item')];
                 const targetPilihan = pilihan.find(el => (el.innerText || '').toLowerCase().includes(kataKunci));
 
                 if (targetPilihan) {
                     targetPilihan.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     await sleep(300);
 
+                    // --- STRATEGI SUPER CLICKER ---
+                    // 1. Klik visual decorator
                     const decorator = targetPilihan.querySelector('.sd-radio__decorator, .sd-item__decorator, .sv-item__decorator');
                     if (decorator) decorator.click(); 
-                    else targetPilihan.click(); 
 
+                    // 2. Akses input radio yang asli
                     const inputAsli = targetPilihan.querySelector('input[type="radio"]');
                     if (inputAsli) {
+                        inputAsli.checked = true; // Paksa centang
+                        
+                        // 3. Tembakkan semua event agar Vue.js/SurveyJS terpicu
+                        ['click', 'input', 'change', 'mousedown', 'mouseup'].forEach(evt => {
+                            inputAsli.dispatchEvent(new Event(evt, { bubbles: true }));
+                        });
+                        
+                        // Opsional: Klik sekali lagi pada input aslinya
                         inputAsli.click();
-                        inputAsli.checked = true;
-                        inputAsli.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-                        inputAsli.dispatchEvent(new Event('input', { bubbles: true }));
-                        inputAsli.dispatchEvent(new Event('change', { bubbles: true }));
                     }
+                    
+                    console.log(`[BOT] Sukses mengklik "${kataKunci}"`);
                     await sleep(600); 
                 }
             }
