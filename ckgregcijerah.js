@@ -400,7 +400,7 @@ async function fillAndValidate(placeholderKeyword, valueText, isSearchable = fal
 /* ================= ENGINE ALAMAT WILAYAH VUE (BARU) ================= */
 async function setAlamatDomisiliVue() {
     console.log("[BOT] Menyetel Alamat Domisili Otomatis...");
-    const steps = ["Jawa Barat", "Kota Bandung", "Coblong", "Dago"];
+    const steps = ["Jawa Barat", "Kota Bandung", "Bandung Kulon", "Cijerah"];
 
     const allElements = Array.from(document.querySelectorAll('div, span'));
     const trigger = allElements.find(el => (el.innerText || "").toLowerCase().trim() === "pilih alamat domisili" && el.children.length === 0);
@@ -631,7 +631,7 @@ if (textToFindPernikahan !== "") {
 
     /* ================= 3. ALAMAT DOMISILI ================= */
     console.log("[BOT] Memproses Domisili...");
-    showLoading("⚡ MENCARI WILAYAH DAGO... ⚡");
+    showLoading("⚡ MENCARI WILAYAH CIJERAH... ⚡");
     await setAlamatDomisiliVue();
 
     // WAJIB: Berikan jeda krusial setelah API wilayah selesai
@@ -857,7 +857,7 @@ document.getElementById("infoAI").innerHTML = `
         • JK: <b style="color:#00ff88;">${data.jk || '-'}</b><br>
         • Status: <b style="color:#00ff88;">${data.Martial || '-'}</b><br>
         • Pekerjaan: <b style="color:#00ff88;">${data.pekerjaan || '-'}</b><br>
-        • Kelurahan: <b style="color:#00ff88;">DAGO</b><br>
+        • Kelurahan: <b style="color:#00ff88;">CIJERAH</b><br>
         • Alamat: <div style="color:#00ff88; margin-top:3px; background:#111; padding:6px; border-radius:5px; border:1px solid #333; word-break:break-word; max-height:65px; overflow:auto;">${data.alamat || '-'}</div>
     </div>
     <div style="margin-top:8px; font-size:11px; color:#aaa; text-align:center;">
@@ -926,7 +926,7 @@ function initUI(){
     box.innerHTML = `
         <div id="dragHeader" style="text-align:center; margin-bottom:10px; cursor:move; background:#222; padding:8px; border-radius:8px; border:1px solid #444;" title="Klik dan tahan untuk menggeser bot">
             <b style="color:#00ff88; font-size:16px;">Register CKG</b><br>
-            <span style="font-size:10px; color:#aaa; letter-spacing:1px;">Puskesmas Dago</span>
+            <span style="font-size:10px; color:#aaa; letter-spacing:1px;">Puskesmas Cijerah</span>
         </div>
         <div style="background:#222; padding:10px; border-radius:8px; text-align:center; margin-bottom:10px; border:1px solid #444;">
             <b style="color:#ffcc00; font-size:11px;">⚡ TEMPEL/SCAN NIK DI SINI ⚡</b><br>
