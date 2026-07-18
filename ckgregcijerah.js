@@ -397,43 +397,49 @@ async function fillAndValidate(placeholderKeyword, valueText, isSearchable = fal
     return false;
 }
 
-/* ================= ENGINE ALAMAT WILAYAH VUE (BARU) ================= */
+/* ================= ENGINE ALAMAT WILAYAH VUE (BARU & ANTI-BENTROK) ================= */
 async function setAlamatDomisiliVue() {
-    console.log("[BOT] Menyetel Alamat Domisili Otomatis...");
-    const steps = ["Jawa Barat", "Kota Bandung", "Bandung Kulon", "Cijerah"];
+    console.log("[BOT] Menyetel Alamat Domisili Otomatis...");
+    const steps = ["Jawa Barat", "Kota Bandung", "Coblong", "Sekeloa"];
 
-    const allElements = Array.from(document.querySelectorAll('div, span'));
-    const trigger = allElements.find(el => (el.innerText || "").toLowerCase().trim() === "pilih alamat domisili" && el.children.length === 0);
+    const allElements = Array.from(document.querySelectorAll('div, span'));
+    const trigger = allElements.find(el => (el.innerText || "").toLowerCase().trim() === "pilih alamat domisili" && el.children.length === 0);
 
-    if (!trigger) return false;
-    await ultraClick(trigger.closest('.cursor-pointer') || trigger);
-    await wait(1000);
+    if (!trigger) return false;
+    await ultraClick(trigger.closest('.cursor-pointer') || trigger);
+    await wait(1500); // Jeda ekstra untuk memastikan modal terbuka
 
-    // Loop berurutan (Provinsi -> Kota -> Kecamatan -> Kelurahan)
-    for (const step of steps) {
-        console.log("[BOT] Memilih wilayah:", step);
-        let searchInput = Array.from(document.querySelectorAll('input')).find(el => (el.placeholder || "").toLowerCase().includes("cari"));
-        if (searchInput) {
-            forceInject(searchInput, step);
-            await wait(1500); // Tunggu filter Kemenkes
-        }
+    // Loop berurutan (Provinsi -> Kota -> Kecamatan -> Kelurahan)
+    for (const step of steps) {
+        console.log("[BOT] Memilih wilayah:", step);
+        
+        // LAPIS KEAMANAN: Cari input yang ada kata "cari" TAPI BUKAN "pekerjaan"
+        let searchInput = Array.from(document.querySelectorAll('input')).find(el => {
+            const p = (el.placeholder || "").toLowerCase();
+            return p.includes("cari") && !p.includes("pekerjaan"); 
+        });
 
-        let clicked = false;
-        for (let i = 0; i < 15; i++) {
-            const options = Array.from(document.querySelectorAll('div.flex.items-center.justify-between')).filter(el => (el.innerText || "").trim().toLowerCase() === step.toLowerCase());
-            if (options.length > 0) {
-                await ultraClick(options[options.length - 1]);
-                clicked = true;
-                await wait(1000);
-                break;
-            }
-            await wait(400);
-        }
-        if(!clicked) {
-            console.log("[BOT] Gagal di wilayah:", step);
-            break;
-        }
-    }
+        if (searchInput) {
+            forceInject(searchInput, step);
+            await wait(1500); // Tunggu filter Kemenkes
+        }
+
+        let clicked = false;
+        for (let i = 0; i < 15; i++) {
+            const options = Array.from(document.querySelectorAll('div.flex.items-center.justify-between')).filter(el => (el.innerText || "").trim().toLowerCase() === step.toLowerCase());
+            if (options.length > 0) {
+                await ultraClick(options[options.length - 1]);
+                clicked = true;
+                await wait(1000);
+                break;
+            }
+            await wait(400);
+        }
+        if(!clicked) {
+            console.log("[BOT] Gagal di wilayah:", step);
+            break;
+        }
+    }
 }
 
 /* ================= EKSEKUSI HALAMAN 2 (VUE VERSION) ================= */
