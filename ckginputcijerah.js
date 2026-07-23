@@ -19,6 +19,14 @@ const TARGETS = [
     { id: 'telinga_mata', txt: 'telinga dan mata' },
     { id: 'karies', txt: 'karies' },
     { id: 'periodontal', txt: 'periodontal' },
+    { id: 'puma', txt: 'puma' }, 
+    { id: 'kanker_paru', txt: 'skrining kanker paru' },
+    { id: 'skilas_kog', txt: 'penurunan kognitif' },
+    { id: 'skilas_mob', txt: 'mobilisasi' },
+    { id: 'skilas_mob_alt', txt: 'tingkat kemandirian' },
+    { id: 'skilas_mal', txt: 'malnutrisi' },
+    { id: 'skilas_dep', txt: 'depresi' },
+    { id: 'skilas_dep_alt', txt: 'emosional' }
 ];
 
 const sleep = ms => new Promise(r => setTimeout(r,ms));
@@ -104,13 +112,20 @@ async function cariData(nikInput){
                 return {
                     nik: target,
                     nama: cells[7] || '',
-                    sistole: cells[37] || '120',
-                    diastole: cells[38] || '80',
-                    bb: cells[40] || '60',
-                    tb: cells[41] || '165',
-                    lp: cells[43] || '80',
-                    gula: cells[57] || '110',
+                    sistole: cells[37] || '',
+                    diastole: cells[38] || '',
+                    bb: cells[40] || '',
+                    tb: cells[41] || '',
+                    lp: cells[43] || '',
+                    gula: cells[57] || '',
                     mata: cells[84] || 'Tidak',
+                    skilasKog3: (cells[68] || 'Ya').trim(),
+                    skilasMob:  (cells[69] || 'Ya').trim(),
+                    skilasMal1: (cells[70] || 'Tidak').trim(),
+                    skilasMal2: (cells[71] || 'Tidak').trim(),
+                    skilasMal3: (cells[72] || 'Tidak').trim(),
+                    skilasDep1: (cells[73] || 'Tidak').trim(),
+                    skilasDep2: (cells[74] || 'Tidak').trim()
                 };
             }
         }
@@ -180,6 +195,48 @@ async function selectDropdownSurveyJS(optionText) {
         } else triggerClick(dropdownTrigger); 
     }
     return success;
+}
+
+async function selectDropdownContext(soalText, optionText) {
+    // 1. Cari kontainer soal berdasarkan teks
+    const questions = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')];
+    const targetQ = questions.find(q => (q.innerText || '').toLowerCase().includes(soalText.toLowerCase()));
+    if (!targetQ) return false;
+
+    // 2. Cari dropdown di dalam soal tersebut
+    const dropdown = targetQ.querySelector('.sd-dropdown');
+    if (!dropdown) return false;
+
+    // 3. Klik untuk membuka
+    dropdown.click();
+    await sleep(1000); // Wajib tunggu animasi
+
+    // 4. KUNCI: Cari daftar pilihan BERDASARKAN ID (aria-controls)
+    const listId = dropdown.getAttribute('aria-controls');
+    const listElement = document.getElementById(listId);
+    
+    if (!listElement) {
+        console.warn('Daftar pilihan tidak ditemukan untuk:', soalText);
+        dropdown.click(); // Tutup kembali
+        return false;
+    }
+
+    // 5. Cari opsi HANYA di dalam listElement tersebut
+    const options = [...listElement.querySelectorAll('.sv-list__item-body')];
+    const targetOpt = options.find(el => 
+        (el.innerText || '').trim().toLowerCase() === optionText.toLowerCase()
+    );
+
+    if (targetOpt) {
+        targetOpt.click();
+        await sleep(500);
+        console.log('[AI] Berhasil memilih:', optionText);
+        return true;
+    } else {
+        console.warn('Opsi tidak ditemukan di list:', optionText);
+        dropdown.click(); // Tutup kembali jika gagal
+        return false;
+    }
 }
 
 async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
@@ -337,11 +394,21 @@ async function klikKirim() {
                 }
             }
         }
+      
+        // PROTEKSI INFINITE LOOP: Jika opsi "Normal/Tidak" tidak ada di soal tersebut
+        if (!foundDefaultAnswer) {
+            console.warn("[WARNING] Soal wajib kosong tapi tidak ada opsi default (Normal/Tidak).");
+            updateStatus('Terjebak soal wajib.\nSilakan isi manual lalu klik Kirim.');
+            return false; // Hentikan loop paksa
+        }
+
         await sleep(1000);
-        check = isFormValid(); // Cek ulang, jika masih ada soal kosong lain, loop berjalan lagi
-   }
-   const btn = document.querySelector('.sd-navigation__complete-btn') ||
+        check = isFormValid(); 
+    }
+
+    const btn = document.querySelector('.sd-navigation__complete-btn') ||
                 [...document.querySelectorAll('button')].find(b => (b.innerText||'').toLowerCase().includes('kirim'));
+    
     if (btn) {
         updateStatus('Mengirim data...');
         btn.click();
@@ -358,9 +425,6 @@ async function klikKirim() {
 ========================================================= */
 async function autoContinueForm(){
     const data = loadBOT();
-    
-    // PERBAIKAN FATAL: Jika belum ada data (user baru buka form dan belum tekan start), 
-    // ubah status jadi IDLE agar tidak stuck di INISIALISASI
     if(!data) {
         updateStatus('IDLE\nSiap Digunakan (Form)');
         return;
@@ -429,6 +493,88 @@ async function autoContinueForm(){
         await pilihSemuaRadioLimit('tidak', 2, true);
         await selectDropdownSurveyJS('tidak', 2);
     }
+       else if(title.includes('skrining kanker paru') && (title.includes('riwayat merokok') || title.includes('skrining kanker paru'))) {
+        currentId = 'kanker_paru'; 
+        updateStatus('MENGISI TAHAP: KANKER PARU');
+        await sleep(2000);
+
+        let isPerokok = (data.merokok || '').toLowerCase().includes('ya') || 
+                        (data.merokok || '').toLowerCase().includes('rokok');
+
+        // 1 & 2. Pilih yang ada teks Tidak
+        await isiRadioSurveyJS('didiagnosis atau menderita kanker', 'tidak pernah didiagnosis');
+        await isiRadioSurveyJS('ada anggota keluarga yang menderita kanker', 'tidak ada keluarga');
+
+        // 3. Riwayat merokok/paparan asap
+        if (isPerokok) {
+            await isiRadioSurveyJS('riwayat merokok', 'perokok aktif');
+        } else {
+            await isiRadioSurveyJS('riwayat merokok', 'tidak pernah merokok');
+        }
+
+        // 4. Tempat kerja zat karsinogenik
+        await isiRadioSurveyJS('zat karsinogenik', 'Tidak tempat kerja mengandung zat karsinogenik');
+
+        // 5. Berpotensi tinggi
+        await isiRadioSurveyJS('berpotensi tinggi', 'Tidak memiliki tempat tinggal berpotensi tinggi');
+
+        // 6. Rumah tidak sehat (Khusus ini teksnya "memiliki lingkungan dalam rumah yang sehat")
+        await isiRadioSurveyJS('dalam rumah yang tidak sehat', 'Memiliki lingkungan dalam rumah yang sehat');
+
+        // 7. Paru kronik
+        await isiRadioSurveyJS('penyakit paru kronik', 'tidak pernah didiagnosis penyakit paru kronik');
+
+        // 8. Foto Torax akan diabaikan (Jangan diisi apa-apa)
+        await sleep(500);
+    }
+   else if(title.includes('puma') || title.includes('ppok')){
+        currentId = 'puma'; updateStatus('MENGISI TAHAP: PPOK (PUMA)');
+
+        // Mengecek apakah data merokok mengandung kata 'ya' atau 'rokok'
+        let isPerokok = (data.merokok || '').toLowerCase().includes('ya') || 
+                        (data.merokok || '').toLowerCase().includes('rokok');
+
+        // 1. Riwayat merokok (Pilih 'Iya' atau 'Tidak')
+        await isiRadioSurveyJS('mempunyai riwayat merokok', isPerokok ? 'iya' : 'tidak');
+        await sleep(400);
+
+        // 2-5. Jawab otomatis Tidak
+        await isiRadioSurveyJS('napas pendek', 'tidak');
+        await isiRadioSurveyJS('mempunyai dahak', 'tidak');
+        await isiRadioSurveyJS('batuk saat sedang tidak menderita', 'tidak');
+        await isiRadioSurveyJS('spirometri', 'tidak');
+        await sleep(500);
+    }
+      else if (title.includes('penurunan kognitif')) {
+        currentId = 'skilas_kog'; updateStatus('MENGISI TAHAP: PENURUNAN KOGNITIF');
+        await isiRadioSurveyJS('mengingat tiga kata: bunga', data.skilasKog1);
+        let opsiKog2 = (data.skilasKog2 || '').toLowerCase().includes('ya') ? 'benar semua' : 'salah';
+        await isiRadioSurveyJS('tanggal berapakah hari ini', opsiKog2);
+        await isiRadioSurveyJS('mengingat tiga kata sebelumnya', data.skilasKog3);
+    }
+    else if (title.includes('mobilisasi') || title.includes('tingkat kemandirian')) {
+        currentId = 'skilas_mob'; updateStatus('MENGISI TAHAP: MOBILISASI');
+        await isiRadioSurveyJS('berdiri dari kursi lima kali', data.skilasMob);
+    }
+    else if (title.includes('malnutrisi')) {
+        currentId = 'skilas_mal'; updateStatus('MENGISI TAHAP: MALNUTRISI');
+        await isiRadioSurveyJS('berat badan anda berkurang', data.skilasMal1);
+        await isiRadioSurveyJS('hilang nafsu makan', data.skilasMal2);
+        await isiRadioSurveyJS('ukuran lingkar lengan atas', data.skilasMal3);
+    }
+    else if (title.includes('gejala depresi') || title.includes('emosional')) {
+        currentId = 'skilas_dep'; 
+        updateStatus('MENGISI TAHAP: DEPRESI');
+        
+        // Ambil data (pastikan isinya "Ya" atau "Tidak" sesuai yang ada di website)
+        let d1 = (data.skilasDep1 || 'tidak').trim();
+        let d2 = (data.skilasDep2 || 'tidak').trim();
+        
+        // Panggil fungsi yang sudah diperbaiki
+        await selectDropdownContext('merasa sedih, tertekan', d1);
+        await sleep(500);
+        await selectDropdownContext('sedikit minat atau kesenangan', d2);
+    }
 
     if(currentId) addCompleted(currentId);
     await klikKirim();
@@ -457,15 +603,29 @@ function getNextTarget(){
 }
 
 async function mainLoopCKG(data){
-    const nextItem = getNextTarget();
+    updateStatus('MENCARI ANTRIAN...');
+    await sleep(2000); // Beri waktu halaman bernapas
+    
+    let nextItem = getNextTarget();
+    
+    // --- TAMBAHAN: RE-TRY LOGIC ---
+    // Jika tombol tidak ketemu, coba tunggu sekali lagi (mungkin halaman masih loading)
+    if(!nextItem) {
+        console.warn("Tombol tidak ketemu, mencoba scan ulang dalam 2 detik...");
+        await sleep(2000);
+        nextItem = getNextTarget();
+    }
+    // ------------------------------
+
     if(!nextItem){
         clearBOT(); clearCompleted(); BOT_RUNNING = false;
-        updateStatus('SELESAI SEMUA 9 PEMERIKSAAN');
+        updateStatus('SELESAI SEMUA PEMERIKSAAN'); 
         alert('BOT SUKSES INPUT SEMUA PEMERIKSAAN');
         return;
     }
+    
     updateStatus('MEMBUKA TARGET:\n' + nextItem.title.toUpperCase());
-    await sleep(2000);
+    await sleep(1000);
     triggerClick(nextItem.btn);
 }
 
