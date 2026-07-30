@@ -225,20 +225,20 @@ async function cariData(nikInput) {
                 console.log("=== DEBUG DATA PADA BARIS INI ===");
                 console.log("Target NIK:", target);
                 console.log("Panjang array baris (total kolom):", row.length);
-                console.log("Isi Kolom 74 (Jiwa 1):", row[74]);
-                console.log("Isi Kolom 75 (Jiwa 2):", row[75]);
-                console.log("Isi Kolom 76 (Jiwa 3):", row[76]);
-                console.log("Isi Kolom 77 (Jiwa 4):", row[77]);
+                console.log("Isi Kolom 72 (Jiwa 1):", row[72]);
+                console.log("Isi Kolom 73 (Jiwa 2):", row[73]);
+                console.log("Isi Kolom 74 (Jiwa 3):", row[74]);
+                console.log("Isi Kolom 75 (Jiwa 4):", row[75]);
                 console.log("================================");
                 
                 return {
                     nik: target,
                     perkawinan: row[26] || 'Belum Menikah',
-                    merokok: (row[73] || '').trim(),
-                    jiwa1: (row[74] || '').trim(), 
-                    jiwa2: (row[75] || '').trim(), 
-                    jiwa3: (row[76] || '').trim(), 
-                    jiwa4: (row[77] || '').trim()  
+                    merokok: (row[71] || '').trim(),
+                    jiwa1: (row[72] || '').trim(), 
+                    jiwa2: (row[73] || '').trim(), 
+                    jiwa3: (row[74] || '').trim(), 
+                    jiwa4: (row[75] || '').trim()  
                 };
             }
         }
