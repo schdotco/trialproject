@@ -916,8 +916,6 @@ async function handleSkriningMandiri(data) {
 /* =========================================================
    FORM LOOP ROUTER (FIXED)
 ========================================================= */
-let BOT_RUNNING = false;
-
 async function autoContinueForm(){
     const data = loadBOT();
     if(!data) return;
