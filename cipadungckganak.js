@@ -105,6 +105,46 @@ function parseCSV(text) {
 
 let cachedSheetData = null;
 
+/* =========================================================
+   HELPER INDEXEDDB (CACHE) - DITAMBAHKAN DI SINI
+========================================================= */
+const DB_NAME = 'CKG_Database';
+const STORE_NAME = 'SheetCache';
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+            e.target.result.createObjectStore(STORE_NAME);
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function setCacheDB(key, value) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(value, key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+async function getCacheDB(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const request = tx.objectStore(STORE_NAME).get(key);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(tx.error);
+    });
+}
+
+/* =========================================================
+   FUNGSI CARI DATA
+========================================================= */
 async function cariData(nikInput) {
     try {
         const target = normalizeNIK(nikInput);
@@ -208,7 +248,7 @@ async function cariData(nikInput) {
         return null; 
     }
 }
-
+   
 /* =========================================================
    DOM INTERACTOR CORE
 ========================================================= */
