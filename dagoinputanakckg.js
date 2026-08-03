@@ -25,39 +25,29 @@ const sleep = ms => new Promise(r => setTimeout(r,ms));
 function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
 
 /* =========================================================
-   SESSION & DYNAMIC TRACKER
+   SESSION & DYNAMIC TRACKER (INTERNAL BROWSER)
 ========================================================= */
 function saveBOT(data) { 
-    try { GM_setValue('AUTO_CKG_ANAK_DATA', JSON.stringify(data)); } 
-    catch(e) { localStorage.setItem('AUTO_CKG_ANAK_DATA', JSON.stringify(data)); }
+    localStorage.setItem('AUTO_CKG_ANAK_DATA', JSON.stringify(data)); 
 }
 function loadBOT() { 
-    try { 
-        const raw = GM_getValue('AUTO_CKG_ANAK_DATA'); 
-        return raw ? JSON.parse(raw) : null; 
-    } catch(e) { 
-        const raw = localStorage.getItem('AUTO_CKG_ANAK_DATA'); 
-        return raw ? JSON.parse(raw) : null; 
-    }
+    const raw = localStorage.getItem('AUTO_CKG_ANAK_DATA'); 
+    return raw ? JSON.parse(raw) : null; 
 }
 function clearBOT() { 
-    try { GM_deleteValue('AUTO_CKG_ANAK_DATA'); } 
-    catch(e) { localStorage.removeItem('AUTO_CKG_ANAK_DATA'); }
+    localStorage.removeItem('AUTO_CKG_ANAK_DATA'); 
 }
 
 function getCompleted() { 
-    try { return JSON.parse(GM_getValue('AUTO_CKG_ANAK_COMPLETED') || '[]'); }
-    catch(e) { return JSON.parse(localStorage.getItem('AUTO_CKG_ANAK_COMPLETED') || '[]'); }
+    return JSON.parse(localStorage.getItem('AUTO_CKG_ANAK_COMPLETED') || '[]');
 }
 function addCompleted(id) {
     const arr = getCompleted();
     if(!arr.includes(id)) arr.push(id);
-    try { GM_setValue('AUTO_CKG_ANAK_COMPLETED', JSON.stringify(arr)); }
-    catch(e) { localStorage.setItem('AUTO_CKG_ANAK_COMPLETED', JSON.stringify(arr)); }
+    localStorage.setItem('AUTO_CKG_ANAK_COMPLETED', JSON.stringify(arr));
 }
 function clearCompleted() { 
-    try { GM_deleteValue('AUTO_CKG_ANAK_COMPLETED'); }
-    catch(e) { localStorage.removeItem('AUTO_CKG_ANAK_COMPLETED'); }
+    localStorage.removeItem('AUTO_CKG_ANAK_COMPLETED');
 }
 
 /* =========================================================
@@ -112,21 +102,18 @@ async function cariData(nikInput) {
         // Cek apakah data sudah ada di variabel RAM (Halaman yang sama)
         if (!cachedSheetData) {
             
-            // --- 1. CEK CACHE DI PENYIMPANAN BROWSER ---
+            // --- 1. CEK CACHE DI PENYIMPANAN INTERNAL BROWSER (LOCALSTORAGE) ---
             let savedCache = null;
             let cacheTime = 0;
-            const EXPIRATION_TIME = 4 * 60 * 60 * 1000; // Cache bertahan 4 jam (dalam milidetik)
+            const EXPIRATION_TIME = 1 * 60 * 60 * 1000; // Cache bertahan 1 jam (dalam milidetik)
             const now = Date.now();
 
             try {
-                const rawCache = GM_getValue('CKG_SHEET_CACHE');
-                cacheTime = parseInt(GM_getValue('CKG_SHEET_CACHE_TIME') || '0');
+                const rawCache = localStorage.getItem('CKG_SHEET_CACHE');
+                cacheTime = parseInt(localStorage.getItem('CKG_SHEET_CACHE_TIME') || '0');
                 if (rawCache) savedCache = JSON.parse(rawCache);
             } catch(e) {
-                // Fallback jika GM_getValue diblokir
-                const rawCache = sessionStorage.getItem('CKG_SHEET_CACHE');
-                cacheTime = parseInt(sessionStorage.getItem('CKG_SHEET_CACHE_TIME') || '0');
-                if (rawCache) savedCache = JSON.parse(rawCache);
+                console.warn("Gagal membaca storage internal.");
             }
 
             // --- 2. JIKA CACHE VALID & BELUM EXPIRED, GUNAKAN CACHE ---
@@ -155,26 +142,26 @@ async function cariData(nikInput) {
 
                     const rows = parseCSV(csvText);
                     if (rows && rows.length > 1) {
+                        // --- ANTI 64MB ERROR & QUOTA EXCEEDED (LOCALSTORAGE) ---
+                        const filteredRows = rows
+                            .map(row => row.slice(0, 20)) // Hanya simpan Kolom A sampai T saja (potong sisanya)
+                            .filter(row => row.some(cell => String(cell).trim() !== '')); // Buang baris yang isinya kosong semua
+
                         if (cachedSheetData.length === 0) {
-                            cachedSheetData = cachedSheetData.concat(rows);
+                            cachedSheetData = cachedSheetData.concat(filteredRows);
                         } else {
-                            cachedSheetData = cachedSheetData.concat(rows.slice(1));
+                            cachedSheetData = cachedSheetData.concat(filteredRows.slice(1));
                         }
                     }
                 }
                 console.log('[DOWNLOAD SELESAI]', cachedSheetData.length, 'baris didapat.');
 
-                // Simpan hasil download ke Penyimpanan Browser agar bisa dipakai di halaman selanjutnya
+                // Simpan hasil download ke Penyimpanan Internal Browser (LocalStorage)
                 try {
-                    GM_setValue('CKG_SHEET_CACHE', JSON.stringify(cachedSheetData));
-                    GM_setValue('CKG_SHEET_CACHE_TIME', now.toString());
-                } catch(e) {
-                    try {
-                        sessionStorage.setItem('CKG_SHEET_CACHE', JSON.stringify(cachedSheetData));
-                        sessionStorage.setItem('CKG_SHEET_CACHE_TIME', now.toString());
-                    } catch (err) {
-                        console.warn("Storage browser penuh, data hanya disimpan di RAM sementara.");
-                    }
+                    localStorage.setItem('CKG_SHEET_CACHE', JSON.stringify(cachedSheetData));
+                    localStorage.setItem('CKG_SHEET_CACHE_TIME', now.toString());
+                } catch (err) {
+                    console.warn("Storage browser penuh (Limit 5MB), data hanya disimpan di RAM sementara.");
                 }
             }
         }
@@ -190,14 +177,14 @@ async function cariData(nikInput) {
             const foundNik = normalizeNIK(cells[0] || cells[1] || cells[2]) === target || 
                              cells.find(col => normalizeNIK(col) === target);
 
-if (foundNik) {
+            if (foundNik) {
                 return {
                     nik: target,
                     nama: cells[3] || '',           // Kolom D (NAMA)
-                    bb: cells[4] || '',           // Kolom E (BERAT BADAN)
-                    tb: cells[5] || '',          // Kolom F (TINGGI BADAN)
-                    sistole: cells[6] || '',     // Kolom G (SISTOL)
-                    diastole: cells[7] || '',     // Kolom H (DIASTOL)
+                    bb: cells[4] || '',             // Kolom E (BERAT BADAN)
+                    tb: cells[5] || '',             // Kolom F (TINGGI BADAN)
+                    sistole: cells[6] || '',        // Kolom G (SISTOL)
+                    diastole: cells[7] || '',       // Kolom H (DIASTOL)
                     frambusia: cells[8] || 'tidak ada', // Kolom I (FRAMBUSIA)
                     kusta: cells[9] || 'tidak ada',     // Kolom J (KUSTA)
                     skabies: cells[10] || 'tidak ada',  // Kolom K (SKABIES)
@@ -207,8 +194,8 @@ if (foundNik) {
                     tajam_lihat: cells[14] || 'normal', // Kolom O (TAJAM PENGLIHATAN)
                     mata: cells[15] || 'tidak',     // Kolom P (KACAMATA)
                     gigi: cells[16] || 'tidak',     // Kolom Q (GIGI KARIES)
-                    lp: '',                       // Tidak ada di sheet, default
-                    gula: '',                    // Tidak ada di sheet, default
+                    lp: '',                         // Tidak ada di sheet, default
+                    gula: '',                       // Tidak ada di sheet, default
                     merokok: ''                     // Tidak ada di sheet
                 };
             }
