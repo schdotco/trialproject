@@ -25,29 +25,31 @@ const sleep = ms => new Promise(r => setTimeout(r,ms));
 function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
 
 /* =========================================================
-   SESSION & DYNAMIC TRACKER (INTERNAL BROWSER)
+   SESSION & DYNAMIC TRACKER (CROSS-SUBDOMAIN SAFE)
 ========================================================= */
+// Simpan data 1 pasien aktif menggunakan GM_setValue agar tembus antar subdomain
 function saveBOT(data) { 
-    localStorage.setItem('AUTO_CKG_ANAK_DATA', JSON.stringify(data)); 
+    GM_setValue('AUTO_CKG_ANAK_DATA', JSON.stringify(data)); 
 }
 function loadBOT() { 
-    const raw = localStorage.getItem('AUTO_CKG_ANAK_DATA'); 
+    const raw = GM_getValue('AUTO_CKG_ANAK_DATA'); 
     return raw ? JSON.parse(raw) : null; 
 }
 function clearBOT() { 
-    localStorage.removeItem('AUTO_CKG_ANAK_DATA'); 
+    GM_deleteValue('AUTO_CKG_ANAK_DATA'); 
 }
 
+// Untuk Tracker Completed juga wajib pakai GM_setValue
 function getCompleted() { 
-    return JSON.parse(localStorage.getItem('AUTO_CKG_ANAK_COMPLETED') || '[]');
+    return JSON.parse(GM_getValue('AUTO_CKG_ANAK_COMPLETED') || '[]');
 }
 function addCompleted(id) {
     const arr = getCompleted();
     if(!arr.includes(id)) arr.push(id);
-    localStorage.setItem('AUTO_CKG_ANAK_COMPLETED', JSON.stringify(arr));
+    GM_setValue('AUTO_CKG_ANAK_COMPLETED', JSON.stringify(arr));
 }
 function clearCompleted() { 
-    localStorage.removeItem('AUTO_CKG_ANAK_COMPLETED');
+    GM_deleteValue('AUTO_CKG_ANAK_COMPLETED');
 }
 
 /* =========================================================
