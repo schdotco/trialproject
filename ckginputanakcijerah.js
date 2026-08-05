@@ -5,7 +5,7 @@
    CONFIG - VERSI KHUSUS ANAK / REMAJA (FIXED TARGETS)
 ========================================================= */
 const SHEET_ID = '1gmDrmxOU2Lle7vhoXo-o8DgOp6rbNK1P';
-const GIDS = ['1gmDrmxOU2Lle7vhoXo-o8DgOp6rbNK1P'];
+const GIDS = ['1744259778'];
 
 // TARGETS dioptimalkan agar ADAPTIF dan sangat presisi dengan nama menu di ASIK
 const TARGETS = [
