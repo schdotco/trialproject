@@ -221,13 +221,29 @@ async function cariData(nikInput) {
                 const source = SHEETS[s];
                 for (const gid of source.gids) {
                     console.log(`Download Sheet: ${source.id} | GID: ${gid}`);
-                    const csv = await new Promise(resolve => {
+                      const csv = await new Promise(resolve => {
+                        if (typeof request !== "function") {
+                            alert("ERROR JARINGAN: GM_xmlhttpRequest tidak aktif. Pastikan header script sudah benar!");
+                            resolve("");
+                            return;
+                        }
+                        
                         request({
                             method: "GET", 
                             url: `https://docs.google.com/spreadsheets/d/${source.id}/export?format=csv&gid=${gid}`,
-                            timeout: 10000, 
-                            onload: r => resolve(r.responseText || ""), 
-                            onerror: () => resolve("")
+                            timeout: 15000, // Waktu diperpanjang jadi 15 detik
+                            onload: r => {
+                                // Jika Google meminta login (bukan file CSV yang didapat)
+                                if (r.responseText.includes("Sign in - Google Accounts")) {
+                                    alert("Browser di device ini belum login ke Akun Google yang memiliki akses ke Spreadsheet!");
+                                    resolve("");
+                                } else {
+                                    resolve(r.responseText || "");
+                                }
+                            }, 
+                            onerror: (err) => { console.error("API Error", err); resolve(""); },
+                            ontimeout: () => { console.error("API Timeout"); resolve(""); }, // Mencegah bot hang jika koneksi lemot
+                            onabort: () => { console.error("API Aborted"); resolve(""); }    // Mencegah bot hang jika request diblokir
                         });
                     });
 
