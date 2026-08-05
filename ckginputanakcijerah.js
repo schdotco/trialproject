@@ -110,72 +110,62 @@ async function cariData(nikInput) {
     try {
         const target = normalizeNIK(nikInput);
         
-        // Cek apakah data sudah ada di variabel RAM (Halaman yang sama)
-        if (!cachedSheetData) {
+        // --- TAHAP 1: CEK CACHE ATAU DOWNLOAD (ANTI CRASH 64MiB) ---
+        if (!cachedSheetData || cachedSheetData.length === 0) {
             
-            // --- 1. CEK CACHE DI PENYIMPANAN BROWSER ---
             let savedCache = null;
             let cacheTime = 0;
-            const EXPIRATION_TIME = 4 * 60 * 60 * 1000; // Cache bertahan 4 jam (dalam milidetik)
+            const EXPIRATION_TIME = 4 * 60 * 60 * 1000; // Cache 4 jam
             const now = Date.now();
 
+            // 1. Cek dari IndexedDB
             try {
-                const rawCache = GM_getValue('CKG_SHEET_CACHE');
-                cacheTime = parseInt(GM_getValue('CKG_SHEET_CACHE_TIME') || '0');
-                if (rawCache) savedCache = JSON.parse(rawCache);
+                savedCache = await getCacheDB('CKG_SHEET_DATA');
+                cacheTime = await getCacheDB('CKG_SHEET_TIME') || 0;
             } catch(e) {
-                // Fallback jika GM_getValue diblokir
-                const rawCache = sessionStorage.getItem('CKG_SHEET_CACHE');
-                cacheTime = parseInt(sessionStorage.getItem('CKG_SHEET_CACHE_TIME') || '0');
-                if (rawCache) savedCache = JSON.parse(rawCache);
+                console.warn("Gagal membaca IndexedDB", e);
             }
 
-            // --- 2. JIKA CACHE VALID & BELUM EXPIRED, GUNAKAN CACHE ---
+            // 2. Jika valid, gunakan dari IndexedDB (Cepat & Hemat RAM)
             if (savedCache && savedCache.length > 0 && (now - cacheTime < EXPIRATION_TIME)) {
-                console.log('[CACHE READY] Memuat data dari penyimpanan lokal (Cepat)...');
+                console.log('[CACHE READY] Memuat data dari IndexedDB...');
                 cachedSheetData = savedCache;
             } 
-            // --- 3. JIKA TIDAK ADA CACHE ATAU EXPIRED, DOWNLOAD ULANG ---
+            // 3. Jika tidak ada / expired, lakukan Download ulang
             else {
                 updateStatus("MENGUNDUH DATA SPREADSHEET...");
                 cachedSheetData = [];
-
-                // Looping ke semua GID yang ada di array GIDS
+                
                 for (const gid of GIDS) {
-                    console.log('Download sheet gid:', gid);
                     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
-                    
                     const res = await fetch(url);
-                    if (!res.ok) {
-                        console.warn(`[WARNING] Gagal terhubung ke GID: ${gid}`);
-                        continue;
-                    }
+                    if (!res.ok) continue;
                     
                     const csvText = await res.text();
                     if (!csvText) continue;
-
+                    
                     const rows = parseCSV(csvText);
                     if (rows && rows.length > 1) {
+                        // [OPTIMASI MEMORI] Gunakan Push Loop alih-alih .concat()
                         if (cachedSheetData.length === 0) {
-                            cachedSheetData = cachedSheetData.concat(rows);
+                            cachedSheetData = rows;
                         } else {
-                            cachedSheetData = cachedSheetData.concat(rows.slice(1));
+                            for (let i = 1; i < rows.length; i++) {
+                                cachedSheetData.push(rows[i]);
+                            }
                         }
                     }
                 }
+                
                 console.log('[DOWNLOAD SELESAI]', cachedSheetData.length, 'baris didapat.');
 
-                // Simpan hasil download ke Penyimpanan Browser agar bisa dipakai di halaman selanjutnya
+                // Simpan ke IndexedDB
                 try {
-                    GM_setValue('CKG_SHEET_CACHE', JSON.stringify(cachedSheetData));
-                    GM_setValue('CKG_SHEET_CACHE_TIME', now.toString());
+                    await setCacheDB('CKG_SHEET_DATA', cachedSheetData);
+                    await setCacheDB('CKG_SHEET_TIME', now);
+                    console.log('[INFO] Database besar berhasil disimpan ke IndexedDB agar aman dari limit RAM.');
                 } catch(e) {
-                    try {
-                        sessionStorage.setItem('CKG_SHEET_CACHE', JSON.stringify(cachedSheetData));
-                        sessionStorage.setItem('CKG_SHEET_CACHE_TIME', now.toString());
-                    } catch (err) {
-                        console.warn("Storage browser penuh, data hanya disimpan di RAM sementara.");
-                    }
+                    console.warn("Gagal menyimpan ke IndexedDB.", e);
                 }
             }
         }
