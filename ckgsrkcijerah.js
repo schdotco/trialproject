@@ -415,43 +415,91 @@ async function isiTetanusCatin() {
 
 async function isiImunisasiBalita() {
     const judul = document.body.innerText.toLowerCase();
-    if (!judul.includes('riwayat imunisasi rutin balita')) {
-        return false;
-    }
+    if (!judul.includes('riwayat imunisasi rutin balita')) return false;
 
-    updateStatus('Mengisi Imunisasi Balita (Ya/Sudah)...');
-    
-    // Cari semua dropdown di halaman
-    const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
+    updateStatus('Mengisi Imunisasi Balita Berantai...');
 
-    for (let i = 0; i < dropdowns.length; i++) {
-        const currentDropdown = dropdowns[i];
-        if (!currentDropdown) continue;
+    let jumlahSoalTerjawab = 0;
+    let maksimalLoop = 0;
 
-        // Scroll ke pertanyaan
-        currentDropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Buka Dropdown
-        currentDropdown.click();
-        await sleep(800); // Tunggu animasi popup dropdown muncul
+    // Loop selama ada penambahan soal baru di layar (maksimal 20 kali putaran agar aman)
+    while (maksimalLoop < 20) {
+        maksimalLoop++;
 
-        // Cari opsi di dalam popup yang sedang terbuka
-        const popupOptions = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
-        
-        // Cari opsi yang tulisannya persis "Ya" atau "Sudah"
-        const targetOpt = popupOptions.find(el => {
-            const txt = (el.innerText || '').trim().toLowerCase();
-            return txt === 'ya' || txt === 'sudah';
-        });
+        // 1. Ambil semua kerangka pertanyaan yang ADA DI LAYAR SAAT INI
+        const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')]
+            .filter(q => q.offsetParent !== null); // pastikan kerangka soalnya terlihat
 
-        if (targetOpt) {
-            targetOpt.click(); // Pilih Ya / Sudah
-            await sleep(500);
-        } else {
-            // Jika anehnya tidak ada opsi itu, tutup kembali dropdownnya
-            currentDropdown.click(); 
-            await sleep(300);
+        // Jika jumlah soal di layar sama dengan yang sudah kita kerjakan, antrian habis!
+        if (semuaSoal.length === 0 || semuaSoal.length === jumlahSoalTerjawab) {
+            console.log("[BOT] Tidak ada soal baru yang muncul. Selesai.");
+            break; 
         }
+
+        // 2. HANYA memproses soal-soal BARU
+        for (let i = jumlahSoalTerjawab; i < semuaSoal.length; i++) {
+            const soalSaatIni = semuaSoal[i];
+            
+            soalSaatIni.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await sleep(500);
+
+            // --- TANGANI DROPDOWN ---
+            const dropdown = soalSaatIni.querySelector('.sd-dropdown, .sv-dropdown');
+            if (dropdown) {
+                // PENGAMAN: Cek jika kotak dropdown sudah berisi tulisan "Ya" / "Sudah", maka skip
+                const teksKotak = (dropdown.innerText || '').toLowerCase().trim();
+                if (teksKotak === 'ya' || teksKotak === 'sudah' || teksKotak.includes('ya') || teksKotak.includes('sudah')) {
+                    console.log(`[BOT] Soal ke-${i+1} sudah terisi sebelumnya.`);
+                    continue;
+                }
+
+                dropdown.click(); // Buka menu popup
+                await sleep(800); // Jeda wajib agar popup SurveyJS selesai dirender
+
+                // KUNCI UTAMA PERBAIKAN: Ambil HANYA opsi yang BENAR-BENAR MUNCUL DI LAYAR saat ini
+                const opsiList = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body, .sv-list__item, .sd-list__item')]
+                    .filter(el => {
+                        const rect = el.getBoundingClientRect();
+                        return rect.width > 0 && rect.height > 0; // Filter Anti-Elemen Hantu
+                    });
+
+                const targetOpsi = opsiList.find(el => {
+                    const txt = (el.innerText || '').toLowerCase().trim();
+                    return txt === 'ya' || txt === 'sudah';
+                });
+
+                if (targetOpsi) {
+                    // Klik dengan teknik yang lebih dalam agar sistem Vue/SurveyJS merespons
+                    targetOpsi.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                    targetOpsi.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                    targetOpsi.click();
+                    
+                    console.log(`[BOT] Menjawab Dropdown soal ke-${i+1} dengan Ya/Sudah`);
+                } else {
+                    console.log(`[BOT] Opsi tidak ditemukan untuk soal ke-${i+1}, menutup menu.`);
+                    dropdown.click(); // Tutup kembali
+                }
+            } 
+            // --- TANGANI RADIO BUTTON (Jaga-jaga jika Kemenkes ubah format) ---
+            else {
+                const radioItems = [...soalSaatIni.querySelectorAll('.sd-item, .sv-item')];
+                for (const item of radioItems) {
+                    const txt = (item.innerText || '').toLowerCase().trim();
+                    if (txt === 'ya' || txt === 'sudah') {
+                        const decorator = item.querySelector('.sd-radio__decorator, .sd-item__decorator') || item;
+                        decorator.click();
+                        console.log(`[BOT] Menjawab Radio soal ke-${i+1} dengan Ya/Sudah`);
+                        break;
+                    }
+                }
+            }
+
+            // WAJIB: Tunggu animasi web Kemenkes memuat soal baru ke bawahnya
+            await sleep(1000); 
+        }
+
+        // 3. Update catatan jumlah soal
+        jumlahSoalTerjawab = semuaSoal.length;
     }
 
     // Cari dan Klik Tombol Kirim / Lanjut
