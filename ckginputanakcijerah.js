@@ -10,6 +10,7 @@ const GIDS = ['', ''];
 // TARGETS dioptimalkan agar ADAPTIF dan sangat presisi dengan nama menu di ASIK
 const TARGETS = [
     { id: 'gizi', txt: 'gizi anak' },
+    { id: 'gizi_balita', txt: 'pertumbuhan' },
     { id: 'tensi', txt: 'tekanan darah anak' },
     { id: 'gula', txt: 'pemeriksaan gula darah anak' },
     { id: 'tb', txt: 'x-ray tb' },
@@ -448,15 +449,44 @@ async function autoContinueForm() {
 
     let currentId = null;
 
-    if(title.includes('gizi anak') || title.includes('imt/u')){
+      // ==========================================
+    // RUTE 1: GIZI BALITA (< 5 TAHUN)
+    // ==========================================
+    if (title.includes('skrining pertumbuhan - balita') || title.includes('balita dan anak prasekolah')) {
+        currentId = 'gizi_balita'; // <--- PASTIKAN INI BERUBAH JADI gizi_balita
+        updateStatus('MENGISI TAHAP: SKRINING PERTUMBUHAN BALITA');
+        
+        // 1. Input Berat Badan
+        const inputBB = document.querySelector('input[placeholder*="kilogram" i]') || realInputs[0];
+        if (inputBB) forceInject(inputBB, data.bb); 
+        await sleep(800);
+
+        // 2. Input Tinggi Badan
+        const inputTB = document.querySelector('input[placeholder*="tinggi badan" i]') || realInputs[1];
+        if (inputTB) forceInject(inputTB, data.tb); 
+        await sleep(800);
+
+        // 3. Dropdown Posisi Pengukuran -> Berdiri
+        await isiDropdownSurveyJS('posisi pengukuran', 'berdiri');
+        await sleep(800);
+
+        // 4. Dropdown Status Lingkar Kepala -> Normal
+        await isiDropdownSurveyJS('lingkar kepala', 'normal');
+        await sleep(800);
+    }
+    // ==========================================
+    // RUTE 2: GIZI ANAK SEKOLAH / REMAJA (> 5 TAHUN)
+    // ==========================================
+    else if (title.includes('gizi anak') || title.includes('imt/u')) {
         currentId = 'gizi'; updateStatus('MENGISI TAHAP: GIZI ANAK');
+        
         const inputBB = document.querySelector('input[placeholder*="satuan kg" i]') || document.querySelector('input[placeholder*="Berat Badan" i]') || realInputs[0];
         const inputTB = document.querySelector('input[placeholder*="tinggi badan" i]') || realInputs[1];
         const inputLP = realInputs.find(el => (el.placeholder || '').toLowerCase().includes('hasil pengukuran') && !(el.placeholder || '').toLowerCase().includes('tinggi badan')) || realInputs[2];
         
-        if(inputBB) forceInject(inputBB, data.bb); await sleep(800);
-        if(inputTB) forceInject(inputTB, data.tb); await sleep(800);
-        if(inputLP) forceInject(inputLP, data.lp); await sleep(1000);
+        if (inputBB) forceInject(inputBB, data.bb); await sleep(800);
+        if (inputTB) forceInject(inputTB, data.tb); await sleep(800);
+        if (inputLP) forceInject(inputLP, data.lp); await sleep(1000);
     }
     else if(title.includes('pemeriksaan gula darah anak')){
         currentId = 'gula'; updateStatus('MENGISI TAHAP: PEMERIKSAAN GULA DARAH ANAK');
