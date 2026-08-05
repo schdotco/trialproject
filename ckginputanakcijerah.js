@@ -453,7 +453,10 @@ async function handleTelingaMataBalita(data) {
 function isFormValid() {
     const questions = document.querySelectorAll('.sd-question, .sv-question');
     for (let q of questions) {
-        const pertanyaan = q.innerText.toLowerCase();
+        // [!] KUNCI PERBAIKAN: Abaikan soal yang disembunyikan dari layar
+        if (q.offsetParent === null) continue;
+
+        const pertanyaan = (q.innerText || '').toLowerCase();
         if (pertanyaan.includes('pinhole') || pertanyaan.includes('funduskopi') ||
             pertanyaan.includes('foto torax') || pertanyaan.includes('foto toraks')) {
             continue;
@@ -470,8 +473,8 @@ function isFormValid() {
         const dropdowns = q.querySelectorAll('.sd-dropdown, .sv-dropdown');
         for (let dd of dropdowns) {
             const valText = (dd.innerText || '').toLowerCase().trim();
-            // Cek jika teks dropdown masih default "Select..."
-            if (valText === 'select...' || valText === '') {
+            // Jika teksnya masih bawaan "select..." / "pilih..." atau kosong
+            if (valText === 'select...' || valText === 'pilih...' || valText === '') {
                 return { valid: false, container: q };
             }
         }
