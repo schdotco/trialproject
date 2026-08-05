@@ -580,7 +580,7 @@ async function autoContinueForm() {
       // ==========================================
     // RUTE 1: GIZI BALITA (< 5 TAHUN)
     // ==========================================
-    if (title.includes('skrining pertumbuhan - balita') || title.includes('balita dan anak prasekolah')) {
+    else if (title.includes('skrining pertumbuhan - balita') || title.includes('balita dan anak prasekolah')) {
         currentId = 'gizi_balita'; // <--- PASTIKAN INI BERUBAH JADI gizi_balita
         updateStatus('MENGISI TAHAP: SKRINING PERTUMBUHAN BALITA');
         
