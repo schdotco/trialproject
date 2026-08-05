@@ -90,6 +90,56 @@ function clearCompleted() {
 }
 
 /* =========================================================
+   INDEXEDDB CACHE HELPER
+========================================================= */
+const DB_NAME = 'CKG_CACHE_DB';
+const STORE_NAME = 'SheetDataStore';
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getCacheDB(key) {
+    try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(STORE_NAME, 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.get(key);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    } catch (e) {
+        return null;
+    }
+}
+
+async function setCacheDB(key, value) {
+    try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.put(value, key);
+            request.onsuccess = () => resolve(true);
+            request.onerror = () => reject(request.error);
+        });
+    } catch (e) {
+        return false;
+    }
+}
+   
+/* =========================================================
    DATA MATCHER (OPTIMASI DENGAN CACHE)
 ========================================================= */
 function parseCSV(text) {
