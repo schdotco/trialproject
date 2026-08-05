@@ -92,23 +92,130 @@ function clearCompleted() {
 /* =========================================================
    DATA MATCHER (OPTIMASI DENGAN CACHE)
 ========================================================= */
+function parseCSV(text) {
+    if (!text) return [];
+    const rows = [];
+    let row = [];
+    let current = "";
+    let insideQuote = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+            if (insideQuote && next === '"') {
+                current += '"';
+                i++;
+            } else {
+                insideQuote = !insideQuote;
+            }
+        } else if (char === ',' && !insideQuote) {
+            row.push(current);
+            current = "";
+        } else if ((char === '\n' || char === '\r') && !insideQuote) {
+            if (current || row.length) {
+                row.push(current);
+                rows.push(row);
+                row = [];
+                current = "";
+            }
+        } else {
+            current += char;
+        }
+    }
+
+   if (current || row.length) {
+        row.push(current);
+        rows.push(row);
+    }
+    return rows;
+}
+       
 let cachedSheetData = null;
 
-async function cariData(nikInput){
+async function cariData(nikInput) {
     try {
         const target = normalizeNIK(nikInput);
-        if (!cachedSheetData) {
-            updateStatus("MENGUNDUH DATA SPREADSHEET...");
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
-            const res = await fetch(url);
-            if (!res.ok) throw new Error('Gagal terhubung ke Google Sheet');
-            const txt = await res.text();
-            cachedSheetData = JSON.parse(txt.substring(47, txt.length - 2)).table.rows;
+        
+        // --- TAHAP 1: CEK CACHE ATAU DOWNLOAD (ANTI CRASH) ---
+        if (!cachedSheetData || cachedSheetData.length === 0) {
+            
+            let savedCache = null;
+            let cacheTime = 0;
+            const EXPIRATION_TIME = 4 * 60 * 60 * 1000; // Cache 4 jam
+            const now = Date.now();
+
+            // 1. Cek dari IndexedDB
+            try {
+                savedCache = await getCacheDB('CKG_SHEET_DATA');
+                cacheTime = await getCacheDB('CKG_SHEET_TIME') || 0;
+            } catch(e) {
+                console.warn("Gagal membaca IndexedDB", e);
+            }
+
+            // 2. Jika valid, gunakan dari IndexedDB (Langsung load ke RAM tanpa nge-lag)
+            if (savedCache && savedCache.length > 0 && (now - cacheTime < EXPIRATION_TIME)) {
+                console.log('[CACHE READY] Memuat data dari IndexedDB...');
+                cachedSheetData = savedCache;
+            } 
+            // 3. Jika tidak ada / expired, lakukan Download
+            else {
+                updateStatus("MENGUNDUH DATA SPREADSHEET...");
+                cachedSheetData = [];
+                
+                for (const gid of GIDS) {
+                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+                    const res = await fetch(url);
+                    if (!res.ok) continue;
+                    
+                    const csvText = await res.text();
+                    if (!csvText) continue;
+                    
+                    const rows = parseCSV(csvText);
+                    if (rows && rows.length > 1) {
+                        // [OPTIMASI MEMORI] Ganti .concat() dengan PUSH LOOP
+                        if (cachedSheetData.length === 0) {
+                            cachedSheetData = rows;
+                        } else {
+                            for (let i = 1; i < rows.length; i++) {
+                                cachedSheetData.push(rows[i]);
+                            }
+                        }
+                    }
+                }
+                
+                console.log('[DOWNLOAD SELESAI]', cachedSheetData.length, 'baris didapat.');
+
+                // Simpan ke IndexedDB secara background
+                try {
+                    await setCacheDB('CKG_SHEET_DATA', cachedSheetData);
+                    await setCacheDB('CKG_SHEET_TIME', now);
+                    console.log('[INFO] Database besar berhasil disimpan ke IndexedDB agar aman dari limit RAM.');
+                } catch(e) {
+                    console.warn("Gagal menyimpan ke IndexedDB.", e);
+                }
+            }
         }
 
-        for(const r of cachedSheetData){
-            const cells = r.c.map(x => x ? String(x.v || '') : '');
-            if(normalizeNIK(cells[0] || cells[11] || cells[2]) === target || cells.find(col => normalizeNIK(col) === target)){
+        // --- TAHAP 2: PROSES PENCARIAN NIK ---
+        const rows = cachedSheetData;
+        
+        // Proteksi jika data gagal diload
+        if (!rows || rows.length < 2) return null;
+        
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            
+            // Proteksi baris pendek / kosong
+            if (!row || row.length < 10) continue; 
+            
+            const cells = row.map(col => String(col || '').trim());
+            const rawNik = (cells.length > 2) ? (cells[0] || cells[1] || cells[2]) : '';
+            
+            if (normalizeNIK(rawNik) === target || cells.some(col => normalizeNIK(col) === target)) {
+                
+                // Jika ketemu, return format data yang Anda inginkan
                 return {
                     nik: target,
                     nama: cells[7] || '',
@@ -129,7 +236,9 @@ async function cariData(nikInput){
                 };
             }
         }
+        
         return null; 
+        
     } catch (error) {
         console.error("Terjadi masalah jaringan:", error);
         updateStatus("ERROR JARINGAN: Cek Koneksi");
