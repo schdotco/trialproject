@@ -483,51 +483,42 @@ function isFormValid() {
 }
 
 async function klikKirim() {
-    updateStatus('Validasi form...');
-    await sleep(2000);
-    
-    let check = isFormValid();
-    
-    while (!check.valid) {
-        updateStatus('Sapu Bersih form kosong...');
-        const labels = check.container.querySelectorAll('label');
-        let foundDefaultAnswer = false; 
-
-        for (let l of labels) {
-            let labelText = (l.innerText || '').toLowerCase().trim();
-                if (labelText === 'tidak' || labelText === 'normal' || labelText === 'tidak ada' || 
-                labelText === 'sesuai' || labelText === 'baik' || labelText === 'negatif' ||
-                labelText.includes('tidak ada ') || labelText.includes('tidak ditemukan')) {
-                const input = l.querySelector('input[type="radio"]');
-                if (input && !input.checked) {
-                    input.click();
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                    await sleep(800);
-                    foundDefaultAnswer = true;
-                    break; 
-                }
-            }
-        }
-
-        if (!foundDefaultAnswer) {
-            updateStatus('Terjebak soal dinamis.\nSilakan isi manual lalu klik Kirim.');
-            return false; 
-        }
-
-        await sleep(1000);
-        check = isFormValid(); 
-    }
+    updateStatus('Mengirim data form...');
+    await sleep(1000);
 
     const btn = document.querySelector('.sd-navigation__complete-btn') ||
-                [...document.querySelectorAll('button')].find(b => (b.innerText||'').toLowerCase().includes('kirim'));
+                [...document.querySelectorAll('button')].find(b => (b.innerText || '').toLowerCase().includes('kirim'));
     
-    if (btn) {
-        updateStatus('Mengirim data...');
-        btn.click();
-        await sleep(4000);
+    if (!btn) {
+        updateStatus('Tombol kirim tidak ketemu!');
+        return false;
+    }
+
+    // Simpan URL atau state halaman saat sebelum diklik
+    const currentUrl = location.href;
+
+    // Klik tombol kirim secara langsung
+    btn.click();
+    updateStatus('Menunggu respon validasi...');
+
+    // Pantau apakah halaman berhasil berpindah (sukses) dalam waktu 4 detik
+    let isSuccess = false;
+    for (let i = 0; i < 8; i++) {
+        await sleep(500);
+        // Jika URL berubah atau tombol kirim sudah hilang dari layar (artinya form tertutup/pindah)
+        if (location.href !== currentUrl || !document.body.contains(btn)) {
+            isSuccess = true;
+            break;
+        }
+    }
+
+    if (isSuccess) {
+        updateStatus('Kirim Berhasil! Berpindah halaman...');
+        await sleep(2000);
         return true;
     } else {
-        updateStatus('Tombol kirim tidak ketemu!');
+        // Jika gagal pindah web, berarti SurveyJS menolak dan memunculkan tanda merah secara otomatis
+        updateStatus('⚠️ Validasi Gagal!\nCek tanda merah pada soal yang belum terjawab.');
         return false;
     }
 }
