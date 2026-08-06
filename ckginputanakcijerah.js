@@ -311,14 +311,23 @@ async function isiDropdownSurveyJS(soalSelector, optionText) {
     const targetQ = questions.find(q => (q.innerText || '').toLowerCase().includes(soalSelector.toLowerCase()));
     if (!targetQ) return false;
 
+    // Cek apakah dropdown sudah terisi (menghindari loop klik sia-sia)
+    const valEl = targetQ.querySelector('.sd-dropdown__value, input.sd-dropdown__filter-string-input');
+    if (valEl && (valEl.value || valEl.innerText || '').toLowerCase().includes(optionText.toLowerCase())) {
+        return true; 
+    }
+
     const dropdownTrigger = targetQ.querySelector('.sd-dropdown, .sv-dropdown');
     
     if (dropdownTrigger) {
-        dropdownTrigger.click(); 
-        await sleep(1200); 
+        dropdownTrigger.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        dropdownTrigger.click(); // Buka dropdown
+        await sleep(1000); 
 
+        // CARI HANYA OPSI YANG SEDANG TAMPIL DI LAYAR (Mencegah klik opsi gaib/tersembunyi)
         const allOptions = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
         const targetOpt = allOptions.find(el => 
+            el.offsetParent !== null && // Syarat mutlak: Elemen harus kelihatan
             (el.innerText || '').toLowerCase().includes(optionText.toLowerCase())
         );
 
@@ -327,7 +336,7 @@ async function isiDropdownSurveyJS(soalSelector, optionText) {
             await sleep(800);
             success = true;
         } else {
-            dropdownTrigger.click(); 
+            dropdownTrigger.click(); // Tutup kembali jika anehnya tidak ada pilihan
         }
     }
     return success;
@@ -445,6 +454,46 @@ async function handleTelingaMataBalita(data) {
         }
     }
     await sleep(1000);
+}
+
+async function handlePemeriksaanGigi() {
+    updateStatus('MENGISI TAHAP: PEMERIKSAAN GIGI...');
+    
+    // 1. Pilih semua radio button yang jawabannya "tidak", "normal", atau "tidak ada"
+    await pilihSemuaRadioLimit('tidak', 99, false);
+    await sleep(500);
+    await pilihSemuaRadioLimit('normal', 99, false);
+    await sleep(500);
+    await pilihSemuaRadioLimit('tidak ada', 99, false);
+    await sleep(500);
+
+    // 2. Loop SEMUA dropdown yang ada di halaman pemeriksaan gigi secara otomatis
+    const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
+    
+    for (let i = 0; i < dropdowns.length; i++) {
+        const drop = dropdowns[i];
+        if (!drop) continue;
+
+        drop.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        drop.click();
+        await sleep(800); // Tunggu popup dropdown terbuka
+
+        // Cari opsi yang terlihat di layar yang mengandung kata 'tidak', 'normal', atau 'sehat'
+        const options = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
+        const targetOpt = options.find(el => {
+            if (el.offsetParent === null) return false; // Pastikan elemennya kelihatan
+            const txt = (el.innerText || '').toLowerCase().trim();
+            return txt.includes('tidak') || txt.includes('normal') || txt.includes('sehat');
+        });
+
+        if (targetOpt) {
+            targetOpt.click();
+            await sleep(500);
+        } else {
+            drop.click(); // Tutup kembali jika tidak ditemukan
+            await sleep(300);
+        }
+    }
 }
 
 /* =========================================================
@@ -767,7 +816,7 @@ function createUI(){
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
     box.innerHTML = `
         <div id="drag-handle">INPUT CKG BALITA ANAK & REMAJA </div>
-        <div id="bot-status">Menyiapkan Database, Jangan Klik Start !... </div>
+        <div id="bot-status">Menyiapkan Database, Klik Start !... </div>
         <input id="nik-bot" placeholder="Masukkan NIK">
         <div id="btn-wrap">
             <button id="run-bot">START</button><button id="stop-bot">BATAL</button>
