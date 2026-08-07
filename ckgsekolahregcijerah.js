@@ -7,19 +7,19 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 /* ================= MODE CKG SEKOLAH ================= */
 
 const SHEETS = [{
-    id: "0",
-    gids: ["0"],
-    colNama: 1,
-    colTgl: 5,
-    colWA: 3,
-    colJK: 10,
+    id: "1gmDrmxOU2Lle7vhoXo-o8DgOp6rbNK1P",
+    gids: ["1744259778"],
+    colNama: 7,
+    colTgl: 21,
+    colWA: 12,
+    colJK: 8,
     colPekerjaan: 12, // Diabaikan di CKG Sekolah
-    colSekolah: 7,   // Pastikan index kolom ini sesuai database Bapak
-    colKelas: 8,     // Pastikan index kolom ini sesuai database Bapak
-    colDisabilitas: 17, // Pastikan index kolom ini sesuai database Bapak
-    colAlamat: 11,
-    colMartial: 13,
-    waStatis: true
+    colSekolah: 32,   // Pastikan index kolom ini sesuai database 
+    colKelas: 33,     // Pastikan index kolom ini sesuai database 
+    colDisabilitas: 31, // Pastikan index kolom ini sesuai database 
+    colAlamat: 13,
+    colMartial: 28,
+    waStatis: true,
 }];
 
 console.log("MODE: CKG SEKOLAH");
@@ -653,7 +653,7 @@ function initUI(){
     box.innerHTML = `
         <div id="dragHeader" style="text-align:center; margin-bottom:10px; cursor:move; background:#222; padding:8px; border-radius:8px; border:1px solid #444;" title="Klik dan tahan untuk menggeser bot">
             <b style="color:#00c8ff; font-size:16px;">Register SEKOLAH</b><br>
-            <span style="font-size:10px; color:#aaa; letter-spacing:1px;">UPTD Puskesmas Cijerah (Coming Soon)</span>
+            <span style="font-size:10px; color:#aaa; letter-spacing:1px;">UPTD Puskesmas Cijerah</span>
         </div>
         <div style="background:#222; padding:10px; border-radius:8px; text-align:center; margin-bottom:10px; border:1px solid #444;">
             <b style="color:#ffcc00; font-size:11px;">⚡ TEMPEL/SCAN NIK DI SINI ⚡</b><br>
