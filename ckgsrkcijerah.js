@@ -328,7 +328,7 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
 
         dropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
         dropdown.click();
-        await sleep(850);
+        await sleep(1000);
 
         const search = document.querySelector('input[type="text"][role="combobox"], input[aria-expanded="true"]');
         if (search && typeChar) {
@@ -336,7 +336,7 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
             search.value = typeChar;
             search.dispatchEvent(new Event('input', { bubbles: true }));
             search.dispatchEvent(new Event('change', { bubbles: true }));
-            await sleep(850);
+            await sleep(1000);
         }
 
         const opts = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
@@ -403,7 +403,7 @@ async function isiTetanusCatin() {
 
     updateStatus('Mengisi Imunisasi Tetanus Catin...');
     await selectDropdownContext('pernah mendapatkan imunisasi tetanus', 'pernah imunisasi tetanus tetapi tidak ingat berapa kali');
-    await sleep(850);
+    await sleep(1000);
 
     const btnKirim = document.querySelector('.sd-navigation__complete-btn') || [...document.querySelectorAll('button,input[type="button"]')].find(el => (el.value || el.innerText || '').toLowerCase().includes('kirim'));
     if (btnKirim) {
@@ -422,100 +422,99 @@ async function isiImunisasiBalita() {
     let jumlahSoalTerjawab = 0;
     let maksimalLoop = 0;
 
+    // Loop selama ada penambahan soal baru di layar (maksimal 20 kali putaran agar aman)
     while (maksimalLoop < 20) {
         maksimalLoop++;
 
+        // 1. Ambil semua kerangka pertanyaan yang ADA DI LAYAR SAAT INI
         const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')]
-            .filter(q => q.offsetParent !== null); 
+            .filter(q => q.offsetParent !== null); // pastikan kerangka soalnya terlihat
 
+        // Jika jumlah soal di layar sama dengan yang sudah kita kerjakan, antrian habis!
         if (semuaSoal.length === 0 || semuaSoal.length === jumlahSoalTerjawab) {
+            console.log("[BOT] Tidak ada soal baru yang muncul. Selesai.");
             break; 
         }
 
+        // 2. HANYA memproses soal-soal BARU
         for (let i = jumlahSoalTerjawab; i < semuaSoal.length; i++) {
             const soalSaatIni = semuaSoal[i];
             
             soalSaatIni.scrollIntoView({ behavior: 'smooth', block: 'center' });
             await sleep(500);
 
-            const dropdown = soalSaatIni.querySelector('.sd-dropdown, .sv-dropdown, [role="combobox"]');
-            
+            // --- TANGANI DROPDOWN ---
+            const dropdown = soalSaatIni.querySelector('.sd-dropdown, .sv-dropdown');
             if (dropdown) {
-                const teksKotak = (dropdown.innerText || dropdown.value || '').toLowerCase().trim();
-                
-                // Jika sudah terpilih positif (Ya, Pernah, Sudah), lewati
-                if (teksKotak === 'ya' || teksKotak === 'sudah' || teksKotak.includes('pernah') || (teksKotak.includes('ya') && !teksKotak.includes('tidak'))) {
+                // PENGAMAN: Cek jika kotak dropdown sudah berisi tulisan "Ya" / "Sudah", maka skip
+                const teksKotak = (dropdown.innerText || '').toLowerCase().trim();
+                if (teksKotak === 'ya' || teksKotak === 'sudah' || teksKotak.includes('ya') || teksKotak.includes('sudah')) {
+                    console.log(`[BOT] Soal ke-${i+1} sudah terisi sebelumnya.`);
                     continue;
                 }
 
-                // 1. KLIK BUKA MENU
-                triggerClick(dropdown); 
-                await sleep(850); 
+                dropdown.click(); // Buka menu popup
+                await sleep(800); // Jeda wajib agar popup SurveyJS selesai dirender
 
-                // 2. CEK APAKAH INPUT KOTAK BISA DIKETIK ATAU READONLY
-                const searchInput = soalSaatIni.querySelector('input.sd-dropdown__filter-string-input, input[role="combobox"]');
-                const isReadOnly = searchInput ? (searchInput.readOnly || searchInput.hasAttribute('readonly')) : true;
-
-                // 3. JALUR HYBRID: Ketik otomatis jika tidak readonly
-                if (!isReadOnly && searchInput) {
-                    searchInput.focus();
-                    forceInject(searchInput, 'Pernah');
-                    await sleep(500);
-                    searchInput.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13, bubbles: true }));
-                    await sleep(500);
-                }
-
-                // 4. CARI DI POPUP MELAYANG (Mendukung 'Pernah', 'Ya', 'Sudah')
-                const elemenOpsi = [...document.querySelectorAll('.sv-list__item, .sd-list__item, li[role="option"]')]
+                // KUNCI UTAMA PERBAIKAN: Ambil HANYA opsi yang BENAR-BENAR MUNCUL DI LAYAR saat ini
+                const opsiList = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body, .sv-list__item, .sd-list__item')]
                     .filter(el => {
                         const rect = el.getBoundingClientRect();
-                        return rect.width > 0 && rect.height > 0; 
+                        return rect.width > 0 && rect.height > 0; // Filter Anti-Elemen Hantu
                     });
 
-                const targetOpsi = elemenOpsi.find(el => {
-                    const txt = (el.innerText || el.textContent || '').toLowerCase().trim();
-                    return txt === 'ya' || txt === 'sudah' || txt.includes('pernah') || (txt.includes('ya') && !txt.includes('tidak'));
+                const targetOpsi = opsiList.find(el => {
+                    const txt = (el.innerText || '').toLowerCase().trim();
+                    return txt === 'ya' || txt === 'sudah';
                 });
 
                 if (targetOpsi) {
-                    triggerClick(targetOpsi);
-                    await sleep(800);
+                    // Klik dengan teknik yang lebih dalam agar sistem Vue/SurveyJS merespons
+                    targetOpsi.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+                    targetOpsi.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+                    targetOpsi.click();
+                    
+                    console.log(`[BOT] Menjawab Dropdown soal ke-${i+1} dengan Ya/Sudah`);
                 } else {
-                    if (isReadOnly) {
-                        triggerClick(dropdown); // Tutup kembali jika opsi tidak ditemukan
-                    }
-                    await sleep(500);
+                    console.log(`[BOT] Opsi tidak ditemukan untuk soal ke-${i+1}, menutup menu.`);
+                    dropdown.click(); // Tutup kembali
                 }
             } 
+            // --- TANGANI RADIO BUTTON (Jaga-jaga jika Kemenkes ubah format) ---
             else {
-                // JIKA BENTUKNYA RADIO BUTTON
                 const radioItems = [...soalSaatIni.querySelectorAll('.sd-item, .sv-item')];
                 for (const item of radioItems) {
                     const txt = (item.innerText || '').toLowerCase().trim();
-                    if (txt === 'ya' || txt === 'sudah' || txt.includes('pernah') || (txt.includes('ya') && !txt.includes('tidak'))) {
+                    if (txt === 'ya' || txt === 'sudah') {
                         const decorator = item.querySelector('.sd-radio__decorator, .sd-item__decorator') || item;
-                        triggerClick(decorator);
+                        decorator.click();
+                        console.log(`[BOT] Menjawab Radio soal ke-${i+1} dengan Ya/Sudah`);
                         break;
                     }
                 }
             }
 
-            await sleep(850); 
+            // WAJIB: Tunggu animasi web Kemenkes memuat soal baru ke bawahnya
+            await sleep(1000); 
         }
+
+        // 3. Update catatan jumlah soal
         jumlahSoalTerjawab = semuaSoal.length;
     }
 
-    await sleep(850);
+    // Cari dan Klik Tombol Kirim / Lanjut
+    await sleep(1000);
     const btnKirim = document.querySelector('.sd-navigation__complete-btn') || 
                      [...document.querySelectorAll('button,input[type="button"]')].find(b => (b.innerText||'').toLowerCase().match(/lanjut|kirim/));
 
     if (btnKirim) {
-        triggerClick(btnKirim);
-        await sleep(1500);
+        btnKirim.click();
+        await sleep(3500); // Tunggu loading submit
     }
 
     return true;
 }
+
 
 /* =========================================================
    CORE LOGIC SKRINING MANDIRI 
@@ -526,7 +525,7 @@ async function handleSkriningMandiri(data) {
     // 1. STATUS PERKAWINAN
     if (pageText.includes('status perkawinan')) {
         updateStatus('Status di Sheet: ' + data.perkawinan); 
-        await sleep(850); 
+        await sleep(1000); 
 
         if (data.perkawinan && data.perkawinan !== 'Data Kosong') {
             let p = data.perkawinan.toLowerCase();
@@ -536,10 +535,10 @@ async function handleSkriningMandiri(data) {
             
             updateStatus('Mengisi: ' + target);
             await fillRadioSurveyJS('status perkawinan', target);
-            await sleep(850);
+            await sleep(1000);
         } else {
             updateStatus('Data Perkawinan Kosong!');
-            await sleep(850);
+            await sleep(1000);
         }
     }
     
