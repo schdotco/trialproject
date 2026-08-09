@@ -448,7 +448,7 @@ async function isiImunisasiBalita() {
             if (dropdown) {
                 // PENGAMAN: Cek jika kotak dropdown sudah berisi tulisan "Ya" / "Sudah", maka skip
                 const teksKotak = (dropdown.innerText || '').toLowerCase().trim();
-                if (teksKotak === 'ya' || teksKotak === 'sudah' || teksKotak.includes('ya') || teksKotak.includes('sudah')) {
+                if (teksKotak === 'ya' || teksKotak === 'sudah' || (teksKotak.includes('pernah') && !teksKotak.includes('tidak'))) {
                     console.log(`[BOT] Soal ke-${i+1} sudah terisi sebelumnya.`);
                     continue;
                 }
@@ -465,7 +465,7 @@ async function isiImunisasiBalita() {
 
                 const targetOpsi = opsiList.find(el => {
                     const txt = (el.innerText || '').toLowerCase().trim();
-                    return txt === 'ya' || txt === 'sudah';
+                    return txt === 'ya' || txt === 'sudah' || (txt.includes('pernah') && !txt.includes('tidak'));
                 });
 
                 if (targetOpsi) {
