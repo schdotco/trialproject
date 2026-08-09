@@ -413,9 +413,6 @@ async function isiTetanusCatin() {
     return true;
 }
 
-/* =========================================================
-   [FIX TOTAL] MENGATASI "NO DATA TO DISPLAY" DI SURVEYJS
-========================================================= */
 async function isiImunisasiBalita() {
     const judul = document.body.innerText.toLowerCase();
     if (!judul.includes('riwayat imunisasi rutin balita')) return false;
@@ -444,54 +441,63 @@ async function isiImunisasiBalita() {
             const dropdown = soalSaatIni.querySelector('.sd-dropdown, .sv-dropdown, [role="combobox"]');
             
             if (dropdown) {
-                const teksKotak = (dropdown.innerText || '').toLowerCase().trim();
+                const teksKotak = (dropdown.innerText || dropdown.value || '').toLowerCase().trim();
                 
-                // Jika kotak dropdown sudah terisi jawaban positif, lewati
-                if (teksKotak === 'ya' || teksKotak === 'sudah' || (teksKotak.includes('pernah') && !teksKotak.includes('tidak'))) {
+                // Jika sudah terisi positif, abaikan
+                if (teksKotak === 'ya' || teksKotak === 'sudah' || (teksKotak.includes('ya') && !teksKotak.includes('tidak'))) {
                     continue;
                 }
 
-                // 1. Buka Dropdown
+                // 1. KLIK BUKA MENU
                 triggerClick(dropdown); 
-                await sleep(800); 
+                await sleep(1000); // Wajib jeda agar popup melayang Kemenkes selesai terender
 
-                // 2. Tembak elemen pencarian internal jika popup menyuruh ketik
-                const searchInput = soalSaatIni.querySelector('input.sd-dropdown__filter-string-input') || 
-                                    document.querySelector('input[role="combobox"][aria-expanded="true"]');
-                if (searchInput) {
+                // 2. CEK MODE INPUT (Bisa diketik atau Readonly?)
+                const searchInput = soalSaatIni.querySelector('input.sd-dropdown__filter-string-input, input[role="combobox"]');
+                const isReadOnly = searchInput ? (searchInput.readOnly || searchInput.hasAttribute('readonly')) : true;
+
+                // 3. LOGIKA HYBRID
+                if (!isReadOnly && searchInput) {
+                    // JIKA BISA DIKETIK: Ketikkan teks untuk memfilter pilihan dropdown
                     searchInput.focus();
-                    forceInject(searchInput, 'Pernah');
-                    await sleep(400);
+                    forceInject(searchInput, 'Ya');
+                    await sleep(500);
+                    // Simulasi Enter
+                    searchInput.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13, bubbles: true }));
+                    await sleep(500);
                 }
 
-                // 3. Ambil semua teks target dari elemen terdalam (.sv-string-viewer / li)
-                const elemenOpsi = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body, .sv-string-viewer, li[role="option"]')]
-                    .filter(el => el.offsetParent !== null);
+                // APAPUN MODENYA, KITA TETAP CARI ELEMEN POPUP SECARA MANUAL SEBAGAI BACKUP SAFETY
+                const elemenOpsi = [...document.querySelectorAll('.sv-list__item, .sd-list__item, li[role="option"]')]
+                    .filter(el => {
+                        const rect = el.getBoundingClientRect();
+                        return rect.width > 0 && rect.height > 0; // Pastikan terlihat
+                    });
 
                 const targetOpsi = elemenOpsi.find(el => {
                     const txt = (el.innerText || el.textContent || '').toLowerCase().trim();
-                    return txt === 'ya' || txt === 'sudah' || (txt.includes('pernah') && !txt.includes('tidak'));
+                    return txt === 'ya' || txt === 'sudah' || (txt.includes('ya') && !txt.includes('tidak'));
                 });
 
                 if (targetOpsi) {
-                    const itemBungkus = targetOpsi.closest('.sv-list__item, .sd-list__item, li') || targetOpsi;
-                    triggerClick(itemBungkus);
-                    await sleep(600);
+                    triggerClick(targetOpsi);
+                    await sleep(800);
                 } else {
-                    // Jika opsi gagal muncul, tekan Enter sebagai bypass default Kemenkes
-                    if (searchInput) {
-                        searchInput.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13, bubbles: true }));
-                        await sleep(400);
+                    // Jika gagal ketemu
+                    if (!isReadOnly && searchInput) {
+                        // Form mungkin sudah tersubmit dengan tombol enter, aman.
                     } else {
                         triggerClick(dropdown); // Tutup kembali
                     }
+                    await sleep(500);
                 }
             } 
             else {
+                // JIKA FORMATNYA RADIO BUTTON
                 const radioItems = [...soalSaatIni.querySelectorAll('.sd-item, .sv-item')];
                 for (const item of radioItems) {
                     const txt = (item.innerText || '').toLowerCase().trim();
-                    if (txt === 'ya' || txt === 'sudah' || (txt.includes('pernah') && !txt.includes('tidak'))) {
+                    if (txt === 'ya' || txt === 'sudah' || (txt.includes('ya') && !txt.includes('tidak'))) {
                         const decorator = item.querySelector('.sd-radio__decorator, .sd-item__decorator') || item;
                         triggerClick(decorator);
                         break;
@@ -510,11 +516,12 @@ async function isiImunisasiBalita() {
 
     if (btnKirim) {
         triggerClick(btnKirim);
-        await sleep(1500);
+        await sleep(3500);
     }
 
     return true;
 }
+
 
 /* =========================================================
    CORE LOGIC SKRINING MANDIRI 
