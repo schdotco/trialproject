@@ -328,7 +328,7 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
 
         dropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
         dropdown.click();
-        await sleep(1000);
+        await sleep(850);
 
         const search = document.querySelector('input[type="text"][role="combobox"], input[aria-expanded="true"]');
         if (search && typeChar) {
@@ -336,7 +336,7 @@ async function selectDropdownContext(soalText, optionText, typeChar = 't') {
             search.value = typeChar;
             search.dispatchEvent(new Event('input', { bubbles: true }));
             search.dispatchEvent(new Event('change', { bubbles: true }));
-            await sleep(1000);
+            await sleep(850);
         }
 
         const opts = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')];
@@ -403,7 +403,7 @@ async function isiTetanusCatin() {
 
     updateStatus('Mengisi Imunisasi Tetanus Catin...');
     await selectDropdownContext('pernah mendapatkan imunisasi tetanus', 'pernah imunisasi tetanus tetapi tidak ingat berapa kali');
-    await sleep(1000);
+    await sleep(850);
 
     const btnKirim = document.querySelector('.sd-navigation__complete-btn') || [...document.querySelectorAll('button,input[type="button"]')].find(el => (el.value || el.innerText || '').toLowerCase().includes('kirim'));
     if (btnKirim) {
@@ -448,30 +448,29 @@ async function isiImunisasiBalita() {
                     continue;
                 }
 
-                // 1. KLIK BUKA MENU
+                // 1. KLIK BUKA MENU DROPDOWN
                 triggerClick(dropdown); 
-                await sleep(1000); // Wajib jeda agar popup melayang Kemenkes selesai terender
+                await sleep(850); 
 
-                // 2. CEK MODE INPUT (Bisa diketik atau Readonly?)
+                // 2. DETEKSI APAKAH KOTAK TERSEBUT BISA DIKETIK ATAU READONLY
                 const searchInput = soalSaatIni.querySelector('input.sd-dropdown__filter-string-input, input[role="combobox"]');
                 const isReadOnly = searchInput ? (searchInput.readOnly || searchInput.hasAttribute('readonly')) : true;
 
-                // 3. LOGIKA HYBRID
+                // 3. EKSEKUSI JALUR HYBRID
                 if (!isReadOnly && searchInput) {
-                    // JIKA BISA DIKETIK: Ketikkan teks untuk memfilter pilihan dropdown
+                    // JIKA BISA DIKETIK: Ketik otomatis
                     searchInput.focus();
                     forceInject(searchInput, 'Ya');
                     await sleep(500);
-                    // Simulasi Enter
                     searchInput.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13, bubbles: true }));
                     await sleep(500);
                 }
 
-                // APAPUN MODENYA, KITA TETAP CARI ELEMEN POPUP SECARA MANUAL SEBAGAI BACKUP SAFETY
+                // 4. CARI ELEMEN POPUP SECARA MANUAL SEBAGAI BACKUP UTAMA
                 const elemenOpsi = [...document.querySelectorAll('.sv-list__item, .sd-list__item, li[role="option"]')]
                     .filter(el => {
                         const rect = el.getBoundingClientRect();
-                        return rect.width > 0 && rect.height > 0; // Pastikan terlihat
+                        return rect.width > 0 && rect.height > 0; 
                     });
 
                 const targetOpsi = elemenOpsi.find(el => {
@@ -483,11 +482,8 @@ async function isiImunisasiBalita() {
                     triggerClick(targetOpsi);
                     await sleep(800);
                 } else {
-                    // Jika gagal ketemu
-                    if (!isReadOnly && searchInput) {
-                        // Form mungkin sudah tersubmit dengan tombol enter, aman.
-                    } else {
-                        triggerClick(dropdown); // Tutup kembali
+                    if (isReadOnly) {
+                        triggerClick(dropdown); // Tutup kembali jika mentok
                     }
                     await sleep(500);
                 }
@@ -505,12 +501,12 @@ async function isiImunisasiBalita() {
                 }
             }
 
-            await sleep(1000); 
+            await sleep(850); 
         }
         jumlahSoalTerjawab = semuaSoal.length;
     }
 
-    await sleep(1000);
+    await sleep(850);
     const btnKirim = document.querySelector('.sd-navigation__complete-btn') || 
                      [...document.querySelectorAll('button,input[type="button"]')].find(b => (b.innerText||'').toLowerCase().match(/lanjut|kirim/));
 
@@ -522,7 +518,6 @@ async function isiImunisasiBalita() {
     return true;
 }
 
-
 /* =========================================================
    CORE LOGIC SKRINING MANDIRI 
 ========================================================= */
@@ -532,7 +527,7 @@ async function handleSkriningMandiri(data) {
     // 1. STATUS PERKAWINAN
     if (pageText.includes('status perkawinan')) {
         updateStatus('Status di Sheet: ' + data.perkawinan); 
-        await sleep(1000); 
+        await sleep(850); 
 
         if (data.perkawinan && data.perkawinan !== 'Data Kosong') {
             let p = data.perkawinan.toLowerCase();
@@ -542,10 +537,10 @@ async function handleSkriningMandiri(data) {
             
             updateStatus('Mengisi: ' + target);
             await fillRadioSurveyJS('status perkawinan', target);
-            await sleep(1000);
+            await sleep(850);
         } else {
             updateStatus('Data Perkawinan Kosong!');
-            await sleep(1000);
+            await sleep(850);
         }
     }
     
