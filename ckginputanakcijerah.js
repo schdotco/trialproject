@@ -445,6 +445,7 @@ async function handleTelingaMataBalita(data) {
         }
     }
     await sleep(1000);
+}
 
 // [FUNGSI BARU] KHUSUS UNTUK TELINGA MATA ANAK SEKOLAH (11 SOAL RADIO BUTTON)
 async function handleTelingaMataAnakSekolah(data) {
