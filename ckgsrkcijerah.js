@@ -443,30 +443,29 @@ async function isiImunisasiBalita() {
             if (dropdown) {
                 const teksKotak = (dropdown.innerText || dropdown.value || '').toLowerCase().trim();
                 
-                // Jika sudah terisi positif, abaikan
-                if (teksKotak === 'ya' || teksKotak === 'sudah' || (teksKotak.includes('ya') && !teksKotak.includes('tidak'))) {
+                // Jika sudah terpilih positif (Ya, Pernah, Sudah), lewati
+                if (teksKotak === 'ya' || teksKotak === 'sudah' || teksKotak.includes('pernah') || (teksKotak.includes('ya') && !teksKotak.includes('tidak'))) {
                     continue;
                 }
 
-                // 1. KLIK BUKA MENU DROPDOWN
+                // 1. KLIK BUKA MENU
                 triggerClick(dropdown); 
                 await sleep(850); 
 
-                // 2. DETEKSI APAKAH KOTAK TERSEBUT BISA DIKETIK ATAU READONLY
+                // 2. CEK APAKAH INPUT KOTAK BISA DIKETIK ATAU READONLY
                 const searchInput = soalSaatIni.querySelector('input.sd-dropdown__filter-string-input, input[role="combobox"]');
                 const isReadOnly = searchInput ? (searchInput.readOnly || searchInput.hasAttribute('readonly')) : true;
 
-                // 3. EKSEKUSI JALUR HYBRID
+                // 3. JALUR HYBRID: Ketik otomatis jika tidak readonly
                 if (!isReadOnly && searchInput) {
-                    // JIKA BISA DIKETIK: Ketik otomatis
                     searchInput.focus();
-                    forceInject(searchInput, 'Ya');
+                    forceInject(searchInput, 'Pernah');
                     await sleep(500);
                     searchInput.dispatchEvent(new KeyboardEvent('keydown', { keyCode: 13, bubbles: true }));
                     await sleep(500);
                 }
 
-                // 4. CARI ELEMEN POPUP SECARA MANUAL SEBAGAI BACKUP UTAMA
+                // 4. CARI DI POPUP MELAYANG (Mendukung 'Pernah', 'Ya', 'Sudah')
                 const elemenOpsi = [...document.querySelectorAll('.sv-list__item, .sd-list__item, li[role="option"]')]
                     .filter(el => {
                         const rect = el.getBoundingClientRect();
@@ -475,7 +474,7 @@ async function isiImunisasiBalita() {
 
                 const targetOpsi = elemenOpsi.find(el => {
                     const txt = (el.innerText || el.textContent || '').toLowerCase().trim();
-                    return txt === 'ya' || txt === 'sudah' || (txt.includes('ya') && !txt.includes('tidak'));
+                    return txt === 'ya' || txt === 'sudah' || txt.includes('pernah') || (txt.includes('ya') && !txt.includes('tidak'));
                 });
 
                 if (targetOpsi) {
@@ -483,17 +482,17 @@ async function isiImunisasiBalita() {
                     await sleep(800);
                 } else {
                     if (isReadOnly) {
-                        triggerClick(dropdown); // Tutup kembali jika mentok
+                        triggerClick(dropdown); // Tutup kembali jika opsi tidak ditemukan
                     }
                     await sleep(500);
                 }
             } 
             else {
-                // JIKA FORMATNYA RADIO BUTTON
+                // JIKA BENTUKNYA RADIO BUTTON
                 const radioItems = [...soalSaatIni.querySelectorAll('.sd-item, .sv-item')];
                 for (const item of radioItems) {
                     const txt = (item.innerText || '').toLowerCase().trim();
-                    if (txt === 'ya' || txt === 'sudah' || (txt.includes('ya') && !txt.includes('tidak'))) {
+                    if (txt === 'ya' || txt === 'sudah' || txt.includes('pernah') || (txt.includes('ya') && !txt.includes('tidak'))) {
                         const decorator = item.querySelector('.sd-radio__decorator, .sd-item__decorator') || item;
                         triggerClick(decorator);
                         break;
@@ -512,7 +511,7 @@ async function isiImunisasiBalita() {
 
     if (btnKirim) {
         triggerClick(btnKirim);
-        await sleep(3500);
+        await sleep(1500);
     }
 
     return true;
