@@ -515,6 +515,97 @@ async function isiImunisasiBalita() {
     return true;
 }
 
+async function isiImunisasiAnakSekolah() {
+    const judul = document.body.innerText.toLowerCase();
+    // Deteksi halaman imunisasi anak sekolah / pertanyaan polio & campak rubela
+    if (!judul.includes('polio') && !judul.includes('campak') && !judul.includes('anak sekolah')) return false;
+
+    updateStatus('Mengisi Imunisasi Anak Sekolah...');
+
+    let jumlahSoalTerjawab = 0;
+    let maksimalLoop = 0;
+
+    while (maksimalLoop < 25) {
+        maksimalLoop++;
+
+        const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')]
+            .filter(q => q.offsetParent !== null); 
+
+        if (semuaSoal.length === 0 || semuaSoal.length === jumlahSoalTerjawab) {
+            break; 
+        }
+
+        for (let i = jumlahSoalTerjawab; i < semuaSoal.length; i++) {
+            const soalSaatIni = semuaSoal[i];
+            
+            soalSaatIni.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await sleep(500);
+
+            const dropdown = soalSaatIni.querySelector('.sd-dropdown, .sv-dropdown, [role="combobox"]');
+            
+            if (dropdown) {
+                const teksKotak = (dropdown.innerText || dropdown.value || '').toLowerCase().trim();
+                
+                // Jika kotak sudah terisi "ya", lewati
+                if (teksKotak === 'ya' || teksKotak === 'sudah' || teksKotak.includes('ya')) {
+                    continue;
+                }
+
+                // 1. Klik pembungkus dropdown untuk membuka popup list
+                triggerClick(dropdown); 
+                await sleep(1000); // Jeda rendering popup melayang
+
+                // 2. Ambil elemen opsi di dalam popup list (termasuk .sv-string-viewer dan title="Ya")
+                const elemenOpsi = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body, .sv-string-viewer, li[role="option"]')]
+                    .filter(el => {
+                        const rect = el.getBoundingClientRect();
+                        return rect.width > 0 && rect.height > 0; // Pastikan terlihat di layar
+                    });
+
+                const targetOpsi = elemenOpsi.find(el => {
+                    const txt = (el.innerText || el.textContent || el.getAttribute('title') || '').toLowerCase().trim();
+                    return txt === 'ya' || txt === 'sudah';
+                });
+
+                if (targetOpsi) {
+                    // Cari pembungkus li/item terdekat atau klik elemennya langsung
+                    const itemBungkus = targetOpsi.closest('.sv-list__item, .sd-list__item, li') || targetOpsi;
+                    triggerClick(itemBungkus);
+                    await sleep(800);
+                } else {
+                    triggerClick(dropdown); // Tutup kembali jika opsi gagal ditemukan
+                    await sleep(500);
+                }
+            } 
+            else {
+                // Jaga-jaga jika formatnya radio button
+                const radioItems = [...soalSaatIni.querySelectorAll('.sd-item, .sv-item')];
+                for (const item of radioItems) {
+                    const txt = (item.innerText || '').toLowerCase().trim();
+                    if (txt === 'ya' || txt === 'sudah') {
+                        const decorator = item.querySelector('.sd-radio__decorator, .sd-item__decorator') || item;
+                        triggerClick(decorator);
+                        break;
+                    }
+                }
+            }
+
+            await sleep(1000); 
+        }
+        jumlahSoalTerjawab = semuaSoal.length;
+    }
+
+    await sleep(1000);
+    const btnKirim = document.querySelector('.sd-navigation__complete-btn, .sd-navigation__next-btn') || 
+                     [...document.querySelectorAll('button,input[type="button"]')].find(b => (b.innerText||'').toLowerCase().match(/lanjut|kirim|selesai/));
+
+    if (btnKirim) {
+        triggerClick(btnKirim);
+        await sleep(3500);
+    }
+
+    return true;
+}
 
 /* =========================================================
    CORE LOGIC SKRINING MANDIRI 
@@ -696,8 +787,9 @@ async function autoContinueForm(){
             const pageText = document.body.innerText.toLowerCase();
 
             if (pageText.includes('riwayat imunisasi rutin balita')) {
-                // Eksekusi Imunisasi Balita hardcode Ya/Sudah
                 await isiImunisasiBalita();
+            } else if (pageText.includes('polio tetes dan atau campak') || pageText.includes('anak sekolah')) {
+                await isiImunisasiAnakSekolah(); // <-- ROUTING BARU DI SINI
             } else if (pageText.includes('riwayat imunisasi tetanus')) {
                 await isiTetanusCatin();
             } else {
