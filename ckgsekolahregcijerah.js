@@ -8,7 +8,7 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 
 const SHEETS = [{
     id: "17zbvari4OsXTKScnLnlr7x503jHIqBbT",
-    gids: ["977925951"],
+    gids: ["977925951",'264423006'],
     colNama: 5,
     colTgl: 18,
     colWA: 10,
