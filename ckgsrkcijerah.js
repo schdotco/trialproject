@@ -5,8 +5,8 @@
 /* =========================================================
    CONFIG SPREADSHEET
 ========================================================= */
-const SHEET_ID = '1gmDrmxOU2Lle7vhoXo-o8DgOp6rbNK1P';
-const GIDS = ['1744259778'];
+const SHEET_ID = '17zbvari4OsXTKScnLnlr7x503jHIqBbT';
+const GIDS = ['264423006','977925951'];
 
 const sleep = ms => new Promise(r => setTimeout(r,ms));
 function normalizeNIK(v) { return String(v || '').replace(/\D/g,''); }
@@ -224,7 +224,7 @@ async function cariData(nikInput) {
                 
                 return {
                     nik: target,
-                    perkawinan: row[26] || 'Belum Menikah',
+                    perkawinan: row[23] || 'Belum Menikah',
                     merokok: (row[85] || 'Tidak').trim(),
                     jiwa1: (row[72] || 'Tidak sama sekali').trim(),
                     jiwa2: (row[73] || 'Tidak sama sekali').trim(),
