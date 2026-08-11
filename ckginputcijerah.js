@@ -4,8 +4,8 @@
 /* =========================================================
    CONFIG
 ========================================================= */
-const SHEET_ID = '1gmDrmxOU2Lle7vhoXo-o8DgOp6rbNK1P';
-const GID = '1744259778';
+const SHEET_ID = '17zbvari4OsXTKScnLnlr7x503jHIqBbT';
+const GID = '264423006';
    
 let BOT_RUNNING = false;
 
@@ -268,21 +268,21 @@ async function cariData(nikInput) {
                 // Jika ketemu, return format data yang Anda inginkan
                 return {
                     nik: target,
-                    nama: cells[7] || '',
-                    sistole: cells[37] || '',
-                    diastole: cells[38] || '',
-                    bb: cells[40] || '',
-                    tb: cells[41] || '',
-                    lp: cells[43] || '',
-                    gula: cells[57] || '',
+                    nama: cells[5] || '',
+                    sistole: cells[26] || '',
+                    diastole: cells[27] || '',
+                    bb: cells[29] || '',
+                    tb: cells[30] || '',
+                    lp: cells[32] || '',
+                    gula: cells[38] || '',
                     mata: cells[84] || 'Tidak',
-                    skilasKog3: (cells[68] || 'Ya').trim(),
-                    skilasMob:  (cells[69] || 'Ya').trim(),
-                    skilasMal1: (cells[70] || 'Tidak').trim(),
-                    skilasMal2: (cells[71] || 'Tidak').trim(),
-                    skilasMal3: (cells[72] || 'Tidak').trim(),
-                    skilasDep1: (cells[73] || 'Tidak').trim(),
-                    skilasDep2: (cells[74] || 'Tidak').trim()
+                    skilasKog3: (cells[41] || 'Ya').trim(),
+                    skilasMob:  (cells[42] || 'Ya').trim(),
+                    skilasMal1: (cells[43] || 'Tidak').trim(),
+                    skilasMal2: (cells[44] || 'Tidak').trim(),
+                    skilasMal3: (cells[45] || 'Tidak').trim(),
+                    skilasDep1: (cells[46] || 'Tidak').trim(),
+                    skilasDep2: (cells[47] || 'Tidak').trim()
                 };
             }
         }
