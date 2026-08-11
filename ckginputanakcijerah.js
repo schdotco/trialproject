@@ -4,8 +4,8 @@
 /* =========================================================
    CONFIG - VERSI KHUSUS ANAK / REMAJA (FIXED TARGETS)
 ========================================================= */
-const SHEET_ID = '1gmDrmxOU2Lle7vhoXo-o8DgOp6rbNK1P';
-const GIDS = ['1744259778','368889236'];
+const SHEET_ID = '17zbvari4OsXTKScnLnlr7x503jHIqBbT';
+const GIDS = ['977925951','264423006'];
 
 // TARGETS dioptimalkan agar ADAPTIF dan sangat presisi dengan nama menu di ASIK
 // [UPDATE]: Menambahkan koma yang tertinggal di baris akhir
@@ -236,33 +236,33 @@ async function cariData(nikInput) {
             if (foundNik) {
                 return {
                     nik: target,
-                    nama: cells[7] || '',
-                    sistole: cells[37] || '',
-                    diastole: cells[38] || '',
-                    bb: cells[40] || '',
-                    tb: cells[41] || '',
-                    lp: cells[43] || '',
-                    gula: cells[57] || '',
+                    nama: cells[5] || '',
+                    sistole: cells[26] || '',
+                    diastole: cells[27] || '',
+                    bb: cells[29] || '',
+                    tb: cells[30] || '',
+                    lp: cells[32] || '',
+                    gula: cells[37] || '',
                     mata: cells[84] || 'Tidak',
                     
                     // [UPDATE DINAMIS]: Pengambilan Data Skrining Telinga, Mata, Kebersihan Diri & Kebugaran
-                    gigi: cells[80] || 'Tidak',                 // CC: Pemeriksaan Gigi
-                    serumenKanan: cells[81] || 'Tidak ada',     // CD: Serumen Kanan
-                    serumenKiri: cells[82] || 'Tidak ada',      // CE: Serumen Kiri
-                    infeksiKanan: cells[83] || 'Tidak ada',     // CF: Infeksi Kanan
-                    infeksiKiri: cells[84] || 'Tidak ada',      // CG: Infeksi Kiri
-                    pendengaranKanan: cells[85] || 'Normal',    // CH: Tajam Pendengaran Kanan
-                    pendengaranKiri: cells[86] || 'Normal',     // CI: Tajam Pendengaran Kiri
-                    selaputKanan: cells[87] || 'Normal',        // CJ: Selaput Mata Merah Kanan
-                    selaputKiri: cells[88] || 'Normal',         // CK: Selaput Mata Merah Kiri
-                    visusKanan: cells[89] || 'Normal',          // CL: Visus Kanan
-                    visusKiri: cells[90] || 'Normal',           // CM: Visus Kiri
-                    kacamata: cells[91] || 'Tidak',             // CN: Penggunaan Kacamata
-                    kusta: cells[92] || 'Tidak ada',            // CO: Kusta (Bercak kulit)
-                    skabies: cells[93] || 'Tidak ada',          // CP: Skabies (Koreng/ruam)
-                    frambusia: cells[94] || 'Tidak ada',        // CQ: Frambusia (Papul/nodul)
-                    kebugaran: cells[95] || 'Baik',             // CR: Kebugaran Jasmani
-                    merokok: cells[96] || 'Tidak'               // CS: Perilaku Merokok
+                    gigi: cells[55] || 'Tidak',                 // CC: Pemeriksaan Gigi
+                    serumenKanan: cells[56] || 'Tidak ada',     // CD: Serumen Kanan
+                    serumenKiri: cells[57] || 'Tidak ada',      // CE: Serumen Kiri
+                    infeksiKanan: cells[58] || 'Tidak ada',     // CF: Infeksi Kanan
+                    infeksiKiri: cells[59] || 'Tidak ada',      // CG: Infeksi Kiri
+                    pendengaranKanan: cells[60] || 'Normal',    // CH: Tajam Pendengaran Kanan
+                    pendengaranKiri: cells[61] || 'Normal',     // CI: Tajam Pendengaran Kiri
+                    selaputKanan: cells[62] || 'Normal',        // CJ: Selaput Mata Merah Kanan
+                    selaputKiri: cells[63] || 'Normal',         // CK: Selaput Mata Merah Kiri
+                    visusKanan: cells[64] || 'Normal',          // CL: Visus Kanan
+                    visusKiri: cells[65] || 'Normal',           // CM: Visus Kiri
+                    kacamata: cells[66] || 'Tidak',             // CN: Penggunaan Kacamata
+                    kusta: cells[67] || 'Tidak ada',            // CO: Kusta (Bercak kulit)
+                    skabies: cells[68] || 'Tidak ada',          // CP: Skabies (Koreng/ruam)
+                    frambusia: cells[69] || 'Tidak ada',        // CQ: Frambusia (Papul/nodul)
+                    kebugaran: cells[70] || 'Baik',             // CR: Kebugaran Jasmani
+                    merokok: cells[71] || 'Tidak'               // CS: Perilaku Merokok
                 };
             }
         }
