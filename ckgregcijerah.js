@@ -9,14 +9,14 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 const SHEETS = [{
     id: "17zbvari4OsXTKScnLnlr7x503jHIqBbT",
     gids: ["264423006"],
-    colNama: 5,
-    colTgl: 18,
-    colWA: 10,
-    colJK: 6,
-    colPekerjaan: 21,
-    colKelurahan: 14,
-    colAlamat: 11,
-    colMartial: 23,
+    colNama: 3,
+    colTgl: 16,
+    colWA: 8,
+    colJK: 4,
+    colPekerjaan: 19,
+    colKelurahan: 12,
+    colAlamat: 9,
+    colMartial: 21,
     waStatis: true
 }];
 
