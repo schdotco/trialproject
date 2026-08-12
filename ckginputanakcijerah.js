@@ -236,33 +236,33 @@ async function cariData(nikInput) {
             if (foundNik) {
                 return {
                     nik: target,
-                    nama: cells[5] || '',
-                    sistole: cells[26] || '',
-                    diastole: cells[27] || '',
-                    bb: cells[29] || '',
-                    tb: cells[30] || '',
-                    lp: cells[32] || '',
-                    gula: cells[37] || '',
-                    mata: cells[84] || 'Tidak',
+                    nama: cells[3] || '',
+                    sistole: cells[24] || '',
+                    diastole: cells[25] || '',
+                    bb: cells[27] || '',
+                    tb: cells[28] || '',
+                    lp: cells[30] || '',
+                    gula: cells[35] || '',
+                    mata: cells[82] || 'Tidak',
                     
                     // [UPDATE DINAMIS]: Pengambilan Data Skrining Telinga, Mata, Kebersihan Diri & Kebugaran
-                    gigi: cells[55] || 'Tidak',                 // CC: Pemeriksaan Gigi
-                    serumenKanan: cells[56] || 'Tidak ada',     // CD: Serumen Kanan
-                    serumenKiri: cells[57] || 'Tidak ada',      // CE: Serumen Kiri
-                    infeksiKanan: cells[58] || 'Tidak ada',     // CF: Infeksi Kanan
-                    infeksiKiri: cells[59] || 'Tidak ada',      // CG: Infeksi Kiri
-                    pendengaranKanan: cells[60] || 'Normal',    // CH: Tajam Pendengaran Kanan
-                    pendengaranKiri: cells[61] || 'Normal',     // CI: Tajam Pendengaran Kiri
-                    selaputKanan: cells[62] || 'Normal',        // CJ: Selaput Mata Merah Kanan
-                    selaputKiri: cells[63] || 'Normal',         // CK: Selaput Mata Merah Kiri
-                    visusKanan: cells[64] || 'Normal',          // CL: Visus Kanan
-                    visusKiri: cells[65] || 'Normal',           // CM: Visus Kiri
-                    kacamata: cells[66] || 'Tidak',             // CN: Penggunaan Kacamata
-                    kusta: cells[67] || 'Tidak ada',            // CO: Kusta (Bercak kulit)
-                    skabies: cells[68] || 'Tidak ada',          // CP: Skabies (Koreng/ruam)
-                    frambusia: cells[69] || 'Tidak ada',        // CQ: Frambusia (Papul/nodul)
-                    kebugaran: cells[70] || 'Baik',             // CR: Kebugaran Jasmani
-                    merokok: cells[71] || 'Tidak'               // CS: Perilaku Merokok
+                    gigi: cells[53] || 'Tidak',                 // CC: Pemeriksaan Gigi
+                    serumenKanan: cells[54] || 'Tidak ada',     // CD: Serumen Kanan
+                    serumenKiri: cells[55] || 'Tidak ada',      // CE: Serumen Kiri
+                    infeksiKanan: cells[56] || 'Tidak ada',     // CF: Infeksi Kanan
+                    infeksiKiri: cells[57] || 'Tidak ada',      // CG: Infeksi Kiri
+                    pendengaranKanan: cells[58] || 'Normal',    // CH: Tajam Pendengaran Kanan
+                    pendengaranKiri: cells[59] || 'Normal',     // CI: Tajam Pendengaran Kiri
+                    selaputKanan: cells[60] || 'Normal',        // CJ: Selaput Mata Merah Kanan
+                    selaputKiri: cells[61] || 'Normal',         // CK: Selaput Mata Merah Kiri
+                    visusKanan: cells[62] || 'Normal',          // CL: Visus Kanan
+                    visusKiri: cells[63] || 'Normal',           // CM: Visus Kiri
+                    kacamata: cells[64] || 'Tidak',             // CN: Penggunaan Kacamata
+                    kusta: cells[65] || 'Tidak ada',            // CO: Kusta (Bercak kulit)
+                    skabies: cells[66] || 'Tidak ada',          // CP: Skabies (Koreng/ruam)
+                    frambusia: cells[67] || 'Tidak ada',        // CQ: Frambusia (Papul/nodul)
+                    kebugaran: cells[68] || 'Baik',             // CR: Kebugaran Jasmani
+                    merokok: cells[69] || 'Tidak'               // CS: Perilaku Merokok
                 };
             }
         }
