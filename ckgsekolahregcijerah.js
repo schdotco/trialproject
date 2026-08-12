@@ -9,16 +9,16 @@ function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 const SHEETS = [{
     id: "17zbvari4OsXTKScnLnlr7x503jHIqBbT",
     gids: ["977925951",'264423006'],
-    colNama: 5,
-    colTgl: 18,
-    colWA: 10,
-    colJK: 6,
+    colNama: 3,
+    colTgl: 16,
+    colWA: 20,
+    colJK: 5,
     colPekerjaan: 12, // Diabaikan di CKG Sekolah
-    colSekolah: 24,   // Pastikan index kolom ini sesuai database 
-    colKelas: 25,     // Pastikan index kolom ini sesuai database 
-    colDisabilitas: 23, // Pastikan index kolom ini sesuai database 
-    colAlamat: 11,
-    colMartial: 22,
+    colSekolah: 22,   // Pastikan index kolom ini sesuai database 
+    colKelas: 23,     // Pastikan index kolom ini sesuai database 
+    colDisabilitas: 21, // Pastikan index kolom ini sesuai database 
+    colAlamat: 9,
+    colMartial: 24,
     waStatis: true,
 }];
 
