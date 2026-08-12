@@ -268,21 +268,21 @@ async function cariData(nikInput) {
                 // Jika ketemu, return format data yang Anda inginkan
                 return {
                     nik: target,
-                    nama: cells[5] || '',
-                    sistole: cells[26] || '',
-                    diastole: cells[27] || '',
-                    bb: cells[29] || '',
-                    tb: cells[30] || '',
-                    lp: cells[32] || '',
-                    gula: cells[38] || '',
-                    mata: cells[84] || 'Tidak',
-                    skilasKog3: (cells[41] || 'Ya').trim(),
-                    skilasMob:  (cells[42] || 'Ya').trim(),
-                    skilasMal1: (cells[43] || 'Tidak').trim(),
-                    skilasMal2: (cells[44] || 'Tidak').trim(),
-                    skilasMal3: (cells[45] || 'Tidak').trim(),
-                    skilasDep1: (cells[46] || 'Tidak').trim(),
-                    skilasDep2: (cells[47] || 'Tidak').trim()
+                    nama: cells[3] || '',
+                    sistole: cells[24] || '',
+                    diastole: cells[25] || '',
+                    bb: cells[27] || '',
+                    tb: cells[28] || '',
+                    lp: cells[30] || '',
+                    gula: cells[36] || '',
+                    mata: cells[82] || 'Tidak',
+                    skilasKog3: (cells[39] || 'Ya').trim(),
+                    skilasMob:  (cells[40] || 'Ya').trim(),
+                    skilasMal1: (cells[41] || 'Tidak').trim(),
+                    skilasMal2: (cells[42] || 'Tidak').trim(),
+                    skilasMal3: (cells[43] || 'Tidak').trim(),
+                    skilasDep1: (cells[44] || 'Tidak').trim(),
+                    skilasDep2: (cells[45] || 'Tidak').trim()
                 };
             }
         }
