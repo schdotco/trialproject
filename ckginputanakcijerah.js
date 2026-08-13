@@ -602,14 +602,28 @@ async function autoContinueForm() {
     let currentId = null;
    
 
-    if (title.includes('telinga') && title.includes('mata')) {
+   if (title.includes('telinga') && title.includes('mata')) {
         currentId = 'telinga_mata';
-        // [FIX] Cek keberadaan dropdown untuk deteksi form balita vs anak
-        const pakaiDropdown = document.querySelector('.sd-dropdown, .sv-dropdown');
-        if (pakaiDropdown) {
-            await handleTelingaMataBalita(data); 
+        
+        // --- DETEKSI PINTAR (SMART DETECT) BALITA VS ANAK SEKOLAH ---
+        // Kita ambil elemen soal pertama yang muncul di layar
+        const soalPertama = document.querySelector('.sd-question, .sv-question');
+        
+        if (soalPertama) {
+            // Cek apakah di dalam wadah soal tersebut terdapat Radio Button?
+            const pakaiRadio = soalPertama.querySelector('input[type="radio"]');
+            
+            if (pakaiRadio) {
+                // Jika ADA radio button, dipastikan ini form Anak Usia Sekolah (6+ thn)
+                console.log("[INFO] Mode Anak Sekolah (Radio) terdeteksi.");
+                await handleTelingaMataAnakSekolah(data);
+            } else {
+                // Jika TIDAK ADA radio button (menggunakan dropdown), dipastikan ini form Balita
+                console.log("[INFO] Mode Balita (Dropdown) terdeteksi.");
+                await handleTelingaMataBalita(data); 
+            }
         } else {
-            await handleTelingaMataAnakSekolah(data);
+            updateStatus("Menunggu form dimuat...");
         }
     }
     else if (title.includes('pertumbuhan') || title.includes('balita dan anak')) {
