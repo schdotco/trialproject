@@ -346,17 +346,29 @@ async function isiDropdownSurveyJS(soalSelector, optionText) {
 
 async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
     let clicked = 0;
-    const items = [...document.querySelectorAll('label, .ant-radio-wrapper, .sd-item, .sv-item')];
+    const allRadios = [...document.querySelectorAll('input[type="radio"]')];
     
-    for (const el of items) {
+    for (const radio of allRadios) {
         if (clicked >= limit) break;
-        const txt = (el.innerText || '').trim().toLowerCase();
+        
+        const wrapper = radio.closest('.sd-item, .sv-item, label, .ant-radio-wrapper') || radio.parentElement;
+        const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
         const target = text.toLowerCase();
-        const isMatch = exact ? (txt === target) : txt.includes(target);
+        
+        let isMatch = false;
+        if (exact) {
+            isMatch = (txt === target);
+        } else {
+            // Anti Miss-Click: Hindari kata "ada" terbaca di dalam "tidak ada"
+            if (target === 'ada' && txt.includes('tidak')) {
+                isMatch = false;
+            } else {
+                isMatch = txt.includes(target);
+            }
+        }
         
         if (isMatch) {
-            const radio = el.querySelector('input[type="radio"]');
-            const questionContainer = el.closest('.sd-question, .sv-question, [role="radiogroup"]');
+            const questionContainer = radio.closest('.sd-question, .sv-question, [role="radiogroup"]');
             let isQuestionAnswered = false;
             
             if (questionContainer) {
@@ -364,9 +376,14 @@ async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
                 isQuestionAnswered = Array.from(allRadiosInQuestion).some(r => r.checked);
             }
 
-            if (radio && !isQuestionAnswered) {
-                triggerClick(el); // [FIX] Gunakan triggerClick pada label, bukan radio.click()
-                await sleep(500);
+            if (!isQuestionAnswered) {
+                wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                await sleep(300);
+                triggerClick(wrapper); 
+                await sleep(200);
+                triggerClick(radio); // Cadangan
+                
+                radio.checked = true;
                 radio.dispatchEvent(new Event('change', { bubbles: true }));
                 radio.dispatchEvent(new Event('input', { bubbles: true }));
                 clicked++;
@@ -435,14 +452,13 @@ async function handleTelingaMataAnakSekolah(data) {
     updateStatus('MENGISI TAHAP: TELINGA & MATA (ANAK SEKOLAH)...');
     await sleep(1000);
 
-    // Filter teks aman dari database untuk dicocokkan dengan teks ASIK
     const jawabanAnak = [
         (data.pendengaranKanan || "").toLowerCase().includes("normal") ? "normal" : "ada indikasi",
         (data.pendengaranKiri || "").toLowerCase().includes("normal") ? "normal" : "ada indikasi",
-        (data.serumenKanan || "").toLowerCase().includes("tidak") ? "tidak ada serumen" : "ada serumen",
-        (data.serumenKiri || "").toLowerCase().includes("tidak") ? "tidak ada serumen" : "ada serumen",
-        (data.infeksiKanan || "").toLowerCase().includes("tidak") ? "tidak ada infeksi" : "ada infeksi",
-        (data.infeksiKiri || "").toLowerCase().includes("tidak") ? "tidak ada infeksi" : "ada infeksi",
+        (data.serumenKanan || "").toLowerCase().includes("tidak") ? "tidak ada" : "ada serumen",
+        (data.serumenKiri || "").toLowerCase().includes("tidak") ? "tidak ada" : "ada serumen",
+        (data.infeksiKanan || "").toLowerCase().includes("tidak") ? "tidak ada" : "ada infeksi",
+        (data.infeksiKiri || "").toLowerCase().includes("tidak") ? "tidak ada" : "ada infeksi",
         (data.selaputKanan || "").toLowerCase().includes("normal") ? "normal" : "curiga",
         (data.selaputKiri || "").toLowerCase().includes("normal") ? "normal" : "curiga",
         (data.visusKanan || "").toLowerCase().includes("normal") ? "normal" : "ada indikasi",
@@ -450,7 +466,7 @@ async function handleTelingaMataAnakSekolah(data) {
         (data.kacamata || "").toLowerCase().includes("tidak") ? "tidak" : "ya"
     ];
 
-    const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question, .sd-element')].filter(q => q.offsetParent !== null);
+    const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question')].filter(q => q.offsetParent !== null);
 
     for (let i = 0; i < semuaSoal.length; i++) {
         if (i >= jawabanAnak.length) break;
@@ -460,15 +476,32 @@ async function handleTelingaMataAnakSekolah(data) {
         soal.scrollIntoView({ behavior: 'smooth', block: 'center' });
         await sleep(300);
 
-        const radioLabels = [...soal.querySelectorAll('label, .sd-item, .sv-item')];
-        for (const el of radioLabels) {
-            const txt = (el.innerText || '').trim().toLowerCase();
-            if (txt.includes(targetJawaban)) {
-                const radio = el.querySelector('input[type="radio"]');
-                if (radio && !radio.checked) {
-                    triggerClick(el); // [FIX] Klik di bungkus elemen
-                    await sleep(400);
+        const radios = [...soal.querySelectorAll('input[type="radio"]')];
+        for (const radio of radios) {
+            // Mencari wadah pembungkus teks (div .sd-item atau label)
+            const wrapper = radio.closest('.sd-item, .sv-item, label, .ant-radio-wrapper') || radio.parentElement;
+            const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
+            
+            let isMatch = false;
+            // Pengecualian logika agar kata "ada" dan "tidak ada" tidak bertabrakan
+            if (targetJawaban === 'normal') isMatch = (txt === 'normal');
+            else if (targetJawaban === 'ada indikasi') isMatch = txt.includes('ada indikasi');
+            else if (targetJawaban === 'tidak ada') isMatch = txt.includes('tidak ada');
+            else if (targetJawaban === 'ada serumen') isMatch = txt.includes('ada serumen') && !txt.includes('tidak');
+            else if (targetJawaban === 'ada infeksi') isMatch = txt.includes('ada infeksi') && !txt.includes('tidak');
+            else if (targetJawaban === 'curiga') isMatch = txt.includes('curiga');
+            else if (targetJawaban === 'ya') isMatch = (txt === 'ya');
+            else if (targetJawaban === 'tidak') isMatch = (txt === 'tidak');
+            
+            if (isMatch) {
+                if (!radio.checked) {
+                    triggerClick(wrapper); // Klik kotak visualnya
+                    await sleep(200);
+                    triggerClick(radio);   // Klik radionya untuk memastikan
+                    
+                    radio.checked = true; // Paksa input di backend agar terbaca
                     radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    radio.dispatchEvent(new Event('input', { bubbles: true }));
                 }
                 break; 
             }
@@ -602,28 +635,22 @@ async function autoContinueForm() {
     let currentId = null;
    
 
-   if (title.includes('telinga') && title.includes('mata')) {
+ if (title.includes('telinga') && title.includes('mata')) {
         currentId = 'telinga_mata';
         
-        // --- DETEKSI PINTAR (SMART DETECT) BALITA VS ANAK SEKOLAH ---
-        // Kita ambil elemen soal pertama yang muncul di layar
+        // --- DETEKSI PINTAR BALITA VS ANAK SEKOLAH ---
         const soalPertama = document.querySelector('.sd-question, .sv-question');
         
         if (soalPertama) {
-            // Cek apakah di dalam wadah soal tersebut terdapat Radio Button?
             const pakaiRadio = soalPertama.querySelector('input[type="radio"]');
             
             if (pakaiRadio) {
-                // Jika ADA radio button, dipastikan ini form Anak Usia Sekolah (6+ thn)
                 console.log("[INFO] Mode Anak Sekolah (Radio) terdeteksi.");
                 await handleTelingaMataAnakSekolah(data);
             } else {
-                // Jika TIDAK ADA radio button (menggunakan dropdown), dipastikan ini form Balita
                 console.log("[INFO] Mode Balita (Dropdown) terdeteksi.");
                 await handleTelingaMataBalita(data); 
             }
-        } else {
-            updateStatus("Menunggu form dimuat...");
         }
     }
     else if (title.includes('pertumbuhan') || title.includes('balita dan anak')) {
