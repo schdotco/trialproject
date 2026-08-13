@@ -517,89 +517,89 @@ async function handlePemeriksaanGigi(data) {
     updateStatus('MENGISI TAHAP: PEMERIKSAAN GIGI...');
     await sleep(1000);
     
-    // 1. Normalisasi teks dari database
+    // 1. Normalisasi data dari database pengguna
     let jawabanGigi = (data.gigi || '').toLowerCase().trim();
-    // Jika di database kosong, 'normal', atau 'tidak', kita ubah jadi 'tidak ada' (sesuai teks di UI)
-    if (jawabanGigi === 'normal' || jawabanGigi === 'tidak' || jawabanGigi === '') {
-        jawabanGigi = 'tidak ada'; 
+
+    // Jika di database diisi 0, -, kosong, normal, atau tidak -> ubah jadi 'tidak ada'
+    if (jawabanGigi === 'normal' || jawabanGigi === 'tidak' || jawabanGigi === '0' || jawabanGigi === '-' || jawabanGigi === '') {
+        jawabanGigi = 'tidak ada';
+    } else {
+        // Jika di database diisikan angka lebih dari 3 (misal: 4, 5, dll), paksa jadi '>3'
+        const angka = parseInt(jawabanGigi);
+        if (!isNaN(angka) && angka > 3) {
+            jawabanGigi = '>3';
+        }
     }
 
-    // Ambil semua kotak soal yang tampil di layar
-    const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question')].filter(q => q.offsetParent !== null);
+    // 2. DETEKSI RADIO BUTTON (Cari langsung se-layar, tanpa peduli kotak soalnya)
+    const radios = [...document.querySelectorAll('input[type="radio"]')];
+    
+    if (radios.length > 0) {
+        // --- JIKA HALAMAN MENGGUNAKAN RADIO BUTTON ---
+        for (const radio of radios) {
+            const wrapper = radio.closest('.sd-item, .sv-item, label, .ant-radio-wrapper') || radio.parentElement;
+            const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
 
-    for (let soal of semuaSoal) {
-        soal.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        await sleep(300);
-
-        // --- DETEKSI PINTAR: Apakah soal ini pakai Radio atau Dropdown? ---
-        const pakaiRadio = soal.querySelector('input[type="radio"]');
-        const pakaiDropdown = soal.querySelector('.sd-dropdown, .sv-dropdown');
-
-        if (pakaiRadio) {
-            // ==========================================
-            // LOGIKA JIKA MENGGUNAKAN RADIO BUTTON
-            // ==========================================
-            const radios = [...soal.querySelectorAll('input[type="radio"]')];
-            for (const radio of radios) {
-                const wrapper = radio.closest('.sd-item, .sv-item, label, .ant-radio-wrapper') || radio.parentElement;
-                const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
-
-                let isMatch = false;
-                if (jawabanGigi === 'tidak ada') {
-                    isMatch = txt.includes('tidak ada');
-                } else {
-                    // Untuk pilihan angka spesifik dari database: '1', '2', '3', atau '>3'
-                    isMatch = (txt === jawabanGigi);
-                }
-
-                if (isMatch) {
-                    if (!radio.checked) {
-                        triggerClick(wrapper); // Klik kotak visual
-                        await sleep(200);
-                        triggerClick(radio);   // Cadangan klik radio
-                        
-                        radio.checked = true; // Paksa update backend
-                        radio.dispatchEvent(new Event('change', { bubbles: true }));
-                        radio.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                    break; 
-                }
+            let isMatch = false;
+            if (jawabanGigi === 'tidak ada') {
+                isMatch = txt.includes('tidak ada');
+            } else if (jawabanGigi === '>3') {
+                isMatch = txt.includes('>3');
+            } else {
+                isMatch = (txt === jawabanGigi); // Mencari teks persis '1', '2', atau '3'
             }
-        } 
-        else if (pakaiDropdown) {
-            // ==========================================
-            // LOGIKA JIKA MENGGUNAKAN DROPDOWN
-            // ==========================================
-            const teksKotak = (pakaiDropdown.innerText || '').toLowerCase().trim();
+
+            if (isMatch) {
+                wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                await sleep(300);
+                if (!radio.checked) {
+                    triggerClick(wrapper); // Klik kotak visual
+                    await sleep(200);
+                    triggerClick(radio);   // Cadangan klik radio
+                    
+                    radio.checked = true;  // Paksa update backend web
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    radio.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                break; // Selesai klik, keluar dari pencarian
+            }
+        }
+    } 
+    else {
+        // --- JIKA HALAMAN MENGGUNAKAN DROPDOWN ---
+        const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
+        for (let pakaiDropdown of dropdowns) {
+            if (pakaiDropdown.offsetParent === null) continue; // Abaikan yang tersembunyi
             
-            // Cek dulu apakah kotaknya sudah terisi dengan jawaban yang benar (biar ga double klik)
+            pakaiDropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await sleep(300);
+
+            const teksKotak = (pakaiDropdown.innerText || '').toLowerCase().trim();
             let isAlreadyFilled = false;
+            
             if (jawabanGigi === 'tidak ada' && teksKotak.includes('tidak ada')) isAlreadyFilled = true;
+            else if (jawabanGigi === '>3' && teksKotak.includes('>3')) isAlreadyFilled = true;
             else if (teksKotak === jawabanGigi) isAlreadyFilled = true;
 
             if (!isAlreadyFilled) {
-                pakaiDropdown.click(); // Klik untuk membuka menu dropdown
+                triggerClick(pakaiDropdown); // Buka dropdown
                 await sleep(1000);
 
-                // Ambil semua pilihan yang melayang di layar
                 const allOptions = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body, .sv-list__item, .sd-list__item')]
-                    .filter(el => {
-                        const rect = el.getBoundingClientRect();
-                        return rect.width > 0 && rect.height > 0;
-                    });
-
-                // Cari pilihan yang teksnya sesuai target
+                    .filter(el => el.offsetParent !== null);
+                
                 const targetOpt = allOptions.find(el => {
                     const txt = (el.innerText || '').toLowerCase().trim();
                     if (jawabanGigi === 'tidak ada') return txt.includes('tidak ada');
+                    if (jawabanGigi === '>3') return txt.includes('>3');
                     return txt === jawabanGigi;
                 });
 
                 if (targetOpt) {
-                    targetOpt.click(); // Klik pilihannya
-                    await sleep(1200);
+                    triggerClick(targetOpt);
+                    await sleep(1000);
                 } else {
-                    pakaiDropdown.click(); // Tutup kembali jika pilihan tidak ditemukan
+                    triggerClick(pakaiDropdown); // Tutup kembali jika pilihan tidak ada
                     await sleep(500);
                 }
             }
