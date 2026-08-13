@@ -19,7 +19,7 @@ const TARGETS = [
     { id: 'kusta', txt: 'kusta' },
     { id: 'skabies', txt: 'skabies' },
     { id: 'telinga_mata', txt: 'telinga dan mata' },
-    { id: 'gigi', txt: 'hasil pemeriksaan gigi' },
+    { id: 'gigi', txt: 'pemeriksaan gigi' },
     { id: 'jasmani', txt: 'kebugaran jasmani' },
     { id: 'serumen', txt: 'serumen impaksi' },
     { id: 'infeksi', txt: 'infeksi telinga' },
