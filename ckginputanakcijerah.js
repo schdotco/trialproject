@@ -483,8 +483,11 @@ async function handleTelingaMataAnakSekolah(data) {
             const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
             
             let isMatch = false;
-            // Pengecualian logika agar kata "ada" dan "tidak ada" tidak bertabrakan
-            if (targetJawaban === 'normal') isMatch = (txt === 'normal');
+            
+            // [PERBAIKAN ADA DI SINI 👇]
+            // Menggunakan .includes() agar tulisan "Normal (visus 6/6 - 6/9)" tetap terbaca dan di-klik oleh bot.
+            if (targetJawaban === 'normal') isMatch = txt.includes('normal');
+            
             else if (targetJawaban === 'ada indikasi') isMatch = txt.includes('ada indikasi');
             else if (targetJawaban === 'tidak ada') isMatch = txt.includes('tidak ada');
             else if (targetJawaban === 'ada serumen') isMatch = txt.includes('ada serumen') && !txt.includes('tidak');
