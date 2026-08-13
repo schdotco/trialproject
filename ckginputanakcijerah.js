@@ -517,21 +517,31 @@ async function handlePemeriksaanGigi(data) {
     updateStatus('MENGISI TAHAP: PEMERIKSAAN GIGI...');
     await sleep(1000);
     
-    // 1. Normalisasi data dari database pengguna
-    let jawabanGigi = (data.gigi || '').toLowerCase().trim();
+    // Ambil data mentah dari spreadsheet
+    let rawGigi = (data.gigi || '').toLowerCase().trim();
+    let targetValue = '';
 
-    // Jika di database diisi 0, -, kosong, normal, atau tidak -> ubah jadi 'tidak ada'
-    if (jawabanGigi === 'normal' || jawabanGigi === 'tidak' || jawabanGigi === '0' || jawabanGigi === '-' || jawabanGigi === '') {
-        jawabanGigi = 'tidak ada';
+    // Ekstraksi pintar agar "3 gigi" jadi "3", ">3 gigi" jadi ">3", dsb.
+    if (rawGigi.includes('tidak') || rawGigi === '0' || rawGigi === '-' || rawGigi === '') {
+        targetValue = 'tidak ada';
+    } else if (rawGigi.includes('>')) {
+        targetValue = '>3';
     } else {
-        // Jika di database diisikan angka lebih dari 3 (misal: 4, 5, dll), paksa jadi '>3'
-        const angka = parseInt(jawabanGigi);
-        if (!isNaN(angka) && angka > 3) {
-            jawabanGigi = '>3';
+        // Ambil angka dari string (contoh: "3 gigi" diambil angkanya "3")
+        const match = rawGigi.match(/\d+/);
+        if (match) {
+            const num = parseInt(match[0]);
+            if (num > 3) {
+                targetValue = '>3';
+            } else {
+                targetValue = String(num); // Menghasilkan "1", "2", atau "3"
+            }
+        } else {
+            targetValue = 'tidak ada';
         }
     }
 
-    // 2. DETEKSI RADIO BUTTON (Cari langsung se-layar, tanpa peduli kotak soalnya)
+    // Cari Radio Button di layar
     const radios = [...document.querySelectorAll('input[type="radio"]')];
     
     if (radios.length > 0) {
@@ -541,12 +551,12 @@ async function handlePemeriksaanGigi(data) {
             const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
 
             let isMatch = false;
-            if (jawabanGigi === 'tidak ada') {
+            if (targetValue === 'tidak ada') {
                 isMatch = txt.includes('tidak ada');
-            } else if (jawabanGigi === '>3') {
+            } else if (targetValue === '>3') {
                 isMatch = txt.includes('>3');
             } else {
-                isMatch = (txt === jawabanGigi); // Mencari teks persis '1', '2', atau '3'
+                isMatch = (txt === targetValue); // Mencocokkan angka persis "1", "2", atau "3" dengan web
             }
 
             if (isMatch) {
@@ -561,7 +571,7 @@ async function handlePemeriksaanGigi(data) {
                     radio.dispatchEvent(new Event('change', { bubbles: true }));
                     radio.dispatchEvent(new Event('input', { bubbles: true }));
                 }
-                break; // Selesai klik, keluar dari pencarian
+                break; 
             }
         }
     } 
@@ -569,7 +579,7 @@ async function handlePemeriksaanGigi(data) {
         // --- JIKA HALAMAN MENGGUNAKAN DROPDOWN ---
         const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
         for (let pakaiDropdown of dropdowns) {
-            if (pakaiDropdown.offsetParent === null) continue; // Abaikan yang tersembunyi
+            if (pakaiDropdown.offsetParent === null) continue;
             
             pakaiDropdown.scrollIntoView({ behavior: 'smooth', block: 'center' });
             await sleep(300);
@@ -577,12 +587,12 @@ async function handlePemeriksaanGigi(data) {
             const teksKotak = (pakaiDropdown.innerText || '').toLowerCase().trim();
             let isAlreadyFilled = false;
             
-            if (jawabanGigi === 'tidak ada' && teksKotak.includes('tidak ada')) isAlreadyFilled = true;
-            else if (jawabanGigi === '>3' && teksKotak.includes('>3')) isAlreadyFilled = true;
-            else if (teksKotak === jawabanGigi) isAlreadyFilled = true;
+            if (targetValue === 'tidak ada' && teksKotak.includes('tidak ada')) isAlreadyFilled = true;
+            else if (targetValue === '>3' && teksKotak.includes('>3')) isAlreadyFilled = true;
+            else if (teksKotak === targetValue) isAlreadyFilled = true;
 
             if (!isAlreadyFilled) {
-                triggerClick(pakaiDropdown); // Buka dropdown
+                triggerClick(pakaiDropdown);
                 await sleep(1000);
 
                 const allOptions = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body, .sv-list__item, .sd-list__item')]
@@ -590,16 +600,16 @@ async function handlePemeriksaanGigi(data) {
                 
                 const targetOpt = allOptions.find(el => {
                     const txt = (el.innerText || '').toLowerCase().trim();
-                    if (jawabanGigi === 'tidak ada') return txt.includes('tidak ada');
-                    if (jawabanGigi === '>3') return txt.includes('>3');
-                    return txt === jawabanGigi;
+                    if (targetValue === 'tidak ada') return txt.includes('tidak ada');
+                    if (targetValue === '>3') return txt.includes('>3');
+                    return txt === targetValue;
                 });
 
                 if (targetOpt) {
                     triggerClick(targetOpt);
                     await sleep(1000);
                 } else {
-                    triggerClick(pakaiDropdown); // Tutup kembali jika pilihan tidak ada
+                    triggerClick(pakaiDropdown);
                     await sleep(500);
                 }
             }
