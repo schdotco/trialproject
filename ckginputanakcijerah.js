@@ -816,22 +816,37 @@ async function autoContinueForm() {
 ========================================================= */
 function getNextTarget(){
     const completed = getCompleted();
-    const btns = [...document.querySelectorAll('button')].filter(btn => (btn.innerText || '').toLowerCase().includes('input data'));
-    for(let btn of btns){
-        let parent = btn.parentElement;
-        for(let i=0; i<10; i++){
-            if(!parent) break;
-            const txt = (parent.innerText || '').replace(/\s+/g,' ').trim().toLowerCase();
+    
+    // [PERBAIKAN SANGAT PENTING] 
+    // Mengunci pencarian HANYA pada tombol "Input Data" yang berada di dalam tabel layer utama (memiliki ID row-FRM).
+    // Ini mencegah bot nyasar mengeklik menu skrining di sidebar.
+    const btns = [...document.querySelectorAll('div[id^="row-FRM"] button')]
+                 .filter(btn => (btn.innerText || '').toLowerCase().includes('input data'));
+                 
+    for (let btn of btns) {
+        // Fokus membaca teks HANYA di dalam satu baris (grid) yang sejajar dengan tombol tersebut
+        let rowContainer = btn.closest('.grid'); 
+        
+        // (Cadangan) Jika Kemenkes menghapus class grid, bot akan naik 4 tingkat ke kotak utamanya
+        if (!rowContainer) {
+            rowContainer = btn.parentElement;
+            for(let i=0; i<4; i++){ 
+                if(rowContainer) rowContainer = rowContainer.parentElement; 
+            }
+        }
+        
+        if (rowContainer) {
+            const txt = (rowContainer.innerText || '').replace(/\s+/g,' ').trim().toLowerCase();
             const found = TARGETS.find(t => txt.includes(t.txt));
-            if(found && !completed.includes(found.id)){
+            
+            if (found && !completed.includes(found.id)) {
                 return { btn: btn, id: found.id, title: found.txt };
-            } else if(found) break;
-            parent = parent.parentElement;
+            }
         }
     }
     return null;
 }
-
+   
 async function mainLoopCKG(data){
     updateStatus('MENCARI ANTRIAN...');
     await sleep(2000); 
