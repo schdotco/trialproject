@@ -645,7 +645,7 @@ async function mainLoop(data) {
             if (!nextItem) {
                 BOT_RUNNING = false;
                 clearBOT(); 
-                delStore('PASIEN_AKTIF');
+                delStore('PASIEN_AKTIF_CIKLAM_CIKLAM');
                 
                 updateStatus('SELESAI SEMUA TARGET.\nSilakan pilih DEWASA/ANAK.');
                 syncUI(); 
@@ -688,7 +688,7 @@ function stopBOT(){
     clearBOT(); 
     clearCompleted(); 
     delStore('LAST_USED_NIK'); 
-    delStore('PASIEN_AKTIF'); 
+    delStore('PASIEN_AKTIF_CIKLAM_CIKLAM'); 
     delStore('CKG_MODE');
     updateStatus('BOT DIHENTIKAN & NIK DIHAPUS.'); 
     showToast('Proses dibatalkan secara paksa.', 'warning');
@@ -720,7 +720,7 @@ function syncUI() {
         btnNext.style.display = 'none'; 
 
         // PRIORITAS BACA ESTAFET (LOCALSTORAGE SAJA)
-        let estafetRaw = getStore('PASIEN_AKTIF');
+        let estafetRaw = getStore('PASIEN_AKTIF_CIKLAM_CIKLAM');
         let estafetNik = '';
         if (estafetRaw) {
             try { estafetNik = JSON.parse(estafetRaw).nik || ''; } catch(e){}
@@ -840,7 +840,7 @@ function createUI(){
         if(!confirm('Anda yakin ingin pindah ke Modul INPUT DEWASA?')) return;
 
         stopBOT();
-        setStore('PASIEN_AKTIF', JSON.stringify({ nik: nik, kategori: 'dewasa' })); 
+        setStore('PASIEN_AKTIF_CIKLAM_CIKLAM', JSON.stringify({ nik: nik, kategori: 'dewasa' })); 
         setStore('CKG_MODE', 'input');
         
         updateStatus('Beralih ke Input Dewasa...'); 
@@ -853,7 +853,7 @@ function createUI(){
         if(!confirm('Anda yakin ingin pindah ke Modul INPUT ANAK?')) return;
 
         stopBOT();
-        setStore('PASIEN_AKTIF', JSON.stringify({ nik: nik, kategori: 'anak' })); 
+        setStore('PASIEN_AKTIF_CIKLAM_CIKLAM', JSON.stringify({ nik: nik, kategori: 'anak' })); 
         setStore('CKG_MODE', 'input_anak');
         
         updateStatus('Beralih ke Input Anak...'); 
@@ -883,7 +883,7 @@ setInterval(async () => {
 
         // 1. SENSOR ESTAFET DARI DAFTAR (LANGSUNG AUTO-START TANPA KLIK)
         if (isMainPage && !BOT_RUNNING && !data) {
-            let estafetRaw = getStore('PASIEN_AKTIF');
+            let estafetRaw = getStore('PASIEN_AKTIF_CIKLAM_CIKLAM');
             if (estafetRaw) {
                 try {
                     const estafet = JSON.parse(estafetRaw);
@@ -922,7 +922,7 @@ setInterval(async () => {
                         
                         if (data) {
                             saveBOT(data);
-                            delStore('PASIEN_AKTIF'); 
+                            delStore('PASIEN_AKTIF_CIKLAM'); 
                             delStore('CKG_MODE');
                             playSound('sukses');
                             updateStatus('Data siap! Skrining Otomatis dimulai...');
@@ -930,7 +930,7 @@ setInterval(async () => {
                             BOT_RUNNING = true;
                             syncUI();
                         } else {
-                            delStore('PASIEN_AKTIF');
+                            delStore('PASIEN_AKTIF_CIKLAM');
                             delStore('CKG_MODE');
                             setStore('LAST_USED_NIK', estafet.nik);
                             updateStatus('❌ Gagal Estafet:\nNIK tidak ditemukan di Sheet!');
