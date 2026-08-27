@@ -93,11 +93,21 @@ function jawabanMerokok(v){
 }
 
 /* =========================================================
-   SESSION & DYNAMIC TRACKER (100% LOCALSTORAGE)
+   [PERBAIKAN] SESSION TRACKER (CROSS-DOMAIN MEMORY)
 ========================================================= */
-function getStore(key) { return localStorage.getItem(key); }
-function setStore(key, value) { localStorage.setItem(key, value); }
-function delStore(key) { localStorage.removeItem(key); }
+// Memulihkan GM_getValue agar data NIK tidak amnesia saat pindah URL
+function getStore(key) {
+    try { return (typeof GM_getValue !== 'undefined') ? GM_getValue(key) : localStorage.getItem(key); }
+    catch(e) { return localStorage.getItem(key); }
+}
+function setStore(key, value) {
+    try { if (typeof GM_setValue !== 'undefined') GM_setValue(key, value); else localStorage.setItem(key, value); }
+    catch(e) { localStorage.setItem(key, value); }
+}
+function delStore(key) {
+    try { if (typeof GM_deleteValue !== 'undefined') GM_deleteValue(key); else localStorage.removeItem(key); }
+    catch(e) { localStorage.removeItem(key); }
+}
 
 function saveBOT(data) { 
     setStore('AUTO_SKRINING_DATA', JSON.stringify(data)); 
@@ -266,7 +276,8 @@ async function fillRadioSurveyJS(soalText, jawabanText) {
             'faktor risiko tb': ['faktor risiko tb','tuberkulosis','tb','batuk','kontak erat','kontak dengan penderita'],
             'kesehatan jiwa': ['depresi','cemas','merasa sedih','minat melakukan aktivitas'],
             'kanker leher rahim': ['kanker leher rahim','serviks','pap smear','iva'],
-            'gejala kanker paru': ['batuk dalam jangka waktu yang lama','batuk berdarah','sesak napas','nyeri dada','leher bengkak','benjolan pada leher','tidak sembuh-sembuh']
+            'gejala kanker paru': ['batuk dalam jangka waktu yang lama','batuk berdarah','sesak napas','nyeri dada','leher bengkak','benjolan pada leher','tidak sembuh-sembuh'],
+            'sedang hamil': ['sedang hamil']
         };
         const keywords = aliases[soalText] || [soalText];
         const questionNode = allElements.find(el => {
@@ -464,6 +475,11 @@ async function handleSkriningMandiri(data) {
             } else { updateStatus('Data Perkawinan Kosong!'); await sleep(1000); }
         }
 
+        // TAMBAHAN: Handle pertanyaan "Apakah Anda sedang hamil?" (Terlihat di screenshot Anda)
+        if (pageText.includes('sedang hamil') && BOT_RUNNING) { 
+            await fillRadioSurveyJS('sedang hamil', 'tidak'); 
+        }
+
         if ((pageText.includes('faktor risiko tb') || pageText.includes('tuberkulosis')) && BOT_RUNNING) {
             await fillRadioSurveyJS('faktor risiko tb', 'tidak batuk'); await fillRadioSurveyJS('faktor risiko tb', 'tidak');
         }
@@ -581,17 +597,27 @@ async function autoContinueForm(){
 
     BOT_RUNNING = true;
     updateStatus('MEMULAI PENGISIAN...');
-    await sleep(3000);
+    
+    for(let i = 0; i < 10; i++) {
+        if(!BOT_RUNNING) return;
+        if(document.querySelector('.sd-question, .sv-question, input')) break;
+        await sleep(1000);
+    }
+    await sleep(1000);
 
-    while (BOT_RUNNING && location.host.includes("form.kemkes.go.id")) {
+    while (BOT_RUNNING && location.hostname.includes("form.kemkes.go.id")) {
         try {
-            const formReady = document.querySelector('.sd-question, .sv-question, .sd-element');
-            if (!formReady) { updateStatus('Menunggu form dimuat...'); await sleep(1500); continue; }
             const pageText = document.body.innerText.toLowerCase();
 
-            if (pageText.includes('riwayat imunisasi rutin balita')) { await isiImunisasiBalita(); } 
-            else if (pageText.includes('riwayat imunisasi tetanus')) { await isiTetanusCatin(); } 
-            else { await handleSkriningMandiri(data); }
+            if (pageText.includes('riwayat imunisasi rutin balita')) { 
+                await isiImunisasiBalita(); 
+            } 
+            else if (pageText.includes('riwayat imunisasi tetanus')) { 
+                await isiTetanusCatin(); 
+            } 
+            else { 
+                await handleSkriningMandiri(data); 
+            }
         } catch(e) { 
             sendBotErrorLog("autoContinueForm_Loop", e.message || e);
             updateStatus("Melewati error, mencoba ulang..."); 
@@ -645,7 +671,7 @@ async function mainLoop(data) {
             if (!nextItem) {
                 BOT_RUNNING = false;
                 clearBOT(); 
-                delStore('PASIEN_AKTIF_CIKLAM_CIKLAM');
+                delStore('PASIEN_AKTIF_CIKLAM');
                 
                 updateStatus('SELESAI SEMUA TARGET.\nSilakan pilih DEWASA/ANAK.');
                 syncUI(); 
@@ -662,12 +688,11 @@ async function mainLoop(data) {
             for(let wait = 0; wait < 15; wait++) {
                 if(!BOT_RUNNING) break;
                 await sleep(1500);
-                if (!location.hostname.includes('sehatindonesiaku')) {
+                if (location.hostname.includes('form.kemkes.go.id')) {
                     break; 
                 }
             }
-
-            break; 
+            break;
         } catch(e) {
             sendBotErrorLog("mainLoop", e.message || e);
             await sleep(2000);
@@ -688,7 +713,7 @@ function stopBOT(){
     clearBOT(); 
     clearCompleted(); 
     delStore('LAST_USED_NIK'); 
-    delStore('PASIEN_AKTIF_CIKLAM_CIKLAM'); 
+    delStore('PASIEN_AKTIF_CIKLAM'); 
     delStore('CKG_MODE');
     updateStatus('BOT DIHENTIKAN & NIK DIHAPUS.'); 
     showToast('Proses dibatalkan secara paksa.', 'warning');
@@ -719,8 +744,7 @@ function syncUI() {
         btnStart.style.display = 'block'; 
         btnNext.style.display = 'none'; 
 
-        // PRIORITAS BACA ESTAFET (LOCALSTORAGE SAJA)
-        let estafetRaw = getStore('PASIEN_AKTIF_CIKLAM_CIKLAM');
+        let estafetRaw = getStore('PASIEN_AKTIF_CIKLAM');
         let estafetNik = '';
         if (estafetRaw) {
             try { estafetNik = JSON.parse(estafetRaw).nik || ''; } catch(e){}
@@ -749,7 +773,7 @@ function createUI(){
     if(document.getElementById('auto-ckg-ui')) return;
     const box = document.createElement('div'); box.id = 'auto-ckg-ui';
     box.innerHTML = `
-        <div id="drag-handle" title="Klik dan tahan untuk memindahkan kotak">SKRINING PADASUKA</div>
+        <div id="drag-handle" title="Klik dan tahan untuk memindahkan kotak">SKRINING CIKUTRA LAMA</div>
         <div id="bot-status">INISIALISASI...</div>
         <input id="nik-bot" placeholder="Masukkan 16 Digit NIK...">
         <div id="btn-wrap">
@@ -795,12 +819,10 @@ function createUI(){
         updateStatus('MENCARI NIK DI DATABASE LOKAL...');
         let data = await cariData(nik);
 
-        // LOGIKA PENAMBAHAN: Jika data kosong, tawarkan opsi pengisian default ("semua normal")
         if(!data) {
             const lanjutNormal = confirm(`Data NIK ${nik} tidak ditemukan di database!\n\nApakah Anda ingin melanjutkan pengisian dengan mode "SEMUA NORMAL"?\n(Jika Setuju bot akan langsung berjalan)`);
             
             if (lanjutNormal) {
-                // Memanipulasi objek data agar berisi default normal
                 data = {
                     nik: nik,
                     perkawinan: 'Belum Menikah',
@@ -840,7 +862,7 @@ function createUI(){
         if(!confirm('Anda yakin ingin pindah ke Modul INPUT DEWASA?')) return;
 
         stopBOT();
-        setStore('PASIEN_AKTIF_CIKLAM_CIKLAM', JSON.stringify({ nik: nik, kategori: 'dewasa' })); 
+        setStore('PASIEN_AKTIF_CIKLAM', JSON.stringify({ nik: nik, kategori: 'dewasa' })); 
         setStore('CKG_MODE', 'input');
         
         updateStatus('Beralih ke Input Dewasa...'); 
@@ -853,7 +875,7 @@ function createUI(){
         if(!confirm('Anda yakin ingin pindah ke Modul INPUT ANAK?')) return;
 
         stopBOT();
-        setStore('PASIEN_AKTIF_CIKLAM_CIKLAM', JSON.stringify({ nik: nik, kategori: 'anak' })); 
+        setStore('PASIEN_AKTIF_CIKLAM', JSON.stringify({ nik: nik, kategori: 'anak' })); 
         setStore('CKG_MODE', 'input_anak');
         
         updateStatus('Beralih ke Input Anak...'); 
@@ -877,13 +899,14 @@ let isDownloadingBackground = false;
 
 setInterval(async () => {
     try {
-        const isFormPage = location.hostname.includes('form.kemkes.go.id');
-        const isMainPage = location.hostname.includes('sehatindonesiaku');
+        const currentHost = window.location.hostname;
+        const isFormPage = currentHost.includes('form.kemkes.go.id');
+        const isMainPage = currentHost.includes('sehatindonesiaku');
+        
         let data = loadBOT();
 
-        // 1. SENSOR ESTAFET DARI DAFTAR (LANGSUNG AUTO-START TANPA KLIK)
         if (isMainPage && !BOT_RUNNING && !data) {
-            let estafetRaw = getStore('PASIEN_AKTIF_CIKLAM_CIKLAM');
+            let estafetRaw = getStore('PASIEN_AKTIF_CIKLAM');
             if (estafetRaw) {
                 try {
                     const estafet = JSON.parse(estafetRaw);
@@ -901,10 +924,8 @@ setInterval(async () => {
                             await cariData('000'); 
                         }
                         
-                        // Cari data berdasarkan NIK Estafet
-                        let data = await cariData(estafet.nik);
+                        data = await cariData(estafet.nik);
                         
-                        // LOGIKA PENAMBAHAN UNTUK ESTAFET
                         if (!data) {
                             const lanjutNormal = confirm(`[Jalur Estafet]\nData NIK ${estafet.nik} tidak ditemukan!\n\nApakah Anda ingin melanjutkan pengisian dengan mode "SEMUA NORMAL"?`);
                             if(lanjutNormal) {
@@ -921,7 +942,7 @@ setInterval(async () => {
                         }
                         
                         if (data) {
-                            saveBOT(data);
+                            saveBOT(data); 
                             delStore('PASIEN_AKTIF_CIKLAM'); 
                             delStore('CKG_MODE');
                             playSound('sukses');
@@ -932,7 +953,7 @@ setInterval(async () => {
                         } else {
                             delStore('PASIEN_AKTIF_CIKLAM');
                             delStore('CKG_MODE');
-                            setStore('LAST_USED_NIK', estafet.nik);
+                            setStore('LAST_USED_NIK', estafet.nik); 
                             updateStatus('❌ Gagal Estafet:\nNIK tidak ditemukan di Sheet!');
                             showToast('Proses dibatalkan pengguna.', 'error');
                             syncUI();
@@ -942,10 +963,8 @@ setInterval(async () => {
             }
         }
 
-        // 2. AUTO-START JIKA MEMORI DATA SUDAH ADA
         if (data && !BOT_RUNNING) BOT_RUNNING = true;
 
-        // 3. BACKGROUND DOWNLOAD SPREADSHEET
         if (isMainPage && !data && !cachedSheetData && !isDownloadingBackground) {
             isDownloadingBackground = true;
             cariData('000').then(() => { 
@@ -956,7 +975,6 @@ setInterval(async () => {
             }).catch(e => { isDownloadingBackground = false; });
         }
 
-        // 4. ROUTER LOOP (PENENTU JALUR EKSEKUSI)
         if (BOT_RUNNING && data && !LOOP_ACTIVE) {
             if (isFormPage) {
                 LOOP_ACTIVE = true; await autoContinueForm(); LOOP_ACTIVE = false; 
