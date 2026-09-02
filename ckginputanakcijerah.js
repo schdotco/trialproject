@@ -288,11 +288,25 @@ function triggerClick(el){
 
 function forceInject(element, value) {
     if (!element) return;
+    
+    // Deteksi pintar format desimal: 
+    // Jika input bawaan HTML5 'number', browser wajib pakai titik (.)
+    // Jika input tipe 'text' (Masking ASIK), form wajib pakai koma (,)
+    let finalValue = String(value || '');
+    if (element.type === 'number') {
+        finalValue = finalValue.replace(/,/g, '.');
+    } else {
+        finalValue = finalValue.replace(/\./g, ',');
+    }
+
     const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
-    nativeSetter.call(element, value);
+    nativeSetter.call(element, finalValue);
+    
     if (element._valueTracker) {
         element._valueTracker.setValue('');
     }
+    
+    // Memicu event agar form web sadar ada data yang masuk
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
     element.dispatchEvent(new Event('blur', { bubbles: true }));
@@ -508,6 +522,47 @@ async function handleTelingaMataAnakSekolah(data) {
                 }
                 break; 
             }
+        }
+    }
+}
+
+async function handleKebugaran(data) {
+    let targetVal = (data.kebugaran || '').trim().toLowerCase();
+    if (!targetVal) return;
+
+    // 1. Cari elemen spesifik Kebugaran berdasarkan atribut HTML Kemenkes
+    const dropdownWrap = document.querySelector('div[aria-label*="kebugaran" i]') || 
+                         document.querySelector('input[placeholder*="kebugaran" i]')?.closest('.sd-dropdown');
+    
+    if (dropdownWrap) {
+        // Klik langsung ke tag <input> agar popup list terbuka
+        const inputKlik = dropdownWrap.querySelector('input') || dropdownWrap;
+        triggerClick(inputKlik);
+        await sleep(1000); 
+
+        // 2. Ambil semua opsi list yang muncul (Baik sekali, Kurang sekali, dll)
+        const allOptions = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')].filter(el => el.offsetParent !== null);
+        
+        // 3. Pencocokan Presisi (Exact Match)
+        // Kita baca dari title="Baik sekali" agar tidak terhalang tag <span>
+        let targetOpt = allOptions.find(el => {
+            const textWeb = (el.getAttribute('title') || el.textContent || '').trim().toLowerCase();
+            return textWeb === targetVal;
+        });
+
+        // Jika pencocokan persis gagal, pakai fallback .includes()
+        if (!targetOpt) {
+            targetOpt = allOptions.find(el => {
+                const textWeb = (el.getAttribute('title') || el.textContent || '').trim().toLowerCase();
+                return textWeb.includes(targetVal);
+            });
+        }
+
+        if (targetOpt) {
+            triggerClick(targetOpt); // Klik opsi
+            await sleep(800);
+        } else {
+            triggerClick(inputKlik); // Tutup dropdown jika tidak ada kecocokan data
         }
     }
 }
@@ -787,7 +842,9 @@ async function autoContinueForm() {
     }
     else if(title.includes('kebugaran jasmani')){
         currentId = 'jasmani'; updateStatus('MENGISI TAHAP: KEBUGARAN JASMANI');
-        await isiDropdownSurveyJS('kebugaran jasmani', data.kebugaran);
+        
+        // Memakai fungsi khusus karena ada ambiguitas "Baik" & "Baik Sekali"
+        await handleKebugaran(data);
         await sleep(800);
     }
     else if(title.includes('merokok')){
