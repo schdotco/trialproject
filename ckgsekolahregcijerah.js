@@ -12,7 +12,7 @@ const SHEETS = [{
     colNama: 3,
     colTgl: 16,
     colWA: 20,
-    colJK: 5,
+    colJK: 4,
     colPekerjaan: 12, // Diabaikan di CKG Sekolah
     colSekolah: 22,   // Pastikan index kolom ini sesuai database 
     colKelas: 23,     // Pastikan index kolom ini sesuai database 
