@@ -1,3 +1,14 @@
+// ==UserScript==
+// @name         Bot ASIK CKG Anak & Remaja (Smart Fix Version)
+// @namespace    http://tampermonkey.net/
+// @version      2.1
+// @description  Otomatisasi pengisian CKG Satu Sehat dengan Bypass Cache & Deteksi Private
+// @match        *://*/* 
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_deleteValue
+// ==/UserScript==
+
 (function () {
 'use strict';
 
@@ -7,20 +18,19 @@
 const SHEET_ID = '17zbvari4OsXTKScnLnlr7x503jHIqBbT';
 const GIDS = ['977925951','264423006'];
 
-// TARGETS dibuat lebih luas agar kebal terhadap perubahan nama oleh kemenkes
 const TARGETS = [
     { id: 'gizi', txt: 'gizi anak' },
     { id: 'gizi_balita', txt: 'pertumbuhan' },
-    { id: 'tensi', txt: 'tekanan darah' }, // Lebih fleksibel menangkap "Tekanan Darah Anak dan Remaja"
+    { id: 'tensi', txt: 'tekanan darah' },
     { id: 'gula', txt: 'gula darah' },
     { id: 'tb', txt: 'x-ray tb' },
     { id: 'frambusia', txt: 'frambusia' },
     { id: 'kusta', txt: 'kusta' },
     { id: 'skabies', txt: 'skabies' },
     { id: 'telinga_mata', txt: 'telinga dan mata' },
-    { id: 'gigi', txt: 'gigi' }, // Cukup kata "gigi" untuk menangkap "Skrining Gigi" / "Pemeriksaan Gigi"
+    { id: 'gigi', txt: 'gigi' }, 
     { id: 'jasmani', txt: 'kebugaran jasmani' },
-    { id: 'merokok', txt: 'kadar co' }, // Adaptasi dengan judul baru "Pemeriksaan Kadar CO"
+    { id: 'merokok', txt: 'kadar co' }, 
     { id: 'merokok_alt', txt: 'merokok' } 
 ];
 
@@ -114,7 +124,7 @@ async function setCacheDB(key, value) {
 }
 
 /* =========================================================
-   DATA MATCHER
+   DATA MATCHER (DIPERBAIKI)
 ========================================================= */
 function parseCSV(text) {
     if (!text) return [];
@@ -148,11 +158,7 @@ function parseCSV(text) {
             current += char;
         }
     }
-
-    if (current || row.length) {
-        row.push(current);
-        rows.push(row);
-    }
+    if (current || row.length) { row.push(current); rows.push(row); }
     return rows;
 }
 
@@ -163,18 +169,17 @@ async function cariData(nikInput) {
         const target = normalizeNIK(nikInput);
         
         if (!cachedSheetData || cachedSheetData.length === 0) {
-            
             let savedCache = null;
             let cacheTime = 0;
-            const EXPIRATION_TIME = 4 * 60 * 60 * 1000;
+            
+            // [FIX 1]: Cache diturunkan drastis menjadi hanya 2 Menit (Bukan 4 Jam)
+            const EXPIRATION_TIME = 2 * 60 * 1000; 
             const now = Date.now();
 
             try {
                 savedCache = await getCacheDB('CKG_SHEET_DATA');
                 cacheTime = await getCacheDB('CKG_SHEET_TIME') || 0;
-            } catch(e) {
-                console.warn("Gagal membaca IndexedDB", e);
-            }
+            } catch(e) { console.warn("DB Error", e); }
 
             if (savedCache && savedCache.length > 0 && (now - cacheTime < EXPIRATION_TIME)) {
                 console.log('[CACHE READY] Memuat data dari IndexedDB...');
@@ -185,33 +190,33 @@ async function cariData(nikInput) {
                 cachedSheetData = [];
                 
                 for (const gid of GIDS) {
-                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+                    // [FIX 2]: Tambahkan Timestamp `&t=` agar bypass Cache Network dari Browser
+                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
                     const res = await fetch(url);
                     if (!res.ok) continue;
                     
                     const csvText = await res.text();
                     if (!csvText) continue;
                     
+                    // [FIX 3]: Proteksi jika Link Sheet tidak di set Public (Muncul Halaman Login Google)
+                    if (csvText.toLowerCase().includes('<!doctype html>') || csvText.toLowerCase().includes('<html')) {
+                        alert("🔴 ERROR AKSES GOOGLE SHEET!\n\nBot mendownload halaman HTML, bukan data.\nPastikan Google Sheet Anda di set 'Anyone with the link can view'.");
+                        return null;
+                    }
+                    
                     const rows = parseCSV(csvText);
                     if (rows && rows.length > 1) {
                         if (cachedSheetData.length === 0) {
                             cachedSheetData = rows;
                         } else {
-                            for (let i = 1; i < rows.length; i++) {
-                                cachedSheetData.push(rows[i]);
-                            }
+                            for (let i = 1; i < rows.length; i++) cachedSheetData.push(rows[i]);
                         }
                     }
                 }
                 
-                console.log('[DOWNLOAD SELESAI]', cachedSheetData.length, 'baris didapat.');
-
-                try {
+                if (cachedSheetData.length > 0) {
                     await setCacheDB('CKG_SHEET_DATA', cachedSheetData);
                     await setCacheDB('CKG_SHEET_TIME', now);
-                    console.log('[INFO] Database besar berhasil disimpan ke IndexedDB agar aman dari limit RAM.');
-                } catch(e) {
-                    console.warn("Gagal menyimpan ke IndexedDB.", e);
                 }
             }
         }
@@ -221,7 +226,9 @@ async function cariData(nikInput) {
 
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
-            if (!row || row.length < 10) continue; 
+            
+            // [FIX 4]: Melonggarkan batasan kolom (dulu < 10, sekarang < 5) agar data tidak ter-skip
+            if (!row || row.length < 5) continue; 
             
             const cells = row.map(col => String(col || '').trim());
             const foundNik = normalizeNIK(cells[0] || cells[1] || cells[2]) === target || 
@@ -259,6 +266,11 @@ async function cariData(nikInput) {
                 };
             }
         }
+        
+        // [FIX 5]: Jika NIK tidak ketemu, paksa HAPUS CACHE agar pencarian selanjutnya 100% mendownload data baru.
+        await setCacheDB('CKG_SHEET_TIME', 0);
+        cachedSheetData = null;
+        
         return null; 
     } catch (error) {
         updateStatus("ERROR JARINGAN: Cek Koneksi");
@@ -842,35 +854,27 @@ async function autoContinueForm() {
 function getNextTarget() {
     const completed = getCompleted();
     
-    // 1. Kemenkes mengubah tag `<button>` menjadi elemen `<div>` di dalam ID yang diawali row-FRM.
-    // Jadi kita seleksi semua kontainer form ID yang relevan.
     const formRows = [...document.querySelectorAll('div[id^="row-FRM"]')];
     
     for (let row of formRows) {
-        // 2. Temukan div / span yang berisi teks "Input Data" (Bisa beradaptasi jika Kemenkes ubah ke span/button)
         const allElements = [...row.querySelectorAll('*')];
         let actionBtn = allElements.find(el => {
             const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
             return (txt === 'input data' || txt === 'ubah data') && el.children.length === 0;
         });
 
-        // Fallback proteksi ekstra jika tulisan menyatu di elemen parent
         if (!actionBtn) {
             actionBtn = allElements.find(el => (el.innerText || '').trim().toLowerCase().includes('input data'));
         }
 
         if (!actionBtn) continue;
 
-        // 3. Smart Traversal: Naik ke pembungkus baris (biasanya menggunakan grid Tailwind)
-        // Kita tidak bergantung urutan ke-1, 2, atau 3. Bot otomatis membaca *sebelah* persis dari tombolnya.
         let rowContainer = row.closest('.grid') || row.closest('.border-y-solid') || row.parentElement.parentElement;
         
         if (rowContainer) {
-            // Judul layanan (misal: "Pemeriksaan Gigi - Anak") ada di class col-span-2.
             const titleCol = rowContainer.querySelector('.col-span-2') || rowContainer;
             const txt = (titleCol.innerText || '').replace(/\s+/g, ' ').trim().toLowerCase();
             
-            // Pencocokan pintar menggunakan kata kunci yang luas (menghindari case ngacak & nama direvisi Kemenkes)
             const found = TARGETS.find(t => txt.includes(t.txt));
             
             if (found && !completed.includes(found.id)) {
@@ -903,7 +907,6 @@ async function mainLoopCKG(data){
     updateStatus('MEMBUKA TARGET:\n' + nextItem.title.toUpperCase());
     await sleep(1000);
     
-    // Simulasi klik persis ke tengah tombol target walau bukan tag `<button>`
     triggerClick(nextItem.btn);
 }
 
@@ -973,7 +976,11 @@ function createUI(){
 
         updateStatus('MENGAMBIL DATA SPREADSHEET...');
         const data = await cariData(nik);
-        if(!data) return updateStatus('DATA TIDAK DITEMUKAN');
+        
+        if(!data) {
+            updateStatus('DATA TIDAK DITEMUKAN');
+            return;
+        }
 
         BOT_RUNNING = true; saveBOT(data); clearCompleted();
         updateStatus('MEMULAI BOT ANAK...');
