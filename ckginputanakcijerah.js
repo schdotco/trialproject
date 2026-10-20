@@ -1,33 +1,51 @@
+Berdasarkan potongan HTML update terbaru dari web Satu Sehat (Kemenkes) yang Anda berikan, Kemenkes melakukan perubahan signifikan pada struktur HTML-nya:
+
+Tag Berubah: Tombol aksi yang dulunya menggunakan tag <button> sekarang diubah menjadi elemen <div> biasa dengan styling menyerupai tombol (seperti <div class="... cursor-not-allowed ...">Input Data</div>).
+
+Urutan Acak: Data menu sering diacak (randomized) oleh sistem saat dirender.
+
+Struktur Grid Baru: Judul dari setiap layanan sekarang berada di dalam <div class="col-span-2 ..."> di bawah sebuah grid.
+
+Untuk membuat bot ini cerdas, pintar, dan tidak bergantung pada urutan, saya telah merombak total fungsi getNextTarget() dan mendongkrak pencocokan (matching) pada TARGETS. Bot sekarang akan melakukan scanning mandiri ke seluruh layar, mencari setiap container form, membaca nama layanannya secara spesifik di baris sebelahnya, lalu mengeklik tepat pada tulisan "Input Data" – di mana pun posisinya diacak.
+
+Berikut adalah Script Update Terbaru yang sudah disempurnakan. Anda bisa langsung Copy & Paste (Ganti Semua) script Anda yang sebelumnya:
+
+JavaScript
+// ==UserScript==
+// @name         Bot ASIK CKG Anak & Remaja (Smart Version)
+// @namespace    http://tampermonkey.net/
+// @version      2.0
+// @description  Otomatisasi pengisian CKG Satu Sehat (Adaptif terhadap UI Kemenkes baru & urutan acak)
+// @match        *://*/* 
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_deleteValue
+// ==/UserScript==
+
 (function () {
 'use strict';
 
 /* =========================================================
-   CONFIG - VERSI KHUSUS ANAK / REMAJA (FIXED TARGETS)
+   CONFIG - VERSI KHUSUS ANAK / REMAJA (SMART TARGETS)
 ========================================================= */
 const SHEET_ID = '17zbvari4OsXTKScnLnlr7x503jHIqBbT';
 const GIDS = ['977925951','264423006'];
 
-// TARGETS dioptimalkan agar ADAPTIF dan sangat presisi dengan nama menu di ASIK
-// [UPDATE]: Menambahkan koma yang tertinggal di baris akhir
+// TARGETS dibuat lebih luas agar kebal terhadap perubahan nama oleh kemenkes
 const TARGETS = [
     { id: 'gizi', txt: 'gizi anak' },
     { id: 'gizi_balita', txt: 'pertumbuhan' },
-    { id: 'tensi', txt: 'tekanan darah anak' },
-    { id: 'gula', txt: 'pemeriksaan gula darah anak' },
+    { id: 'tensi', txt: 'tekanan darah' }, // Lebih fleksibel menangkap "Tekanan Darah Anak dan Remaja"
+    { id: 'gula', txt: 'gula darah' },
     { id: 'tb', txt: 'x-ray tb' },
     { id: 'frambusia', txt: 'frambusia' },
     { id: 'kusta', txt: 'kusta' },
     { id: 'skabies', txt: 'skabies' },
     { id: 'telinga_mata', txt: 'telinga dan mata' },
-    { id: 'gigi', txt: 'pemeriksaan gigi' },
+    { id: 'gigi', txt: 'gigi' }, // Cukup kata "gigi" untuk menangkap "Skrining Gigi" / "Pemeriksaan Gigi"
     { id: 'jasmani', txt: 'kebugaran jasmani' },
-    { id: 'serumen', txt: 'serumen impaksi' },
-    { id: 'infeksi', txt: 'infeksi telinga' },
-    { id: 'selaput', txt: 'selaput mata merah' },
-    { id: 'visus', txt: 'pemeriksaan visus' },
-    { id: 'kacamata', txt: 'kacamata' },
-    { id: 'kebugaran', txt: 'kebugaran' },
-    { id: 'merokok', txt: 'merokok' }
+    { id: 'merokok', txt: 'kadar co' }, // Adaptasi dengan judul baru "Pemeriksaan Kadar CO"
+    { id: 'merokok_alt', txt: 'merokok' } 
 ];
 
 const sleep = ms => new Promise(r => setTimeout(r,ms));
@@ -245,24 +263,23 @@ async function cariData(nikInput) {
                     gula: cells[35] || '',
                     mata: cells[82] || 'Tidak',
                     
-                    // [UPDATE DINAMIS]: Pengambilan Data Skrining Telinga, Mata, Kebersihan Diri & Kebugaran
-                    gigi: cells[53] || 'Tidak',                 // CC: Pemeriksaan Gigi
-                    serumenKanan: cells[54] || 'Tidak ada',     // CD: Serumen Kanan
-                    serumenKiri: cells[55] || 'Tidak ada',      // CE: Serumen Kiri
-                    infeksiKanan: cells[56] || 'Tidak ada',     // CF: Infeksi Kanan
-                    infeksiKiri: cells[57] || 'Tidak ada',      // CG: Infeksi Kiri
-                    pendengaranKanan: cells[58] || 'Normal',    // CH: Tajam Pendengaran Kanan
-                    pendengaranKiri: cells[59] || 'Normal',     // CI: Tajam Pendengaran Kiri
-                    selaputKanan: cells[60] || 'Normal',        // CJ: Selaput Mata Merah Kanan
-                    selaputKiri: cells[61] || 'Normal',         // CK: Selaput Mata Merah Kiri
-                    visusKanan: cells[62] || 'Normal',          // CL: Visus Kanan
-                    visusKiri: cells[63] || 'Normal',           // CM: Visus Kiri
-                    kacamata: cells[64] || 'Tidak',             // CN: Penggunaan Kacamata
-                    kusta: cells[65] || 'Tidak ada',            // CO: Kusta (Bercak kulit)
-                    skabies: cells[66] || 'Tidak ada',          // CP: Skabies (Koreng/ruam)
-                    frambusia: cells[67] || 'Tidak ada',        // CQ: Frambusia (Papul/nodul)
-                    kebugaran: cells[68] || 'Baik',             // CR: Kebugaran Jasmani
-                    merokok: cells[69] || 'Tidak'               // CS: Perilaku Merokok
+                    gigi: cells[53] || 'Tidak',                 
+                    serumenKanan: cells[54] || 'Tidak ada',     
+                    serumenKiri: cells[55] || 'Tidak ada',      
+                    infeksiKanan: cells[56] || 'Tidak ada',     
+                    infeksiKiri: cells[57] || 'Tidak ada',      
+                    pendengaranKanan: cells[58] || 'Normal',    
+                    pendengaranKiri: cells[59] || 'Normal',     
+                    selaputKanan: cells[60] || 'Normal',        
+                    selaputKiri: cells[61] || 'Normal',         
+                    visusKanan: cells[62] || 'Normal',          
+                    visusKiri: cells[63] || 'Normal',           
+                    kacamata: cells[64] || 'Tidak',             
+                    kusta: cells[65] || 'Tidak ada',            
+                    skabies: cells[66] || 'Tidak ada',          
+                    frambusia: cells[67] || 'Tidak ada',        
+                    kebugaran: cells[68] || 'Baik',             
+                    merokok: cells[69] || 'Tidak'               
                 };
             }
         }
@@ -289,9 +306,6 @@ function triggerClick(el){
 function forceInject(element, value) {
     if (!element) return;
     
-    // Deteksi pintar format desimal: 
-    // Jika input bawaan HTML5 'number', browser wajib pakai titik (.)
-    // Jika input tipe 'text' (Masking ASIK), form wajib pakai koma (,)
     let finalValue = String(value || '');
     if (element.type === 'number') {
         finalValue = finalValue.replace(/,/g, '.');
@@ -306,7 +320,6 @@ function forceInject(element, value) {
         element._valueTracker.setValue('');
     }
     
-    // Memicu event agar form web sadar ada data yang masuk
     element.dispatchEvent(new Event('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
     element.dispatchEvent(new Event('blur', { bubbles: true }));
@@ -373,7 +386,6 @@ async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
         if (exact) {
             isMatch = (txt === target);
         } else {
-            // Anti Miss-Click: Hindari kata "ada" terbaca di dalam "tidak ada"
             if (target === 'ada' && txt.includes('tidak')) {
                 isMatch = false;
             } else {
@@ -395,7 +407,7 @@ async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
                 await sleep(300);
                 triggerClick(wrapper); 
                 await sleep(200);
-                triggerClick(radio); // Cadangan
+                triggerClick(radio); 
                 
                 radio.checked = true;
                 radio.dispatchEvent(new Event('change', { bubbles: true }));
@@ -410,7 +422,6 @@ async function pilihSemuaRadioLimit(text, limit = 99, exact = false) {
 /* =========================================================
    SKRINING HANDLERS
 ========================================================= */
-
 async function handleTelingaMataBalita(data) {
     updateStatus('MENGISI: SKRINING TELINGA & MATA BALITA...');
     await sleep(1000);
@@ -483,7 +494,6 @@ async function handleTelingaMataAnakSekolah(data) {
         isTidak(data.kacamata) ? "tidak" : "ya"
     ];
 
-    // Filter hanya elemen soal yang benar-benar memiliki radio button
     const semuaSoal = [...document.querySelectorAll('.sd-question, .sv-question, .sd-selectbase')]
         .filter(q => q.offsetParent !== null && q.querySelector('input[type="radio"]'));
 
@@ -530,27 +540,21 @@ async function handleKebugaran(data) {
     let targetVal = (data.kebugaran || '').trim().toLowerCase();
     if (!targetVal) return;
 
-    // 1. Cari elemen spesifik Kebugaran berdasarkan atribut HTML Kemenkes
     const dropdownWrap = document.querySelector('div[aria-label*="kebugaran" i]') || 
                          document.querySelector('input[placeholder*="kebugaran" i]')?.closest('.sd-dropdown');
     
     if (dropdownWrap) {
-        // Klik langsung ke tag <input> agar popup list terbuka
         const inputKlik = dropdownWrap.querySelector('input') || dropdownWrap;
         triggerClick(inputKlik);
         await sleep(1000); 
 
-        // 2. Ambil semua opsi list yang muncul (Baik sekali, Kurang sekali, dll)
         const allOptions = [...document.querySelectorAll('.sv-list__item-body, .sd-list__item-body')].filter(el => el.offsetParent !== null);
         
-        // 3. Pencocokan Presisi (Exact Match)
-        // Kita baca dari title="Baik sekali" agar tidak terhalang tag <span>
         let targetOpt = allOptions.find(el => {
             const textWeb = (el.getAttribute('title') || el.textContent || '').trim().toLowerCase();
             return textWeb === targetVal;
         });
 
-        // Jika pencocokan persis gagal, pakai fallback .includes()
         if (!targetOpt) {
             targetOpt = allOptions.find(el => {
                 const textWeb = (el.getAttribute('title') || el.textContent || '').trim().toLowerCase();
@@ -559,48 +563,42 @@ async function handleKebugaran(data) {
         }
 
         if (targetOpt) {
-            triggerClick(targetOpt); // Klik opsi
+            triggerClick(targetOpt); 
             await sleep(800);
         } else {
-            triggerClick(inputKlik); // Tutup dropdown jika tidak ada kecocokan data
+            triggerClick(inputKlik); 
         }
     }
 }
-
 
 async function handlePemeriksaanGigi(data) {
     updateStatus('MENGISI TAHAP: PEMERIKSAAN GIGI...');
     await sleep(1000);
     
-    // Ambil data mentah dari spreadsheet
     let rawGigi = (data.gigi || '').toLowerCase().trim();
     let targetValue = '';
 
-    // Ekstraksi pintar agar "3 gigi" jadi "3", ">3 gigi" jadi ">3", dsb.
     if (rawGigi.includes('tidak') || rawGigi === '0' || rawGigi === '-' || rawGigi === '') {
         targetValue = 'tidak ada';
     } else if (rawGigi.includes('>')) {
         targetValue = '>3';
     } else {
-        // Ambil angka dari string (contoh: "3 gigi" diambil angkanya "3")
         const match = rawGigi.match(/\d+/);
         if (match) {
             const num = parseInt(match[0]);
             if (num > 3) {
                 targetValue = '>3';
             } else {
-                targetValue = String(num); // Menghasilkan "1", "2", atau "3"
+                targetValue = String(num); 
             }
         } else {
             targetValue = 'tidak ada';
         }
     }
 
-    // Cari Radio Button di layar
     const radios = [...document.querySelectorAll('input[type="radio"]')];
     
     if (radios.length > 0) {
-        // --- JIKA HALAMAN MENGGUNAKAN RADIO BUTTON ---
         for (const radio of radios) {
             const wrapper = radio.closest('.sd-item, .sv-item, label, .ant-radio-wrapper') || radio.parentElement;
             const txt = (wrapper.innerText || wrapper.textContent || '').trim().toLowerCase();
@@ -611,18 +609,18 @@ async function handlePemeriksaanGigi(data) {
             } else if (targetValue === '>3') {
                 isMatch = txt.includes('>3');
             } else {
-                isMatch = (txt === targetValue); // Mencocokkan angka persis "1", "2", atau "3" dengan web
+                isMatch = (txt === targetValue); 
             }
 
             if (isMatch) {
                 wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 await sleep(300);
                 if (!radio.checked) {
-                    triggerClick(wrapper); // Klik kotak visual
+                    triggerClick(wrapper); 
                     await sleep(200);
-                    triggerClick(radio);   // Cadangan klik radio
+                    triggerClick(radio);   
                     
-                    radio.checked = true;  // Paksa update backend web
+                    radio.checked = true;  
                     radio.dispatchEvent(new Event('change', { bubbles: true }));
                     radio.dispatchEvent(new Event('input', { bubbles: true }));
                 }
@@ -631,7 +629,6 @@ async function handlePemeriksaanGigi(data) {
         }
     } 
     else {
-        // --- JIKA HALAMAN MENGGUNAKAN DROPDOWN ---
         const dropdowns = [...document.querySelectorAll('.sd-dropdown, .sv-dropdown')];
         for (let pakaiDropdown of dropdowns) {
             if (pakaiDropdown.offsetParent === null) continue;
@@ -760,12 +757,9 @@ async function autoContinueForm() {
     );
 
     let currentId = null;
-   
-
- if (title.includes('telinga') && title.includes('mata')) {
+    
+    if (title.includes('telinga') && title.includes('mata')) {
         currentId = 'telinga_mata';
-        
-        // --- DETEKSI PINTAR BALITA VS ANAK SEKOLAH ---
         const soalPertama = document.querySelector('.sd-question, .sv-question');
         
         if (soalPertama) {
@@ -803,14 +797,14 @@ async function autoContinueForm() {
         if (inputTB) forceInject(inputTB, data.tb); await sleep(800);
         if (inputLP) forceInject(inputLP, data.lp); await sleep(1000);
     }
-    else if(title.includes('pemeriksaan gula darah anak')){
+    else if(title.includes('gula darah')){
         currentId = 'gula'; updateStatus('MENGISI TAHAP: PEMERIKSAAN GULA DARAH ANAK');
         await pilihSemuaRadioLimit('tidak', 99, true); await sleep(800);
         const inputGula = document.querySelector('input[placeholder*="Isi sesuai hasil" i]') || realInputs[0];
         if (inputGula) forceInject(inputGula, data.gula);
         await sleep(800);
     }
-    else if(title.includes('tekanan darah anak')){
+    else if(title.includes('tekanan darah')){
         currentId = 'tensi'; updateStatus('MENGISI TAHAP: TEKANAN DARAH ANAK');
         await pilihSemuaRadioLimit('tidak', 99, true); await sleep(800);
         const inSistol = document.querySelector('input[placeholder*="Sistolik" i]') || realInputs[0];
@@ -836,19 +830,17 @@ async function autoContinueForm() {
         currentId = 'skabies'; updateStatus('MENGISI TAHAP: SKABIES');
         await selectDropdownSurveyJS(data.skabies);
     }
-    else if(title.includes('pemeriksaan gigi')){
+    else if(title.includes('gigi')){
         currentId = 'gigi'; 
         await handlePemeriksaanGigi(data);
     }
-    else if(title.includes('kebugaran jasmani')){
+    else if(title.includes('kebugaran')){
         currentId = 'jasmani'; updateStatus('MENGISI TAHAP: KEBUGARAN JASMANI');
-        
-        // Memakai fungsi khusus karena ada ambiguitas "Baik" & "Baik Sekali"
         await handleKebugaran(data);
         await sleep(800);
     }
-    else if(title.includes('merokok')){
-        currentId = 'merokok'; updateStatus('MENGISI TAHAP: MEROKOK');
+    else if(title.includes('merokok') || title.includes('kadar co')){
+        currentId = 'merokok'; updateStatus('MENGISI TAHAP: MEROKOK / KADAR CO');
         await pilihSemuaRadioLimit(data.merokok, 99, false);
         await selectDropdownSurveyJS(data.merokok);
         await sleep(800);
@@ -869,38 +861,48 @@ async function autoContinueForm() {
 }
 
 /* =========================================================
-   TRACKER ROUTER
+   TRACKER ROUTER [SMART DOM TRAVERSAL - UPDATE KEMENKES]
 ========================================================= */
-function getNextTarget(){
+function getNextTarget() {
     const completed = getCompleted();
     
-    // [PERBAIKAN SANGAT PENTING] 
-    // Mengunci pencarian HANYA pada tombol "Input Data" yang berada di dalam tabel layer utama (memiliki ID row-FRM).
-    // Ini mencegah bot nyasar mengeklik menu skrining di sidebar.
-    const btns = [...document.querySelectorAll('div[id^="row-FRM"] button')]
-                 .filter(btn => (btn.innerText || '').toLowerCase().includes('input data'));
-                 
-    for (let btn of btns) {
-        // Fokus membaca teks HANYA di dalam satu baris (grid) yang sejajar dengan tombol tersebut
-        let rowContainer = btn.closest('.grid'); 
-        
-        // (Cadangan) Jika Kemenkes menghapus class grid, bot akan naik 4 tingkat ke kotak utamanya
-        if (!rowContainer) {
-            rowContainer = btn.parentElement;
-            for(let i=0; i<4; i++){ 
-                if(rowContainer) rowContainer = rowContainer.parentElement; 
-            }
+    // 1. Kemenkes mengubah tag `<button>` menjadi elemen `<div>` di dalam ID yang diawali row-FRM.
+    // Jadi kita seleksi semua kontainer form ID yang relevan.
+    const formRows = [...document.querySelectorAll('div[id^="row-FRM"]')];
+    
+    for (let row of formRows) {
+        // 2. Temukan div / span yang berisi teks "Input Data" (Bisa beradaptasi jika Kemenkes ubah ke span/button)
+        const allElements = [...row.querySelectorAll('*')];
+        let actionBtn = allElements.find(el => {
+            const txt = (el.innerText || el.textContent || '').trim().toLowerCase();
+            return (txt === 'input data' || txt === 'ubah data') && el.children.length === 0;
+        });
+
+        // Fallback proteksi ekstra jika tulisan menyatu di elemen parent
+        if (!actionBtn) {
+            actionBtn = allElements.find(el => (el.innerText || '').trim().toLowerCase().includes('input data'));
         }
+
+        if (!actionBtn) continue;
+
+        // 3. Smart Traversal: Naik ke pembungkus baris (biasanya menggunakan grid Tailwind)
+        // Kita tidak bergantung urutan ke-1, 2, atau 3. Bot otomatis membaca *sebelah* persis dari tombolnya.
+        let rowContainer = row.closest('.grid') || row.closest('.border-y-solid') || row.parentElement.parentElement;
         
         if (rowContainer) {
-            const txt = (rowContainer.innerText || '').replace(/\s+/g,' ').trim().toLowerCase();
+            // Judul layanan (misal: "Pemeriksaan Gigi - Anak") ada di class col-span-2.
+            const titleCol = rowContainer.querySelector('.col-span-2') || rowContainer;
+            const txt = (titleCol.innerText || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            
+            // Pencocokan pintar menggunakan kata kunci yang luas (menghindari case ngacak & nama direvisi Kemenkes)
             const found = TARGETS.find(t => txt.includes(t.txt));
             
             if (found && !completed.includes(found.id)) {
-                return { btn: btn, id: found.id, title: found.txt };
+                return { btn: actionBtn, id: found.id, title: found.txt };
             }
         }
     }
+    
     return null;
 }
    
@@ -924,6 +926,8 @@ async function mainLoopCKG(data){
     
     updateStatus('MEMBUKA TARGET:\n' + nextItem.title.toUpperCase());
     await sleep(1000);
+    
+    // Simulasi klik persis ke tengah tombol target walau bukan tag `<button>`
     triggerClick(nextItem.btn);
 }
 
@@ -1018,7 +1022,7 @@ async function waitForElement(selector, timeout = 10000) {
 
 (async () => {
     const isFormPage = location.href.includes('form') || location.href.includes('form.kemkes.go.id');
-    const isReady = await waitForElement(isFormPage ? 'input' : 'button', 10000); 
+    const isReady = await waitForElement(isFormPage ? 'input' : 'div[id^="row-FRM"]', 10000); 
     
     if (isReady) {
         if(isFormPage){
@@ -1048,5 +1052,4 @@ async function waitForElement(selector, timeout = 10000) {
         updateStatus('GAGAL: Halaman lambat dimuat (Timeout)');
     }
 })();
-
 })();
