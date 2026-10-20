@@ -1,14 +1,3 @@
-// ==UserScript==
-// @name         Bot ASIK CKG Anak & Remaja (Smart Fix Version)
-// @namespace    http://tampermonkey.net/
-// @version      2.1
-// @description  Otomatisasi pengisian CKG Satu Sehat dengan Bypass Cache & Deteksi Private
-// @match        *://*/* 
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_deleteValue
-// ==/UserScript==
-
 (function () {
 'use strict';
 
