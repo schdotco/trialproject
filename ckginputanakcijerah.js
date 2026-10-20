@@ -1,27 +1,3 @@
-Berdasarkan potongan HTML update terbaru dari web Satu Sehat (Kemenkes) yang Anda berikan, Kemenkes melakukan perubahan signifikan pada struktur HTML-nya:
-
-Tag Berubah: Tombol aksi yang dulunya menggunakan tag <button> sekarang diubah menjadi elemen <div> biasa dengan styling menyerupai tombol (seperti <div class="... cursor-not-allowed ...">Input Data</div>).
-
-Urutan Acak: Data menu sering diacak (randomized) oleh sistem saat dirender.
-
-Struktur Grid Baru: Judul dari setiap layanan sekarang berada di dalam <div class="col-span-2 ..."> di bawah sebuah grid.
-
-Untuk membuat bot ini cerdas, pintar, dan tidak bergantung pada urutan, saya telah merombak total fungsi getNextTarget() dan mendongkrak pencocokan (matching) pada TARGETS. Bot sekarang akan melakukan scanning mandiri ke seluruh layar, mencari setiap container form, membaca nama layanannya secara spesifik di baris sebelahnya, lalu mengeklik tepat pada tulisan "Input Data" – di mana pun posisinya diacak.
-
-Berikut adalah Script Update Terbaru yang sudah disempurnakan. Anda bisa langsung Copy & Paste (Ganti Semua) script Anda yang sebelumnya:
-
-JavaScript
-// ==UserScript==
-// @name         Bot ASIK CKG Anak & Remaja (Smart Version)
-// @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Otomatisasi pengisian CKG Satu Sehat (Adaptif terhadap UI Kemenkes baru & urutan acak)
-// @match        *://*/* 
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_deleteValue
-// ==/UserScript==
-
 (function () {
 'use strict';
 
