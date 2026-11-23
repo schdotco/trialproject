@@ -21,7 +21,7 @@ function sendBotErrorLog(context, errorMessage) {
         };
         request({
             method: "POST",
-            url: "https://firestore.googleapis.com/v1/projects/jadwal-daily-pkm-padasuka/databases/(default)/documents/Customer/Padasuka/error_logs",
+            url: "https://firestore.googleapis.com/v1/projects/jadwal-daily-pkm-padasuka/databases/(default)/documents/Customer/Talbod/error_logs",
             headers: { "Content-Type": "application/json" },
             data: JSON.stringify(payload)
         });
@@ -89,9 +89,9 @@ function getKategoriUmur(tglLahir) {
     
 /* ================= MODE CKG UMUM ================= */
 const SHEETS = [{
-    id: "1zOX229-nq8n0-jCSTMEL1r4CVqW_hYctcpo-5pgjY_E",
-    gids: ["484052211"],
-    colNama: 5, colTgl: 8, colWA: 23, colJK: 6, colPekerjaan: 12, colKelurahan: 20, colAlamat: 17, colMartial: 13, waStatis: true
+    id: "1oj8ES4u6L6odKIy2639u9EtG2OwYr5vvQFaY3YH4dXQ",
+    gids: ["0"],
+    colNama: 7, colTgl: 21, colWA: 12, colJK: 9, colPekerjaan: 24, colKelurahan: 16, colAlamat: 13, colMartial: 26, waStatis: true
 }];
 
 let isProcessing = false;
