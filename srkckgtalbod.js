@@ -88,8 +88,8 @@
     /* =========================================================
        CONFIG SPREADSHEET
     ========================================================= */
-    const SHEET_ID = '1-We9wNftLhF2Ttd0ukfKpuK2IhM_YTg-mAeScMeDQNI';
-    const GIDS = ['1783755807', '1121908280'];
+    const SHEET_ID = '1oj8ES4u6L6odKIy2639u9EtG2OwYr5vvQFaY3YH4dXQ';
+    const GIDS = ['0'];
 
     /* =========================================================
        HELPER MAPPING JAWABAN MEROKOK & EKSTRAK NIK
@@ -462,8 +462,8 @@
                 const nikSheet = normalizeNIK(row[11]);
                 if (nikSheet === target) {
                     return {
-                        nik: target, perkawinan: row[26] || 'Belum Menikah', merokok: (row[71] || '').trim(),
-                        jiwa1: (row[72] || '').trim(), jiwa2: (row[73] || '').trim(), jiwa3: (row[74] || '').trim(), jiwa4: (row[75] || '').trim()
+                        nik: target, perkawinan: row[26] || 'Belum Menikah', merokok: (row[68] || '').trim(),
+                        jiwa1: (row[69] || '').trim(), jiwa2: (row[70] || '').trim(), jiwa3: (row[71] || '').trim(), jiwa4: (row[72] || '').trim()
                     };
                 }
             }
