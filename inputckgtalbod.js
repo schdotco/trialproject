@@ -86,8 +86,8 @@ function playSound(type) {
 /* =========================================================
    CONFIG - TARGETS DEWASA & LANSIA
 ========================================================= */
-const SHEET_ID = '1-We9wNftLhF2Ttd0ukfKpuK2IhM_YTg-mAeScMeDQNI';
-const GIDS = ['1783755807', '1121908280'];
+const SHEET_ID = '1oj8ES4u6L6odKIy2639u9EtG2OwYr5vvQFaY3YH4dXQ';
+const GIDS = ['0'];
 let BOT_RUNNING = false;
 
 const TARGETS = [
@@ -300,13 +300,13 @@ async function cariData(nikInput) {
                     nik: target, 
                     nama: cells[7] || '', 
                     tglLahir: extractedTglLahir,
-                    sistole: cells[37] || '120', diastole: cells[38] || '80',
-                    bb: cells[40] || '60', tb: cells[41] || '165', lp: cells[43] || '80', gula: cells[58] || '110',
-                    mata: cells[70] || 'Tidak', merokok: cells[71] || '', skilasKog1: (cells[78] || 'Ya').trim(),
-                    skilasKog2: (cells[79] || 'Benar semua').trim(), skilasKog3: (cells[80] || 'Ya').trim(),
-                    skilasMob:  (cells[81] || 'Ya').trim(), skilasMal1: (cells[82] || 'Tidak').trim(),
-                    skilasMal2: (cells[83] || 'Tidak').trim(), skilasMal3: (cells[84] || 'Tidak').trim(),
-                    skilasDep1: (cells[88] || 'Tidak').trim(), skilasDep2: (cells[89] || 'Tidak').trim()
+                    sistole: cells[36] || '120', diastole: cells[37] || '80',
+                    bb: cells[39] || '60', tb: cells[40] || '165', lp: cells[41] || '80', gula: cells[54] || '110',
+                    mata: cells[68] || 'Tidak', merokok: cells[69] || '', skilasKog1: (cells[74] || 'Ya').trim(),
+                    skilasKog2: (cells[75] || 'Benar semua').trim(), skilasKog3: (cells[76] || 'Ya').trim(),
+                    skilasMob:  (cells[77] || 'Ya').trim(), skilasMal1: (cells[78] || 'Tidak').trim(),
+                    skilasMal2: (cells[79] || 'Tidak').trim(), skilasMal3: (cells[80] || 'Tidak').trim(),
+                    skilasDep1: (cells[81] || 'Tidak').trim(), skilasDep2: (cells[82] || 'Tidak').trim()
                 };
             }
         }
